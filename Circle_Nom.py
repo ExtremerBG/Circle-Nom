@@ -3,22 +3,11 @@
 # Circle Nom Game
 
 # Importing modules
+from game_funcs import *
 import pygame
 import random
 import time
 import math
-import sys
-import os
-
-# Function for resource path
-def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
 
 # Pygame initialization
 pygame.init()
@@ -69,6 +58,10 @@ imagerect = player_image.get_rect()
 player_image_og = pygame.image.load(resource_path('player_image_1.png'))
 imagerect = player_image_og.get_rect()
 
+# Function for random prey image
+def rand_prey_img():
+    return random.randint(0, len(prey_images)-1)
+
 # Load prey images
 prey_image_0 = pygame.image.load(resource_path('prey_image_0.png')) # sandwitch which gives bonus points
 prey_image_1 = pygame.image.load(resource_path('prey_image_1.png'))
@@ -76,8 +69,6 @@ prey_image_2 = pygame.image.load(resource_path('prey_image_2.png'))
 prey_image_3 = pygame.image.load(resource_path('prey_image_3.png'))
 prey_image_4 = pygame.image.load(resource_path('prey_image_4.png'))
 prey_image_5 = pygame.image.load(resource_path('prey_image_5.png'))
-
-# List of prey images for random selection
 prey_images = [prey_image_0, prey_image_1, prey_image_2, prey_image_3, prey_image_4, prey_image_5]
 for image in prey_images:
     imagerect = image.get_rect()
@@ -85,7 +76,7 @@ for image in prey_images:
 # Load background image
 background_image = pygame.image.load(resource_path('background_image_1.jpg'))
 
-# Easter egg 10% chance of reversing player/prey
+# Easter egg
 easter = random.randint(1, 10)
 if easter == 10:
 
@@ -93,59 +84,6 @@ if easter == 10:
     prey_image = pygame.transform.smoothscale(player_image_og, (64, 64))
     player_image_og = player_image
     prey_images = [prey_image]
-
-# Function for random screen position
-# offset to prevent nums close to the edge
-def rand_screen_pos():
-    
-    # Screen size: width 1280 x height 720
-    # Bias for return positions
-    # 80% Chance to return closer to edge
-    # 20% chance to return closer to middle
-
-    bias_edge = random.randrange(1, 100)
-
-    # Return closer to top left
-    if bias_edge <= 20:
-        # Debug print
-        # print("TOP LEFT")
-        return random.randint(64, 448), random.randint(36, 288)
-    
-    # Return closer to bottom right
-    elif bias_edge > 20 and bias_edge <= 40:
-        # Debug print
-        # print("BOTTOM RIGHT")
-        return random.randint(832, 1216), random.randint(432, 648)
-    
-    # Return closer to bottom left
-    elif bias_edge > 40 and bias_edge <= 60:
-        # Debug print
-        # print("BOTTOM LEFT")
-        return random.randint(64, 448), random.randint(432, 648)
-    
-    # Return closer to top right
-    elif bias_edge > 60 and bias_edge <= 80:
-        # Debug print
-        # print("TOP RIGHT")
-        return random.randint(832, 1216), random.randint(36, 288)
-
-    # Return closer to center
-    else:
-        # Debug print
-        # print("CENTER")
-        return random.randint(480, 960), random.randint(270, 540)
-
-# Function for random rotation
-def rand_rotation():
-    return random.randint(0, 360)
-
-# Function for rotating image
-def image_rotate(image, angle):
-    return pygame.transform.rotate(image, angle)
-
-# Function for random prey image
-def rand_prey_img():
-    return random.randint(0, len(prey_images)-1)
 
 # Function for displaying FPS
 def fps_counter():
@@ -175,13 +113,16 @@ prey_image_index = rand_prey_img()
 is_prey_spawned = False
 
 # Is prey created
-is_prey_created = False
+is_prey_generated = False
 
 # Prey spawn timer
 spawn = 30 
 
 # Prey despawn timer
 despawn = 90
+
+# Sets inital background image
+screen.blit(background_image, (0,0))
 
 # Game Loop
 while running:
@@ -220,10 +161,10 @@ while running:
     is_prey_spawned = False
         
     # If prey is NOT spawned and NOT Created
-    if is_prey_spawned == False and is_prey_created == False and prey_spawn_counter > spawn:
+    if is_prey_spawned == False and is_prey_generated == False and prey_spawn_counter > spawn:
 
          # Sets created to True
-        is_prey_created = True
+        is_prey_generated = True
 
          # New random position for prey spawn
         prey_spawn_pos = rand_screen_pos()
@@ -241,7 +182,7 @@ while running:
         # print(f"PREY CREATED at X: {prey_spawn_pos[0]} Y: {prey_spawn_pos[1]}")
 
     # If prey is spawned maitain image for every frame
-    if is_prey_spawned == False and is_prey_created == True and prey_spawn_counter > spawn:
+    if is_prey_spawned == False and is_prey_generated == True and prey_spawn_counter > spawn:
 
         # Sets prey image
         screen.blit(image_rotate(prey_image, prey_angle), prey_spawn_pos - pygame.Vector2(prey_image.get_width() / 2, prey_image.get_height() / 2))
@@ -252,18 +193,18 @@ while running:
         # print("PREY IMAGE SET")
     
     # Despawn prey
-    if prey_spawn_counter > despawn and is_prey_spawned == True and is_prey_created == True: 
+    if prey_spawn_counter > despawn and is_prey_spawned == True and is_prey_generated == True: 
         
         # Set spawn/despawn counter to 0
         prey_spawn_counter = 0
 
         # Sets False so new prey can be generated
-        is_prey_created = False
+        is_prey_generated = False
 
         # Sets False because prey is despawned
         is_prey_spawned = False
 
-        # Remove points for missing prey
+        # Remove points if player misses prey
         if points > 0:
             points -= 1
 
@@ -271,10 +212,11 @@ while running:
         # print("PREY DESPAWNED")
 
     # Eating prey
-    if math.isclose(player_pos.x, prey_spawn_pos[0], abs_tol=eat_tolerance) and math.isclose(player_pos.y, prey_spawn_pos[1], abs_tol=eat_tolerance) and is_prey_spawned == True and is_prey_created == True:
+    if math.isclose(player_pos.x, prey_spawn_pos[0], abs_tol=eat_tolerance) and math.isclose(player_pos.y, prey_spawn_pos[1], abs_tol=eat_tolerance) and is_prey_spawned == True and is_prey_generated == True:
 
-        # Bonus size for sandwitch
+        # eats if size is less than 80
         if  prey_image_index == 0:
+            # Bonus size for sandwitch
             player_size += 40
         else:
             player_size += 20
@@ -289,12 +231,12 @@ while running:
         else:
             points += 1
 
-        # Play random sound
+        # play random sound
         eat_sounds[random.randint(0, 4)].play()
         prey_image_index = rand_prey_img()
 
         # Sets False so new prey can be generated
-        is_prey_created = False
+        is_prey_generated = False
         
         # Sets False because prey is eaten
         is_prey_spawned = False
@@ -314,21 +256,32 @@ while running:
     player_image = pygame.transform.smoothscale(player_image_og, player_scale)
     screen.blit(player_image, player_pos - pygame.Vector2(player_image.get_width() / 2, player_image.get_height() / 2))
     
-    # Debug position dots
-    # pygame.draw.circle(screen, "red", player_pos, 10) # Player draw dot
-    # pygame.draw.circle(screen, "blue", prey_spawn_pos, 5) # Prey draw dot
+    # Set True to use debug prints and dots
+    if  False:
+        # Print player position
+        print(f"player_pos X: {int(player_pos.x)} Y: {int(player_pos.y)}",end=" || ")  
 
-    # Debug FPS
-    fps_int = fps_counter()
-    if fps_int > 55:
-        fps_display = text_small.render(f'FPS: {fps_counter()}', True, (255, 255, 255))
-        screen.blit(fps_display, (1220, 695))
-    else:
-        fps_display = text_small.render(f'FPS: {fps_counter()}', True, (255, 0, 0))
-        screen.blit(fps_display, (1220, 695))
+        # Print prey position  
+        print(f"prey_pos X: {prey_spawn_pos[0]} Y: {prey_spawn_pos[1]}",end=" || ")
 
-    # Debug variables
-    # print(f"[DEBUG] Player Pos-> X: {player_pos.x:1f}, Y: {player_pos.y:1f}, Prey Pos-> X: {prey_spawn_pos[0]:1f}, Y: {prey_spawn_pos[1]:1f}, Prey Counter: {prey_spawn_counter:1f}, Is_Prey_Spawned: {is_prey_spawned}, Abs Tol: {eat_tolerance:1f}, Player Size: {player_size:1f}")
+        # Print prey spawn counter
+        print(f"prey_spawn_counter: {prey_spawn_counter}",end=" || ")
+
+        # Print if prey is generated (new position, image, rotation)
+        print(f"is_prey_generated: {is_prey_generated}",end=" || ")
+
+        # Print if prey is spawned (visible on screen)
+        print(f"is_prey_spawned: {is_prey_spawned}",end=" || ")
+
+        # Print eat tolerance (range for eating prey)
+        print(f"eat_tolerance: {int(eat_tolerance)}",end=" || ")
+
+        # Print player_size
+        print(f"player_size: {int(player_size)}")
+
+        # Debug position dots
+        pygame.draw.circle(screen, "red", player_pos, eat_tolerance) # Player eat range dot
+        pygame.draw.circle(screen, "blue", prey_spawn_pos, 5) # Prey draw dot
 
     # Points text
     points_text = text.render(f'Points: {points}', True, (255, 255, 255))
@@ -338,6 +291,15 @@ while running:
     if player_size < 50:
         circle_big = text.render('Eat more!', True, (255, 255, 255))
         screen.blit(circle_big, (1140, 10))
+
+    # FPS Counter
+    fps_int = fps_counter()
+    if fps_int > 55:
+        fps_display = text_small.render(f'FPS: {fps_counter()}', True, (255, 255, 255))
+        screen.blit(fps_display, (1220, 695))
+    else:
+        fps_display = text_small.render(f'FPS: {fps_counter()}', True, (255, 0, 0))
+        screen.blit(fps_display, (1220, 695))
 
     # Game over
     if player_size < 20:
