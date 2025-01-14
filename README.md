@@ -12,5 +12,3 @@ Move the character with W, A, S, D buttons on your keyboard.
 
 GOAL:
 Score as many points as you can by eating randomly spawned food.
-
-Enjoy!
