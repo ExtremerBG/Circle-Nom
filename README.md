@@ -16,7 +16,7 @@ Score as many points as you can by eating randomly spawned food.
 
 CREDITS:
 ------------------------------------------------------------------------------------------------------------
-Icons for food: 
+Icons for the food: 
 <a href="https://www.flaticon.com/free-icons/kale" title="kale icons">Kale icons created by AomAm - Flaticon</a>
 <br>
 <a href="https://www.flaticon.com/free-icons/sandwich" title="sandwich icons">Sandwich icons created by Freepik - Flaticon</a>
