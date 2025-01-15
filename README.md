@@ -2,9 +2,9 @@
 To run the source code you must open the folder with your IDE of choice.
 If you dont have pygame library installed, the game won't work. Install it with pip install pygame.
 The game can also be ran with the executable, found in Releases, or you can make your own by running the
-.spec file with pyinstaller. Please be advised that both executables, those being the one in .EXE folder 
-or yours, if you choose to compile one, will NOT have a digital signature! For that reason, I believe 
-some of the antivirus programs will flag the executable as a malicious file and will often delete it.
+.spec file with pyinstaller. Please be advised that both executables, those being the one in releases 
+or yours, if you choose to compile one, will NOT have a digital signature! For that reason, some of the 
+antivirus programs will flag the executable as a malicious file and will often delete it.
 
 ## CONTROLS:
 Move the character with W, A, S, D buttons on your keyboard. 
