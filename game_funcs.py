@@ -3,9 +3,6 @@ import random
 import sys
 import os
 
-pygame.init()
-clock = pygame.time.Clock()
-
 # Function for resource path
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """

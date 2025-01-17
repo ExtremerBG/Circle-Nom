@@ -24,7 +24,7 @@ clock = pygame.time.Clock()
 # Game loop
 running = True
 
-# Player position
+# Delta time
 dt = 0
 
 # Spawn position at center of screen
@@ -36,22 +36,32 @@ text = pygame.font.SysFont('Comic Sans MS', 30)
 text_big = pygame.font.SysFont('Comic Sans MS', 60)
 text_small = pygame.font.SysFont('Comic Sans MS', 15)
 
-# Sound setup
+# SFX setup
 pygame.mixer.init()
 eat_sound1 = pygame.mixer.Sound(resource_path('sounds/nom_1.wav'))
 eat_sound2 = pygame.mixer.Sound(resource_path('sounds/nom_2.wav'))
 eat_sound3 = pygame.mixer.Sound(resource_path('sounds/nom_3.wav'))
 eat_sound4 = pygame.mixer.Sound(resource_path('sounds/nom_4.wav'))
 eat_sound5 = pygame.mixer.Sound(resource_path('sounds/nom_5.wav'))
-theme_song = pygame.mixer.Sound(resource_path('sounds/theme_song.wav'))
 
 # List of eat sounds for random selection
 eat_sounds = [eat_sound1, eat_sound2, eat_sound3, eat_sound4, eat_sound5]
 
-# Play theme song, set volume and get length of song
-theme_song.play()
-theme_song.set_volume(0.4)
+# Theme song setup
+theme_song_1 = pygame.mixer.Sound(resource_path('sounds/theme_song_1.wav'))
+theme_song_2 = pygame.mixer.Sound(resource_path('sounds/theme_song_2.wav'))
+theme_song_3 = pygame.mixer.Sound(resource_path('sounds/theme_song_3.wav'))
+theme_song_4 = pygame.mixer.Sound(resource_path('sounds/theme_song_4.wav'))
+theme_song_5 = pygame.mixer.Sound(resource_path('sounds/theme_song_5.wav'))
+
+# List of theme songs
+theme_songs = [theme_song_1, theme_song_2, theme_song_3, theme_song_4, theme_song_5]
+
+# Play random theme song from list, set volume and get length of song
+theme_song = theme_songs[random.randint(0, 4)]
 theme_lenght = theme_song.get_length()
+theme_song.set_volume(0.4)
+theme_song.play()
 
 # Load Player images
 player_image = pygame.image.load(resource_path('images/player_image_1.png'))
@@ -84,8 +94,16 @@ prey_images = [
 for image in prey_images:
     imagerect = image.get_rect()
 
-# Load background image
-background_image = pygame.image.load(resource_path('images/background_image_1.jpg'))
+# Load background images
+background_image_1 = pygame.image.load(resource_path('images/background_image_1.jpg'))
+background_image_2 = pygame.image.load(resource_path('images/background_image_2.jpg'))
+background_image_3 = pygame.image.load(resource_path('images/background_image_3.jpg'))
+
+# List of backgrounds for random selection
+background_images = [background_image_1, background_image_2, background_image_3]
+
+# Selection fro background list
+background_image = background_images[random.randint(0, 2)]
 
 # Function for random prey image
 def rand_prey_img():
@@ -149,7 +167,7 @@ while running:
 
     # Theme song counter
     # Removes 1 per second based on the game's FPS
-    theme_lenght -= 0.01667
+    theme_lenght -= 0.0168
 
     # Debug print
     # print(theme_lenght)
@@ -157,22 +175,19 @@ while running:
     # Eating tolerance
     eat_tolerance = player_size * 1.75
 
-    # When theme_length is less than 0, play theme song again
+    # When theme_length is less than 0, 
+    # select a random song from list, set volume and play
     if theme_lenght <= 0:
+        theme_song = theme_songs[random.randint(0, 4)]
+        theme_song.set_volume(0.4)
         theme_song.play()
 
         # Reset theme_lenght
         theme_lenght = theme_song.get_length()
 
-    # poll for events
-    # pygame.QUIT event means the user clicked X to close the window
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
     # fill the screen with background image to wipe away anything from last frame
     # screen.fill("black")
-    screen.blit(background_image, (0,0))
+    screen.blit(background_image, (0, 0))
 
     # Background draws over prey, so it must be drawn again
     is_prey_spawned = False
@@ -255,8 +270,8 @@ while running:
             player_size += 20
 
         # Check if player is getting too big
-        if player_size > 90:
-            player_size = 90
+        if player_size > 100:
+            player_size = 100
 
         if prey_image_index == 0 and easter == False:
 
@@ -350,6 +365,13 @@ while running:
         game_over = text_big.render('Game Over!', True, (255, 255, 255))
         screen.blit(game_over, (screen.get_width() / 2 - 160, screen.get_height() / 2 - 45))
         running = False
+
+     # pygame.QUIT event means the user clicked X to close the window
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            game_over = text_big.render('Game Over!', True, (255, 255, 255))
+            screen.blit(game_over, (screen.get_width() / 2 - 160, screen.get_height() / 2 - 45))
+            running = False
 
     # Controls for Player
     keys = pygame.key.get_pressed()
