@@ -7,15 +7,14 @@ from game_funcs import *
 from time import sleep
 import pygame
 import gif_pygame
-import random
-import math
+from math import isclose
 
 # Pygame initialization
 pygame.init()
 
 # Screen size, title and icon
 screen = pygame.display.set_mode((1280, 720))
-pygame.display.set_caption("Emko's Circle Nom Game")
+pygame.display.set_caption("Circle Nom")
 pygame.display.set_icon(pygame.image.load(resource_path('images/icon.ico')))
 
 # Clock for framerate
@@ -44,8 +43,9 @@ eat_sound3 = pygame.mixer.Sound(resource_path('sounds/nom_3.wav'))
 eat_sound4 = pygame.mixer.Sound(resource_path('sounds/nom_4.wav'))
 eat_sound5 = pygame.mixer.Sound(resource_path('sounds/nom_5.wav'))
 
-# List of eat sounds for random selection
+# List of eat sounds for random selection + lenght
 eat_sounds = [eat_sound1, eat_sound2, eat_sound3, eat_sound4, eat_sound5]
+len_eat_sounds = len(eat_sounds)
 
 # Theme song setup
 theme_song_1 = pygame.mixer.Sound(resource_path('sounds/theme_song_1.wav'))
@@ -54,24 +54,50 @@ theme_song_3 = pygame.mixer.Sound(resource_path('sounds/theme_song_3.wav'))
 theme_song_4 = pygame.mixer.Sound(resource_path('sounds/theme_song_4.wav'))
 theme_song_5 = pygame.mixer.Sound(resource_path('sounds/theme_song_5.wav'))
 
-# List of theme songs
+# List of theme songs + lenght
 theme_songs = [theme_song_1, theme_song_2, theme_song_3, theme_song_4, theme_song_5]
+len_theme_songs = len(theme_songs)
 
 # Play random theme song from list, set volume and get length of song
-theme_song = theme_songs[random.randint(0, 4)]
+theme_song = theme_songs[rand_num(len_theme_songs)]
 theme_lenght = theme_song.get_length()
 theme_song.set_volume(0.4)
 theme_song.play()
 
 # Load Player images
-player_image = pygame.image.load(resource_path('images/player_image_1.png'))
-imagerect = player_image.get_rect()
-player_image_og = pygame.image.load(resource_path('images/player_image_1.png'))
-imagerect = player_image_og.get_rect()
+player_image_1 = pygame.image.load(resource_path('images/player_image_1.png'))
+player_image_2 = pygame.image.load(resource_path('images/player_image_2.png'))
+player_image_3 = pygame.image.load(resource_path('images/player_image_3.png'))
+
+# Load dead Player images
+player_image_1_dead = pygame.image.load(resource_path('images/player_image_1_dead.png'))
+player_image_2_dead = pygame.image.load(resource_path('images/player_image_2_dead.png'))
+player_image_3_dead = pygame.image.load(resource_path('images/player_image_3_dead.png'))
+
+# Make lists of both
+player_images = [player_image_1, player_image_2, player_image_3]
+player_images_dead = [player_image_1_dead, player_image_2_dead, player_image_3_dead]
+
+# Get lenght of both
+len_player_images = len(player_images)
+len_player_images_dead = len(player_images_dead)
+
+# Print warning message if lengths of player lists are different
+if len_player_images != len_player_images_dead:
+    for i in range(10):
+        print("PLAYER IMAGES LISTS DIFFERENT LENGHTS!!!")
+
+# Get random Player image and random dead Player image
+rand_player_image_index = rand_num(len_player_images)
+player_image = player_images[rand_player_image_index]
+player_image_dead = player_images_dead[rand_player_image_index]
+
+# Store backup Player image, so no loss of quality occurs with pygame.transform
+player_image_og = player_image
 
 # Load prey images
-# prey_image_0 = pygame.image.load(resource_path('images/prey_image_0.png')) # sandwitch which gives bonus points
-# prey_image_0 is now prey_glowing_sandwitch, when prey_image_index = 0, game loads it instead
+# prey_image_0 = pygame.image.load(resource_path('images/prey_image_0.png')) # sandwich which gives bonus points
+# prey_image_0 is now prey_glowing_sandwich, when prey_image_index = 0, game loads it instead
 prey_image_1 = pygame.image.load(resource_path('images/prey_image_1.png'))
 prey_image_2 = pygame.image.load(resource_path('images/prey_image_2.png'))
 prey_image_3 = pygame.image.load(resource_path('images/prey_image_3.png'))
@@ -83,31 +109,27 @@ prey_image_8 = pygame.image.load(resource_path('images/prey_image_8.png'))
 prey_image_9 = pygame.image.load(resource_path('images/prey_image_9.png'))
 prey_image_10 = pygame.image.load(resource_path('images/prey_image_10.png'))
 
-# Glowing sandwitch load
-prey_glowing_sandwitch = gif_pygame.load(resource_path('images/glowing_sandwitch.png'))
+# APNG Glowing sandwich prey load - Uses gif_pygame !
+prey_glowing_sandwich = gif_pygame.load(resource_path('images/glowing_sandwich.png'))
 
-# List of prey images for random selection
+# List of prey images from pygame ONLY
 prey_images = [
     prey_image_1, prey_image_2, prey_image_3, prey_image_4, prey_image_5,
     prey_image_6, prey_image_7, prey_image_8, prey_image_9, prey_image_10
 ]
-for image in prey_images:
-    imagerect = image.get_rect()
+len_prey_images = len(prey_images)
 
 # Load background images
 background_image_1 = pygame.image.load(resource_path('images/background_image_1.jpg'))
 background_image_2 = pygame.image.load(resource_path('images/background_image_2.jpg'))
 background_image_3 = pygame.image.load(resource_path('images/background_image_3.jpg'))
 
-# List of backgrounds for random selection
+# List of backgrounds for random selection + lenght
 background_images = [background_image_1, background_image_2, background_image_3]
+len_background_images = len(background_images)
 
-# Selection fro background list
-background_image = background_images[random.randint(0, 2)]
-
-# Function for random prey image
-def rand_prey_img():
-    return random.randint(0, len(prey_images)-1)
+# Selection from background list
+background_image = background_images[rand_num(len_background_images)]
 
 # Function for displaying FPS
 def fps_counter():
@@ -115,15 +137,33 @@ def fps_counter():
     return fps
 
 # Easter egg 10% chance of reversing player/prey
-easter = random.randint(1, 10)
-if easter == 10:
+easter = rand_num(10)
+if easter == 9:
+    
     easter = True
-    player_image = prey_images[random.randint(0, len(prey_images)-1)]
-    prey_image = pygame.transform.smoothscale(player_image_og, (64, 64))
+    # Sets player image to random prey image
+    player_image = prey_images[rand_num(len_prey_images)]
+
+    # Creates backup for pygame.transform
     player_image_og = player_image
-    prey_images = [prey_image]
+
+    # Sets player dead image to be the same as player image
+    player_image_dead = player_image
+
+    # Resets prey list
+    prey_images = []
+
+    # Resize and add player images to prey list
+    for player_image in player_images:
+        
+        prey_image = pygame.transform.smoothscale(player_image, (64, 64))
+        prey_images.append(prey_image)
+
 else:
     easter = False
+
+# Set len of prey images again after easter.
+len_prey_images = len(prey_images)
 
 # Initial Player circle size
 player_size = 90
@@ -139,10 +179,10 @@ points = 0
 prey_spawn_pos = rand_screen_pos()
 
 # Inital prey rotation int
-prey_angle = rand_rotation()
+prey_angle = rand_num(360)
 
 # Initial prey image
-prey_image_index = rand_prey_img()
+prey_image_index = rand_num(len_prey_images)
 
 # Is prey spawned
 is_prey_spawned = False
@@ -159,6 +199,9 @@ despawn = 90
 # Eat text boolean
 eat_text = False
 
+# Player speed multiplier
+player_speed = 10
+
 # Game Loop
 while running:
 
@@ -167,7 +210,7 @@ while running:
 
     # Theme song counter
     # Removes 1 per second based on the game's FPS
-    theme_lenght -= 0.0168
+    theme_lenght -= 0.0169
 
     # Debug print
     # print(theme_lenght)
@@ -178,7 +221,7 @@ while running:
     # When theme_length is less than 0, 
     # select a random song from list, set volume and play
     if theme_lenght <= 0:
-        theme_song = theme_songs[random.randint(0, 4)]
+        theme_song = theme_songs[rand_num(len_theme_songs)]
         theme_song.set_volume(0.4)
         theme_song.play()
 
@@ -202,10 +245,10 @@ while running:
         prey_spawn_pos = rand_screen_pos()
 
         # New random rotation for prey spawn
-        prey_angle = rand_rotation()
+        prey_angle = rand_num(360)
 
         # New random prey image index
-        prey_image_index = rand_prey_img()
+        prey_image_index = rand_num(len_prey_images)
             
         # Selects prey_image
         prey_image = prey_images[prey_image_index]
@@ -225,8 +268,8 @@ while running:
 
         elif prey_image_index == 0 and easter == False:
 
-            # Render sandwitch
-            prey_glowing_sandwitch.render(screen, prey_spawn_pos - pygame.Vector2(prey_glowing_sandwitch.get_width() / 2, prey_glowing_sandwitch.get_height() / 2))
+            # Render sandwich
+            prey_glowing_sandwich.render(screen, prey_spawn_pos - pygame.Vector2(prey_glowing_sandwich.get_width() / 2, prey_glowing_sandwich.get_height() / 2))
         else:
 
             # If easter mode is active, render player as prey
@@ -261,27 +304,38 @@ while running:
         # print("PREY DESPAWNED")
 
     # Eating prey
-    if math.isclose(player_pos.x, prey_spawn_pos[0], abs_tol=eat_tolerance) and math.isclose(player_pos.y, prey_spawn_pos[1], abs_tol=eat_tolerance) and is_prey_spawned == True and is_prey_generated == True:
+    if isclose(player_pos.x, prey_spawn_pos[0], abs_tol=eat_tolerance) and isclose(player_pos.y, prey_spawn_pos[1], abs_tol=eat_tolerance) and is_prey_spawned == True and is_prey_generated == True:
 
-        # Bonus size for sandwitch
-        if  prey_image_index == 0:
-            player_size += 40
+        if easter == False:
+            # Bonus size & speed for sandwich.
+            if prey_image_index == 0:
+                player_size += 40
+                player_speed += 20
+            else:
+                player_size += 20
+
+            # bonus points for sandwich
+            if prey_image_index == 0:
+                points += 5
+            else:
+                points += 1
+
+        # Different size/speed/points if easter is on
         else:
-            player_size += 20
+            player_size += 15
+            player_speed += 8
+            points += 2
 
         # Check if player is getting too big
         if player_size > 100:
             player_size = 100
 
-        if prey_image_index == 0 and easter == False:
-
-            # bonus points for sandwitch
-            points += 5
-        else:
-            points += 1
+        # Check if player is getting too fast
+        if player_speed > 30:
+            player_speed = 30
 
         # Play random sound
-        eat_sounds[random.randint(0, 4)].play()
+        eat_sounds[rand_num(len_eat_sounds)].play()
 
         # Sets False so new prey can be generated
         is_prey_generated = False
@@ -302,6 +356,10 @@ while running:
     player_size -= 0.24
     player_scale[0] = player_size * 3
     player_scale[1] = player_size * 3
+
+    # Player speed decrease
+    if player_speed > 10:
+        player_speed -= 0.1
     
     # Draw Player
     player_image = pygame.transform.smoothscale(player_image_og, player_scale)
@@ -318,7 +376,7 @@ while running:
     # Set True to use debug prints and dots
     if  False:
         # Print player position
-        print(f"player_pos X: {int(player_pos.x)} Y: {int(player_pos.y)}",end=" || ")  
+        print(f"player_pos X: {player_pos.x:.2f} Y: {player_pos.y:.2f}",end=" || ")  
 
         # Print prey position  
         print(f"prey_pos X: {prey_spawn_pos[0]} Y: {prey_spawn_pos[1]}",end=" || ")
@@ -333,13 +391,16 @@ while running:
         print(f"is_prey_spawned: {is_prey_spawned}",end=" || ")
 
         # Print eat tolerance (range for eating prey)
-        print(f"eat_tolerance: {int(eat_tolerance)}",end=" || ")
+        print(f"eat_tolerance: {eat_tolerance:.2f}",end=" || ")
 
         # Print player_size
-        print(f"player_size: {int(player_size)}")
+        print(f"player_size: {player_size:.2f}", end=" || ")
+
+        # Print player speed multiplier
+        print(f"player_speed: {player_speed:.2f}")
 
         # Debug position dots
-        pygame.draw.circle(screen, "red", player_pos, eat_tolerance) # Player eat range dot
+        pygame.draw.circle(screen, "red", player_pos, 10) # Player eat range dot
         pygame.draw.circle(screen, "blue", prey_spawn_pos, 5) # Prey draw dot
 
     # FPS Counter
@@ -356,33 +417,49 @@ while running:
     screen.blit(points_text, (10, 10))
 
     # Losing Calories message
-    if player_size < 50:
+    if player_size < 60:
         circle_big = text.render('Eat more!', True, (255, 255, 255))
         screen.blit(circle_big, (1140, 10))
 
     # Game over
     if player_size < 25:
+
+        # Change player pic to the dead one
+        player_image_dead = pygame.transform.smoothscale(player_image_dead, player_scale)
+        screen.blit(player_image_dead, player_pos - pygame.Vector2(player_image.get_width() / 2, player_image.get_height() / 2))
+
+        # Display Game Over text
         game_over = text_big.render('Game Over!', True, (255, 255, 255))
         screen.blit(game_over, (screen.get_width() / 2 - 160, screen.get_height() / 2 - 45))
+
+        # Break game loop
         running = False
 
      # pygame.QUIT event means the user clicked X to close the window
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+
+            # Change player pic to the dead one
+            player_image_dead = pygame.transform.smoothscale(player_image_dead, player_scale)
+            screen.blit(player_image_dead, player_pos - pygame.Vector2(player_image.get_width() / 2, player_image.get_height() / 2))
+
+            # Display Game Over text
             game_over = text_big.render('Game Over!', True, (255, 255, 255))
             screen.blit(game_over, (screen.get_width() / 2 - 160, screen.get_height() / 2 - 45))
+
+            # Break game loop
             running = False
 
     # Controls for Player
     keys = pygame.key.get_pressed()
     if keys[pygame.K_w] and player_pos.x < screen.get_width():
-        player_pos.y -= (3000 / player_size * 10) * dt
+        player_pos.y -= ((3000 / player_size) * player_speed) * dt
     if keys[pygame.K_s] and player_pos.x < screen.get_width():
-        player_pos.y += (3000 / player_size * 10) * dt
+        player_pos.y += ((3000 / player_size) * player_speed) * dt
     if keys[pygame.K_a] and player_pos.x < screen.get_width():
-        player_pos.x -= (3000 / player_size * 10) * dt
+        player_pos.x -= ((3000 / player_size) * player_speed) * dt
     if keys[pygame.K_d] and player_pos.x < screen.get_width():
-        player_pos.x += (3000 / player_size * 10) * dt
+        player_pos.x += ((3000 / player_size) * player_speed) * dt
     
     # If player position is at the screen bounds, set it to the edge - 1, to limit going off screen
     if player_pos.x >= screen.get_width():
