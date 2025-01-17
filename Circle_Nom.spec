@@ -31,12 +31,7 @@ a = Analysis(
         ('images/prey_image_8.png', 'images'),
         ('images/prey_image_9.png', 'images'),
         ('images/prey_image_10.png', 'images'),
-        ('images/player_image_1.png', 'images'),
-        ('images/player_image_2.png', 'images'),
-        ('images/player_image_3.png', 'images'),
-        ('images/player_image_1_dead.png', 'images'),
-        ('images/player_image_2_dead.png', 'images'),
-        ('images/player_image_3_dead.png', 'images'),
+        ('images/player_image_1.png', 'images')
     ],
     hiddenimports=['pygame', 'gif_pygame', 'random', 'time', 'math', 'sys', 'os', 'game_funcs'],
     hookspath=[],
