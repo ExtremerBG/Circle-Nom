@@ -3,5 +3,4 @@ dist/
 build/
 images/Sandwitch_PNGS/
 sounds/OLD.zip
-.gitignore
 test.py
