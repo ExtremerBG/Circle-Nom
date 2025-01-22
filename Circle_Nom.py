@@ -26,9 +26,6 @@ running = True
 # Delta time
 dt = 0
 
-# Spawn position at center of screen
-player_pos = pygame.Vector2(screen.get_width() / 2 - 128, screen.get_height() / 2 - 128)
-
 # Font setup
 pygame.font.init()
 text = pygame.font.SysFont('Comic Sans MS', 30)
@@ -37,25 +34,25 @@ text_small = pygame.font.SysFont('Comic Sans MS', 15)
 
 # SFX setup
 pygame.mixer.init()
-eat_sound1 = pygame.mixer.Sound(resource_path('sounds/nom_1.wav'))
-eat_sound2 = pygame.mixer.Sound(resource_path('sounds/nom_2.wav'))
-eat_sound3 = pygame.mixer.Sound(resource_path('sounds/nom_3.wav'))
-eat_sound4 = pygame.mixer.Sound(resource_path('sounds/nom_4.wav'))
-eat_sound5 = pygame.mixer.Sound(resource_path('sounds/nom_5.wav'))
+_eat_sound1 = pygame.mixer.Sound(resource_path('sounds/nom_1.wav'))
+_eat_sound2 = pygame.mixer.Sound(resource_path('sounds/nom_2.wav'))
+_eat_sound3 = pygame.mixer.Sound(resource_path('sounds/nom_3.wav'))
+_eat_sound4 = pygame.mixer.Sound(resource_path('sounds/nom_4.wav'))
+_eat_sound5 = pygame.mixer.Sound(resource_path('sounds/nom_5.wav'))
 
 # List of eat sounds for random selection + lenght
-eat_sounds = [eat_sound1, eat_sound2, eat_sound3, eat_sound4, eat_sound5]
+eat_sounds = [_eat_sound1, _eat_sound2, _eat_sound3, _eat_sound4, _eat_sound5]
 len_eat_sounds = len(eat_sounds)
 
 # Theme song setup
-theme_song_1 = pygame.mixer.Sound(resource_path('sounds/theme_song_1.wav'))
-theme_song_2 = pygame.mixer.Sound(resource_path('sounds/theme_song_2.wav'))
-theme_song_3 = pygame.mixer.Sound(resource_path('sounds/theme_song_3.wav'))
-theme_song_4 = pygame.mixer.Sound(resource_path('sounds/theme_song_4.wav'))
-theme_song_5 = pygame.mixer.Sound(resource_path('sounds/theme_song_5.wav'))
+_theme_song_1 = pygame.mixer.Sound(resource_path('sounds/theme_song_1.wav'))
+_theme_song_2 = pygame.mixer.Sound(resource_path('sounds/theme_song_2.wav'))
+_theme_song_3 = pygame.mixer.Sound(resource_path('sounds/theme_song_3.wav'))
+_theme_song_4 = pygame.mixer.Sound(resource_path('sounds/theme_song_4.wav'))
+_theme_song_5 = pygame.mixer.Sound(resource_path('sounds/theme_song_5.wav'))
 
 # List of theme songs + lenght
-theme_songs = [theme_song_1, theme_song_2, theme_song_3, theme_song_4, theme_song_5]
+theme_songs = [_theme_song_1, _theme_song_2, _theme_song_3, _theme_song_4, _theme_song_5]
 len_theme_songs = len(theme_songs)
 
 # Play random theme song from list, set volume and get length of song
@@ -65,57 +62,44 @@ theme_song.set_volume(0.4)
 theme_song.play()
 
 # Load Player images
-player_image_1 = pygame.image.load(resource_path('images/player_image_1.png'))
-player_image_2 = pygame.image.load(resource_path('images/player_image_2.png'))
-player_image_3 = pygame.image.load(resource_path('images/player_image_3.png'))
+_player_image_1 = pygame.image.load(resource_path('images/player_image_1.png'))
+_player_image_2 = pygame.image.load(resource_path('images/player_image_2.png'))
+_player_image_3 = pygame.image.load(resource_path('images/player_image_3.png'))
 
 # Load dead Player images
-player_image_1_dead = pygame.image.load(resource_path('images/player_image_1_dead.png'))
-player_image_2_dead = pygame.image.load(resource_path('images/player_image_2_dead.png'))
-player_image_3_dead = pygame.image.load(resource_path('images/player_image_3_dead.png'))
+_player_image_1_dead = pygame.image.load(resource_path('images/player_image_1_dead.png'))
+_player_image_2_dead = pygame.image.load(resource_path('images/player_image_2_dead.png'))
+_player_image_3_dead = pygame.image.load(resource_path('images/player_image_3_dead.png'))
 
 # Make lists of both
-player_images = [player_image_1, player_image_2, player_image_3]
-player_images_dead = [player_image_1_dead, player_image_2_dead, player_image_3_dead]
+player_images = [_player_image_1, _player_image_2, _player_image_3]
+player_images_dead = [_player_image_1_dead, _player_image_2_dead, _player_image_3_dead]
 
 # Get lenght of both
 len_player_images = len(player_images)
 len_player_images_dead = len(player_images_dead)
 
-# Print warning message if lengths of player lists are different
+# Warning message if lengths of player lists are different
 if len_player_images != len_player_images_dead:
-    for i in range(10):
-        print("PLAYER IMAGES LISTS DIFFERENT LENGHTS!!!")
-
-# Get random Player image and random dead Player image
-rand_player_image_index = rand_num(len_player_images)
-player_image = player_images[rand_player_image_index]
-player_image_dead = player_images_dead[rand_player_image_index]
-
-# Store backup Player image, so no loss of quality occurs with pygame.transform
-player_image_og = player_image
+    raise ValueError("Lenghts of player lists different!")
 
 # Load prey images
-# prey_image_0 = pygame.image.load(resource_path('images/prey_image_0.png')) # sandwich which gives bonus points
-# prey_image_0 is now prey_glowing_sandwich, when prey_image_index = 0, game loads it instead
-prey_image_1 = pygame.image.load(resource_path('images/prey_image_1.png'))
-prey_image_2 = pygame.image.load(resource_path('images/prey_image_2.png'))
-prey_image_3 = pygame.image.load(resource_path('images/prey_image_3.png'))
-prey_image_4 = pygame.image.load(resource_path('images/prey_image_4.png'))
-prey_image_5 = pygame.image.load(resource_path('images/prey_image_5.png'))
-prey_image_6 = pygame.image.load(resource_path('images/prey_image_6.png'))
-prey_image_7 = pygame.image.load(resource_path('images/prey_image_7.png'))
-prey_image_8 = pygame.image.load(resource_path('images/prey_image_8.png'))
-prey_image_9 = pygame.image.load(resource_path('images/prey_image_9.png'))
-prey_image_10 = pygame.image.load(resource_path('images/prey_image_10.png'))
-
-# APNG Glowing sandwich prey load - Uses gif_pygame !
 prey_glowing_sandwich = gif_pygame.load(resource_path('images/glowing_sandwich.png'))
+_prey_image_1 = pygame.image.load(resource_path('images/prey_image_1.png'))
+_prey_image_2 = pygame.image.load(resource_path('images/prey_image_2.png'))
+_prey_image_3 = pygame.image.load(resource_path('images/prey_image_3.png'))
+_prey_image_4 = pygame.image.load(resource_path('images/prey_image_4.png'))
+_prey_image_5 = pygame.image.load(resource_path('images/prey_image_5.png'))
+_prey_image_6 = pygame.image.load(resource_path('images/prey_image_6.png'))
+_prey_image_7 = pygame.image.load(resource_path('images/prey_image_7.png'))
+_prey_image_8 = pygame.image.load(resource_path('images/prey_image_8.png'))
+_prey_image_9 = pygame.image.load(resource_path('images/prey_image_9.png'))
+_prey_image_10 = pygame.image.load(resource_path('images/prey_image_10.png'))
 
-# List of prey images from pygame ONLY
-prey_images = [
-    prey_image_1, prey_image_2, prey_image_3, prey_image_4, prey_image_5,
-    prey_image_6, prey_image_7, prey_image_8, prey_image_9, prey_image_10
+# List of prey images
+prey_images = [ prey_glowing_sandwich,
+    _prey_image_1, _prey_image_2, _prey_image_3, _prey_image_4, _prey_image_5,
+    _prey_image_6, _prey_image_7, _prey_image_8, _prey_image_9, _prey_image_10
 ]
 len_prey_images = len(prey_images)
 
@@ -128,7 +112,7 @@ background_image_3 = pygame.image.load(resource_path('images/background_image_3.
 background_images = [background_image_1, background_image_2, background_image_3]
 len_background_images = len(background_images)
 
-# Selection from background list
+# Declare random background
 background_image = background_images[rand_num(len_background_images)]
 
 # Function for displaying FPS
@@ -136,59 +120,265 @@ def fps_counter():
     fps = int(clock.get_fps())
     return fps
 
-# Easter egg 10% chance of reversing player/prey
+class Player():
+
+    def __init__(self, image: pygame.image, image_dead: pygame.image, easter_mode: bool):
+
+        self._image = image
+        self._image_og = self._image
+        self._image_dead = image_dead
+        self._easter_mode = easter_mode
+        self._position = pygame.Vector2(screen.get_width() / 2 - 128, screen.get_height() / 2 - 128)
+        self._size = 80
+        self._scale = [self._size * 3, self._size * 3]
+        self._eat_tol = self._size * 1.75
+        self._speed = 10
+        self._eat_txt = False
+
+    def draw(self):
+        """
+        Draws player on the screen.
+        """
+        self._image = pygame.transform.smoothscale(self._image_og, self._scale)
+        if self._easter_mode == False:
+            screen.blit(self._image, self._position - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 1.3))
+        else:
+            screen.blit(self._image, self._position - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
+
+    def draw_dead(self):
+        """
+        Draws dead player on the screen.
+        """
+        self._image_dead = pygame.transform.smoothscale(self._image_dead, self._scale)
+        if self._easter_mode == False:
+            screen.blit(self._image_dead, self._position - pygame.Vector2(self._image_dead.get_width() / 2, self._image_dead.get_height() / 1.3))
+        else:
+            screen.blit(self._image_dead, self._position - pygame.Vector2(self._image_dead.get_width() / 2, self._image_dead.get_height() / 2))
+
+    def draw_eat_text(self):
+        """
+        Draw 2 different eat texts above player, decided by the prey index.
+        """
+        if prey_1.index == 0 and prey_1.created == False and easter == False:
+            nom_text = text.render("NOM NOM NOM!", True, (255, 255, 255))
+        else:
+            nom_text = text.render("Nom!", True, (255, 255, 255))
+
+        x, y = self._position
+        x -= nom_text.get_width() / 2
+        y -= self._image.get_width() - 10
+        screen.blit(nom_text, (x, y))
+
+    @property
+    def eat_tol(self) -> float:
+        """
+        Returns player eat tolerance.
+        """
+        return self._eat_tol
+    
+    @property
+    def size(self) -> float:
+        """
+        Returns player size.
+        """
+        return self._size
+    
+    @property
+    def speed(self) -> float:
+        """
+        Returns player speed.
+        """
+        return self._speed
+    
+    @property
+    def position(self) -> pygame.Vector2:
+        """
+        Returns player position.
+        """
+        return self._position
+    
+    @property
+    def eat_txt(self) -> bool:
+        """
+        Returns eat text state.
+        """
+        return self._eat_txt
+    
+    @size.setter
+    def size(self, value:tuple):
+        """
+        Value: Tuple with 2 elements: \n
+        1 - Given size, accepts float. \n
+        2 - ADD/SET: False to add the size, True to set it.
+        """
+
+        if len(value) > 2 or len(value) < 2:
+            raise ValueError("Size setter only accepts list with 2 values: (int/float, bool)!")
+
+        # If bool is true, SET the size
+        if value[1] == True:
+
+            self._size = 100
+            self._scale = [self._size * 3, self._size * 3]
+
+        else:
+            self._size += value[0]
+            self._scale = [self._size * 3, self._size * 3]
+
+    @speed.setter
+    def speed(self, value:tuple):
+        """
+        Value: Tuple with 2 elements: \n
+        1 - Given speed, accepts integer or float. \n
+        2 - ADD/SET setting (bool): False to += the speed, True to = it.
+        """
+
+        if len(value) > 2 or len(value) < 2:
+            raise ValueError("Speed setter only accepts tuple with 2 values: (int/float, bool)!")
+        
+        # If bool is true, SET the speed
+        if value[1] == True:
+            self._speed = value[0]
+
+        else:
+            self._speed += value[0]
+
+    @position.setter
+    def position(self, value: pygame.Vector2):
+        """
+        SET player position to the given value.
+        """
+        if type(value) != pygame.Vector2:
+            raise ValueError("Position coordinates accepts pygame.Vector2 only!")
+        self._position = value
+
+    @eat_tol.setter
+    def eat_tol(self, value:float):
+        """
+        SET player eat tolerance to the given value.
+        """
+        if value < 0:
+            raise ValueError("Eat tolerance cannot be less than 0!")
+        self._eat_tol = value
+
+    @eat_txt.setter
+    def eat_txt(self, value:bool):
+        """
+        SET player eat text value.
+        """
+        if type(value) != bool:
+            raise ValueError("Eat text accepts bool only!")
+        self._eat_txt = value
+
+class Prey():
+
+    def __init__(self, list_images:list):
+
+        self._created = True
+        self._counter = 0
+        self._image_index = rand_num(len_prey_images)
+        self._image = list_images[self._image_index]
+        self._coords = rand_screen_pos()
+        self._angle = rand_num(360)
+
+    def draw(self):
+        """
+        Draw prey on the screen.
+        """
+        if self._image_index == 0 and easter == False:
+            self._image.render(screen, self._coords- pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
+        else:
+            screen.blit(image_rotate(self._image, self._angle), self._coords - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
+
+    def coords_reset(self):
+        """
+        Sets prey coordinates (X, Y) to infinite.
+        """
+        self._coords = float('inf'), float('inf')
+
+    @property
+    def index(self):
+        """
+        Returns prey image index.
+        """
+        return self._image_index
+    
+    @property
+    def coords(self):
+        """
+        Returns prey coordinates (X, Y).
+        """
+        return self._coords
+    
+    @property
+    def created(self):
+        """
+        Returns prey created state.
+        """
+        return self._created
+    
+    @property
+    def counter(self):
+        """
+        Returns prey counter.
+        """
+        return self._counter
+    
+    @created.setter
+    def created(self, value:bool):
+        if type(value) != bool:
+            raise ValueError("Created accepts bool only!")
+        self._created = value
+
+    @counter.setter
+    def counter(self, value: float):
+        if value < 0:
+            raise ValueError("Counter cannot be below 0!")
+        self._counter = value
+
+# Get random Player image and its dead counterpart
+rand_player_image_index = rand_num(len_player_images)
+player_image = player_images[rand_player_image_index]
+player_image_dead = player_images_dead[rand_player_image_index]
+
+# Store backup Player image, so no loss of quality occurs with pygame.transform
+player_image_og = player_image
+
+# Declaring player
+# 10% Chance of reversing Player/Prey for easter egg
 easter = rand_num(10)
 if easter == 9:
     
     easter = True
-    # Sets player image to random prey image
-    player_image = prey_images[rand_num(len_prey_images)]
+    num = rand_num(len_prey_images)
 
-    # Creates backup for pygame.transform
-    player_image_og = player_image
+    # Check if the image is glowing_sandwich
+    if num > 0:
+        player_1 = Player(prey_images[num], prey_images[num], easter)
 
-    # Sets player dead image to be the same as player image
-    player_image_dead = player_image
-
+    # If it is, set player images to another image, since gif_pygame doesn't support code below
+    else:
+        player_1 = Player(prey_images[1], prey_images[1], easter)
+    
     # Resets prey list
     prey_images = []
 
-    # Resize and add player images to prey list
-    for player_image in player_images:
-        
-        prey_image = pygame.transform.smoothscale(player_image, (64, 64))
+    # Add all player images to prey list
+    for image in player_images:
+        prey_image = pygame.transform.smoothscale(image, (64, 64))
+        prey_images.append(prey_image)
+    for image in player_images_dead:
+        prey_image = pygame.transform.smoothscale(image, (64, 64))
         prey_images.append(prey_image)
 
+    # Set len of prey images again after easter
+    len_prey_images = len(prey_images)
 else:
     easter = False
-
-# Set len of prey images again after easter.
-len_prey_images = len(prey_images)
-
-# Initial Player circle size
-player_size = 90
-player_scale = [player_size, player_size]
-
-# Initial prey spawn counter
-prey_spawn_counter = 0
+    player_1 = Player(player_image, player_image_dead, easter)
 
 # Initial points
 points = 0
-
-# Initial prey spawn position
-prey_spawn_pos = rand_screen_pos()
-
-# Inital prey rotation int
-prey_angle = rand_num(360)
-
-# Initial prey image
-prey_image_index = rand_num(len_prey_images)
-
-# Is prey spawned
-is_prey_spawned = False
-
-# Is prey created
-is_prey_generated = False
 
 # Prey spawn timer
 spawn = 30 
@@ -196,212 +386,131 @@ spawn = 30
 # Prey despawn timer
 despawn = 90
 
-# Eat text boolean
-eat_text = False
-
-# Player speed multiplier
-player_speed = 10
+# Initial prey declaration
+prey_1 = Prey(prey_images)
+prey_1.counter = despawn
+prey_1.coords_reset()
 
 # Game Loop
 while running:
 
-    # Counter for prey spawn
-    prey_spawn_counter += 1
-
-    # Theme song counter
-    # Removes 1 per second based on the game's FPS
-    theme_lenght -= 0.0169
-
-    # Debug print
-    # print(theme_lenght)
-
-    # Eating tolerance
-    eat_tolerance = player_size * 1.75
-
-    # When theme_length is less than 0, 
-    # select a random song from list, set volume and play
-    if theme_lenght <= 0:
-        theme_song = theme_songs[rand_num(len_theme_songs)]
-        theme_song.set_volume(0.4)
-        theme_song.play()
-
-        # Reset theme_lenght
-        theme_lenght = theme_song.get_length()
-
-    # fill the screen with background image to wipe away anything from last frame
-    # screen.fill("black")
+    # Fill the screen with background image to wipe away anything from last frame
     screen.blit(background_image, (0, 0))
 
-    # Background draws over prey, so it must be drawn again
-    is_prey_spawned = False
-        
-    # If prey is NOT spawned and NOT Created
-    if is_prey_spawned == False and is_prey_generated == False and prey_spawn_counter > spawn:
+    # Player size decrease
+    player_1.size = -0.2, False
 
-         # Sets created to True
-        is_prey_generated = True
+    # Player eat tolerance change
+    if easter == False:
+        player_1.eat_tol = player_1.size * 0.85
+    else:
+        player_1.eat_tol = player_1.size * 1.25
 
-         # New random position for prey spawn
-        prey_spawn_pos = rand_screen_pos()
+    # Player speed decrease
+    if player_1.speed > 10:
+        player_1.speed = -0.1, False
 
-        # New random rotation for prey spawn
-        prey_angle = rand_num(360)
+    # Draw player
+    player_1.draw()
 
-        # New random prey image index
-        prey_image_index = rand_num(len_prey_images)
-            
-        # Selects prey_image
-        prey_image = prey_images[prey_image_index]
+    # Print eat text
+    if player_1.eat_txt == True:
+        player_1.draw_eat_text()
 
-        eat_text = False
-
-        # Debug print
-        # print(f"PREY CREATED at X: {prey_spawn_pos[0]} Y: {prey_spawn_pos[1]} with index {prey_image_index}")
-
-    # If prey is spawned maitain image for every frame
-    if is_prey_spawned == False and is_prey_generated == True and prey_spawn_counter > spawn:
-
-        if prey_image_index > 0 and easter == False:
-
-            # Render normal prey
-            screen.blit(image_rotate(prey_image, prey_angle), prey_spawn_pos - pygame.Vector2(prey_image.get_width() / 2, prey_image.get_height() / 2))
-
-        elif prey_image_index == 0 and easter == False:
-
-            # Render sandwich
-            prey_glowing_sandwich.render(screen, prey_spawn_pos - pygame.Vector2(prey_glowing_sandwich.get_width() / 2, prey_glowing_sandwich.get_height() / 2))
-        else:
-
-            # If easter mode is active, render player as prey
-            screen.blit(image_rotate(prey_image, prey_angle), prey_spawn_pos - pygame.Vector2(prey_image.get_width() / 2, prey_image.get_height() / 2))
-
-        # Prey is spawned
-        is_prey_spawned = True
-        
-        # Debug print
-        # print("PREY IMAGE SET")
+    # Counter for prey spawn
+    prey_1.counter += 1
     
+    # Create new prey
+    if prey_1.counter > spawn and prey_1.created == False:
+
+        prey_1 = Prey(prey_images)
+        prey_1.counter = 30
+
+    # Draw prey & remove player eat text
+    if prey_1.counter > spawn and prey_1.created == True:
+        player_1.eat_txt = False
+        prey_1.draw()
+
     # Despawn prey
-    if prey_spawn_counter > despawn and is_prey_spawned == True and is_prey_generated == True: 
+    if prey_1.counter > despawn and prey_1.created == True: 
         
-        # Set spawn/despawn counter to 0
-        prey_spawn_counter = 0
+        # Set counter for spawn/despawn
+        prey_1.counter = 0
 
-        # Sets False so new prey can be generated
-        is_prey_generated = False
-
-        # Sets False because prey is despawned
-        is_prey_spawned = False
+        # Sets False so new prey can be created
+        prey_1.created = False
 
         # Remove points for missing prey
         if points > 0:
             points -= 1
 
         # Remove eat text
-        eat_text = False
+        player_1.eat_txt = False
 
-        # Debug print
-        # print("PREY DESPAWNED")
+        # Reset coords
+        prey_1.coords_reset()
 
     # Eating prey
-    if isclose(player_pos.x, prey_spawn_pos[0], abs_tol=eat_tolerance) and isclose(player_pos.y, prey_spawn_pos[1], abs_tol=eat_tolerance) and is_prey_spawned == True and is_prey_generated == True:
+    if isclose(player_1.position.x, prey_1.coords[0], abs_tol=player_1.eat_tol) and isclose(player_1.position.y, prey_1.coords[1], abs_tol=player_1.eat_tol) and prey_1.created == True:
 
         if easter == False:
-            # Bonus size & speed for sandwich.
-            if prey_image_index == 0:
-                player_size += 40
-                player_speed += 20
-            else:
-                player_size += 20
-
-            # bonus points for sandwich
-            if prey_image_index == 0:
+            # Bonus size, speed & points for sandwich.
+            if prey_1.index == 0:
+                player_1.size = 40, False
+                player_1.speed =20, False
                 points += 5
             else:
+                player_1.size = 20, False
                 points += 1
 
-        # Different size/speed/points if easter is on
+        # Different size/speed/points if easter mode is on
         else:
-            player_size += 15
-            player_speed += 8
+            player_1.size = 14, False
+            player_1.speed = 7, False
             points += 2
 
         # Check if player is getting too big
-        if player_size > 100:
-            player_size = 100
+        if player_1.size > 110:
+            player_1.size = 110, True
 
         # Check if player is getting too fast
-        if player_speed > 30:
-            player_speed = 30
+        if player_1.speed > 30:
+            player_1.speed = 30, True
 
         # Play random sound
         eat_sounds[rand_num(len_eat_sounds)].play()
 
-        # Sets False so new prey can be generated
-        is_prey_generated = False
-        
         # Sets False because prey is eaten
-        is_prey_spawned = False
+        prey_1.created = False
 
         # Reset spawn counter
-        prey_spawn_counter = 0
-
-        # Debug message
-        # print("PREY EATEN")
+        prey_1.counter = 0
 
         # Set eat text to show
-        eat_text = True
+        player_1.eat_txt = True
 
-    # Player circle decrease
-    player_size -= 0.24
-    player_scale[0] = player_size * 3
-    player_scale[1] = player_size * 3
-
-    # Player speed decrease
-    if player_speed > 10:
-        player_speed -= 0.1
-    
-    # Draw Player
-    player_image = pygame.transform.smoothscale(player_image_og, player_scale)
-    screen.blit(player_image, player_pos - pygame.Vector2(player_image.get_width() / 2, player_image.get_height() / 2))
-
-    # Print eat text
-    if eat_text == True:
-        x, y  = player_pos
-        x -= 30
-        y -= eat_tolerance + 30
-        nom_text = text.render(f"Nom!", True, (255, 255, 255))
-        screen.blit(nom_text, (x, y))
+        # Reset coords
+        prey_1.coords_reset()
 
     # Set True to use debug prints and dots
-    if  False:
-        # Print player position
-        print(f"player_pos X: {player_pos.x:.2f} Y: {player_pos.y:.2f}",end=" || ")  
+    if False:
+        print(f"player_1_pos X: {player_1.position.x:.2f} Y: {player_1.position.y:.2f}",end=" || ") 
 
-        # Print prey position  
-        print(f"prey_pos X: {prey_spawn_pos[0]} Y: {prey_spawn_pos[1]}",end=" || ")
+        print(f"prey_1_pos X: {prey_1.coords[0]} Y: {prey_1.coords[1]}",end=" || ")
 
-        # Print prey spawn counter
-        print(f"prey_spawn_counter: {prey_spawn_counter}",end=" || ")
+        print(f"prey_1.counter: {prey_1.counter}",end=" || ")
 
-        # Print if prey is generated (new position, image, rotation)
-        print(f"is_prey_generated: {is_prey_generated}",end=" || ")
+        print(f"prey_1.created: {prey_1.created}",end=" || ")
 
-        # Print if prey is spawned (visible on screen)
-        print(f"is_prey_spawned: {is_prey_spawned}",end=" || ")
+        print(f"player_1.eat_tol: {player_1.eat_tol:.2f}",end=" || ")
 
-        # Print eat tolerance (range for eating prey)
-        print(f"eat_tolerance: {eat_tolerance:.2f}",end=" || ")
+        print(f"player_1.size: {player_1.size:.2f}", end=" || ")
 
-        # Print player_size
-        print(f"player_size: {player_size:.2f}", end=" || ")
-
-        # Print player speed multiplier
-        print(f"player_speed: {player_speed:.2f}")
+        print(f"player_1.speed: {player_1.speed:.2f}")
 
         # Debug position dots
-        pygame.draw.circle(screen, "red", player_pos, 10) # Player eat range dot
-        pygame.draw.circle(screen, "blue", prey_spawn_pos, 5) # Prey draw dot
+        pygame.draw.circle(screen, "red", player_1.position, player_1.eat_tol) # Player eat range dot
+        pygame.draw.circle(screen, "blue", prey_1.coords, 5) # Prey draw dot
 
     # FPS Counter
     fps_int = fps_counter()
@@ -417,16 +526,18 @@ while running:
     screen.blit(points_text, (10, 10))
 
     # Losing Calories message
-    if player_size < 60:
-        circle_big = text.render('Eat more!', True, (255, 255, 255))
-        screen.blit(circle_big, (1140, 10))
+    if player_1.size < 65:
+        warn_msg = text.render('Eat more!', True, (255, 255, 255))
+        screen.blit(warn_msg, (1140, 10))
 
     # Game over
-    if player_size < 25:
+    if player_1.size < 30:
 
-        # Change player pic to the dead one
-        player_image_dead = pygame.transform.smoothscale(player_image_dead, player_scale)
-        screen.blit(player_image_dead, player_pos - pygame.Vector2(player_image.get_width() / 2, player_image.get_height() / 2))
+        # Draw dead player
+        player_1.draw_dead()
+            
+        # Draw prey again over dead player
+        prey_1.draw()
 
         # Display Game Over text
         game_over = text_big.render('Game Over!', True, (255, 255, 255))
@@ -435,13 +546,15 @@ while running:
         # Break game loop
         running = False
 
-     # pygame.QUIT event means the user clicked X to close the window
+    # User window close
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
 
-            # Change player pic to the dead one
-            player_image_dead = pygame.transform.smoothscale(player_image_dead, player_scale)
-            screen.blit(player_image_dead, player_pos - pygame.Vector2(player_image.get_width() / 2, player_image.get_height() / 2))
+            # Draw dead player
+            player_1.draw_dead()
+            
+            # Draw prey again over dead player
+            prey_1.draw()
 
             # Display Game Over text
             game_over = text_big.render('Game Over!', True, (255, 255, 255))
@@ -450,29 +563,32 @@ while running:
             # Break game loop
             running = False
 
-    # Controls for Player
+    # Controls for Player 1
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_w] and player_pos.x < screen.get_width():
-        player_pos.y -= ((3000 / player_size) * player_speed) * dt
-    if keys[pygame.K_s] and player_pos.x < screen.get_width():
-        player_pos.y += ((3000 / player_size) * player_speed) * dt
-    if keys[pygame.K_a] and player_pos.x < screen.get_width():
-        player_pos.x -= ((3000 / player_size) * player_speed) * dt
-    if keys[pygame.K_d] and player_pos.x < screen.get_width():
-        player_pos.x += ((3000 / player_size) * player_speed) * dt
+    if keys[pygame.K_w] and player_1.position.x < screen.get_width():
+        player_1.position.y -= ((3300 / player_1.size) * player_1.speed) * dt
+
+    if keys[pygame.K_s] and player_1.position.x < screen.get_width():
+        player_1.position.y += ((3300 / player_1.size) * player_1.speed) * dt
+
+    if keys[pygame.K_a] and player_1.position.x < screen.get_width():
+        player_1.position.x -= ((3300 / player_1.size) * player_1.speed) * dt
+
+    if keys[pygame.K_d] and player_1.position.x < screen.get_width():
+        player_1.position.x += ((3300 / player_1.size) * player_1.speed) * dt
     
     # If player position is at the screen bounds, set it to the edge - 1, to limit going off screen
-    if player_pos.x >= screen.get_width():
-        player_pos.x = screen.get_width() - 1
+    if player_1.position.x >= screen.get_width():
+        player_1.position.x = screen.get_width() - 1
 
-    if player_pos.y >= screen.get_height(): 
-        player_pos.y = screen.get_height() - 1
+    if player_1.position.y >= screen.get_height(): 
+        player_1.position.y = screen.get_height() - 1
 
-    if player_pos.x <= 0:
-        player_pos.x = 1
+    if player_1.position.x <= 0:
+        player_1.position.x = 1
 
-    if player_pos.y <= 0:
-        player_pos.y = 1
+    if player_1.position.y <= 0:
+        player_1.position.y = 1
 
     # flip() the display to put your work on screen
     pygame.display.flip()
@@ -481,6 +597,20 @@ while running:
     # dt is delta time in seconds since last frame, used for framerate-
     # independent physics.
     dt = clock.tick(60) / 1000
+
+    # Theme song counter
+    # Removes 1 per second based on the game's FPS
+    theme_lenght -= 0.0169
+
+    # When theme_length is less than 0, 
+    # select a random song from list, set volume and play
+    if theme_lenght <= 0:
+        theme_song = theme_songs[rand_num(len_theme_songs)]
+        theme_song.set_volume(0.4)
+        theme_song.play()
+
+        # Reset theme_lenght
+        theme_lenght = theme_song.get_length()
 
 sleep(3)
 pygame.quit()
