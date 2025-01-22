@@ -348,7 +348,7 @@ player_image_og = player_image
 # Declaring player
 # 10% Chance of reversing Player/Prey for easter egg
 easter = rand_num(10)
-if easter < 9:
+if easter == 9:
     
     easter = True
     num = rand_num(len_prey_images)
@@ -547,33 +547,6 @@ while running:
         # Break game loop
         running = False
 
-    # Controls for Player 1
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_w] or keys[pygame.K_UP]:
-        player_1.position.y -= ((3300 / player_1.size) * player_1.speed) * dt
-
-    if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-        player_1.position.y += ((3300 / player_1.size) * player_1.speed) * dt
-
-    if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-        player_1.position.x -= ((3300 / player_1.size) * player_1.speed) * dt
-
-    if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-        player_1.position.x += ((3300 / player_1.size) * player_1.speed) * dt
-
-    # If player position is at the screen bounds, set it to the edge - 1, to limit going off screen
-    if player_1.position.x >= screen.get_width():
-        player_1.position.x = screen.get_width() - 1
-
-    if player_1.position.y >= screen.get_height(): 
-        player_1.position.y = screen.get_height() - 1
-
-    if player_1.position.x <= 0:
-        player_1.position.x = 1
-
-    if player_1.position.y <= 0:
-        player_1.position.y = 1
-
     # User window close and music change
     for event in pygame.event.get():
 
@@ -619,6 +592,33 @@ while running:
 
         # Reset theme_lenght
         theme_lenght = theme_song.get_length()
+
+    # Controls for Player 1
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_w] or keys[pygame.K_UP]:
+        player_1.position.y -= ((3300 / player_1.size) * player_1.speed) * dt
+
+    if keys[pygame.K_s] or keys[pygame.K_DOWN]:
+        player_1.position.y += ((3300 / player_1.size) * player_1.speed) * dt
+
+    if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+        player_1.position.x -= ((3300 / player_1.size) * player_1.speed) * dt
+
+    if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+        player_1.position.x += ((3300 / player_1.size) * player_1.speed) * dt
+
+    # If player position is at the screen bounds, set it to the edge - 1, to limit going off screen
+    if player_1.position.x >= screen.get_width():
+        player_1.position.x = screen.get_width() - 1
+
+    if player_1.position.y >= screen.get_height(): 
+        player_1.position.y = screen.get_height() - 1
+
+    if player_1.position.x <= 0:
+        player_1.position.x = 1
+
+    if player_1.position.y <= 0:
+        player_1.position.y = 1
 
     # flip() the display to put your work on screen
     pygame.display.flip()
