@@ -6,7 +6,8 @@ Alternatively, you can run the game using the executable found in the Releases s
 
 ## Controls
 
-Move the character using the `W`, `A`, `S`, and `D` keys on your keyboard.
+Move the character using `W`, `A`, `S`, `D` or the arrow keys on your keyboard.
+Change the music using the `Q` & `E` keys - previous & next song.
 
 ## Goal
 
