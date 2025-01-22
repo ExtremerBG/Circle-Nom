@@ -56,7 +56,8 @@ theme_songs = [_theme_song_1, _theme_song_2, _theme_song_3, _theme_song_4, _them
 len_theme_songs = len(theme_songs)
 
 # Play random theme song from list, set volume and get length of song
-theme_song = theme_songs[rand_num(len_theme_songs)]
+song_index = rand_num(len_theme_songs)
+theme_song = theme_songs[song_index]
 theme_lenght = theme_song.get_length()
 theme_song.set_volume(0.4)
 theme_song.play()
@@ -166,7 +167,7 @@ class Player():
 
         x, y = self._position
         x -= nom_text.get_width() / 2
-        y -= self._image.get_width() - 10
+        y -= self._size / 0.335
         screen.blit(nom_text, (x, y))
 
     @property
@@ -347,7 +348,7 @@ player_image_og = player_image
 # Declaring player
 # 10% Chance of reversing Player/Prey for easter egg
 easter = rand_num(10)
-if easter == 9:
+if easter < 9:
     
     easter = True
     num = rand_num(len_prey_images)
@@ -546,8 +547,37 @@ while running:
         # Break game loop
         running = False
 
-    # User window close
+    # Controls for Player 1
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_w] or keys[pygame.K_UP]:
+        player_1.position.y -= ((3300 / player_1.size) * player_1.speed) * dt
+
+    if keys[pygame.K_s] or keys[pygame.K_DOWN]:
+        player_1.position.y += ((3300 / player_1.size) * player_1.speed) * dt
+
+    if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+        player_1.position.x -= ((3300 / player_1.size) * player_1.speed) * dt
+
+    if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+        player_1.position.x += ((3300 / player_1.size) * player_1.speed) * dt
+
+    # If player position is at the screen bounds, set it to the edge - 1, to limit going off screen
+    if player_1.position.x >= screen.get_width():
+        player_1.position.x = screen.get_width() - 1
+
+    if player_1.position.y >= screen.get_height(): 
+        player_1.position.y = screen.get_height() - 1
+
+    if player_1.position.x <= 0:
+        player_1.position.x = 1
+
+    if player_1.position.y <= 0:
+        player_1.position.y = 1
+
+    # User window close and music change
     for event in pygame.event.get():
+
+        # Close window
         if event.type == pygame.QUIT:
 
             # Draw dead player
@@ -563,54 +593,38 @@ while running:
             # Break game loop
             running = False
 
-    # Controls for Player 1
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_w] and player_1.position.x < screen.get_width():
-        player_1.position.y -= ((3300 / player_1.size) * player_1.speed) * dt
+        # Change song
+        # Forward in list songs
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_e:
+                theme_lenght = 0
+                song_index += 1
 
-    if keys[pygame.K_s] and player_1.position.x < screen.get_width():
-        player_1.position.y += ((3300 / player_1.size) * player_1.speed) * dt
-
-    if keys[pygame.K_a] and player_1.position.x < screen.get_width():
-        player_1.position.x -= ((3300 / player_1.size) * player_1.speed) * dt
-
-    if keys[pygame.K_d] and player_1.position.x < screen.get_width():
-        player_1.position.x += ((3300 / player_1.size) * player_1.speed) * dt
-    
-    # If player position is at the screen bounds, set it to the edge - 1, to limit going off screen
-    if player_1.position.x >= screen.get_width():
-        player_1.position.x = screen.get_width() - 1
-
-    if player_1.position.y >= screen.get_height(): 
-        player_1.position.y = screen.get_height() - 1
-
-    if player_1.position.x <= 0:
-        player_1.position.x = 1
-
-    if player_1.position.y <= 0:
-        player_1.position.y = 1
-
-    # flip() the display to put your work on screen
-    pygame.display.flip()
-
-    # limits FPS to 60
-    # dt is delta time in seconds since last frame, used for framerate-
-    # independent physics.
-    dt = clock.tick(60) / 1000
+            # Backward in list songs
+            elif event.key == pygame.K_q:
+                theme_lenght = 0
+                song_index -= 1
 
     # Theme song counter
     # Removes 1 per second based on the game's FPS
     theme_lenght -= 0.0169
 
     # When theme_length is less than 0, 
-    # select a random song from list, set volume and play
+    # select song from the list with the given index
     if theme_lenght <= 0:
-        theme_song = theme_songs[rand_num(len_theme_songs)]
+        theme_song.stop()
+        theme_song = theme_songs[song_index % len_theme_songs]
         theme_song.set_volume(0.4)
         theme_song.play()
 
         # Reset theme_lenght
         theme_lenght = theme_song.get_length()
+
+    # flip() the display to put your work on screen
+    pygame.display.flip()
+
+    # limits FPS to 60
+    dt = clock.tick(60) / 1000
 
 sleep(3)
 pygame.quit()
