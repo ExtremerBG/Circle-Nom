@@ -6,8 +6,10 @@ Alternatively, you can run the game using the executable found in the Releases s
 
 ## Controls
 
-Move the character using `W`, `A`, `S`, `D` or the arrow keys on your keyboard.
-Change the music using the `Q` & `E` keys - previous & next song.
+ - Move the character using `W`, `A`, `S`, `D` or the arrow keys on your keyboard.
+ - Toggle fullscreen mode using the `F11` key.
+ - Pause Circle Nom with the `P` key.
+ - Change the music using the `Q` & `E` keys - previous & next song.
 
 ## Goal
 
@@ -15,7 +17,7 @@ Score as many points as possible by eating randomly spawned food.
 
 ## Credits
 
-Icons for the food:
+Food images:
 - [Kale icons by AomAm - Flaticon](https://www.flaticon.com/free-icons/kale)
 - [Sandwich icons by Freepik - Flaticon](https://www.flaticon.com/free-icons/sandwich)
 
@@ -23,6 +25,9 @@ Background images:
 - [Wood Texture Background Pro Vector by barudakvisual - Vecteezy](https://www.vecteezy.com/vector-art/2173386-wood-texture-background)
 - [Wood Texture Background Pro Vector by dankudraw - Vecteezy](https://www.vecteezy.com/vector-art/3343397-wood-texture-background)
 - [Wood Texture Background Pro Vector by sarance - Vecteezy](https://www.vecteezy.com/vector-art/3157015-wood-texture-background)
+
+Hunger border image:
+ - [Picture Picture PNG Transparent - Pngtree](https://pngtree.com/freepng/picture--picture_1666871.html)
 
 Music used:
 - [Wii Sports - Title (HQ) by Rhythm Root](https://www.youtube.com/watch?v=2qvAxPqy2wA)
