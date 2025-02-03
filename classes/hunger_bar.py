@@ -3,21 +3,29 @@ import pygame
 
 class HungerBar():
 
-    def __init__(self, hunger_bar: list, screen: pygame.display):
+    def __init__(self, hunger_bar: list[pygame.Surface], screen: pygame.Surface):
 
         """
-        Takes hunger_bar pygame image list, consiting of bar_inner (the moving bit), \n
-        bar outer (the static white bit) and pygame display.
+        Initializes the HungerBar object with images and screen.
+
+        Args:
+            hunger_bar (list[pygame.Surface]): List of images for the hunger bar.
+            screen (pygame.Surface): The game screen.
         """
         
-        self._bar_inner = hunger_bar[0]
-        self._bar_outer = hunger_bar[1]
+        self._bar_inner = hunger_bar[0] # moving (red) bit
+        self._bar_outer = hunger_bar[1] # static (white) bit
         self._bar_inner_og = self._bar_inner
         self._screen = screen
 
     def draw(self, size, min_size, coords: list):
         """
-        Draw Hunger bar on the screen. Takes current size, minimum size and position coordinates.
+        Draws the hunger bar on the screen.
+
+        Args:
+            size (int): The current size of the player.
+            min_size (int): The minimum size of the player.
+            coords (list): The position coordinates to draw the hunger bar.
         """
         x, y = coords
         scale = [(size - min_size) * 2.8, 30]

@@ -42,52 +42,66 @@ pygame.mixer.init()
 # Play random theme song from list
 song_index = rand_num(len(theme_songs))
 pygame.mixer_music.load(theme_songs[song_index % len(theme_songs)])
-pygame.mixer_music.set_endevent(pygame.USEREVENT)
 pygame.mixer_music.play()
+
+# Set end event for autoplaying
+pygame.mixer_music.set_endevent(pygame.USEREVENT)
 
 # Select random background
 background_image = background_images[rand_num(len(background_images))]
 
-# Game paused function,
-# draws pause game screen and checks for key inputs
 def game_pause():
-
+    """
+    Pauses the game and displays the pause screen.
+    Checks for key inputs to resume the game or change screen mode.
+    """
     pygame.mixer.music.pause()
-    loop = True
-    quit = False
 
-    while loop:
+    global screen
+    global fullscreen
+    global running
+
+    paused = True
+    while paused:
         for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
-                loop = False
+            
+            # Exit pause screen
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    pygame.mixer.music.unpause()
+                    paused = False
 
+                # Change screen modes
+                if event.key == pygame.K_F11:
+                    fullscreen = not fullscreen
+                    if fullscreen:
+                        screen = pygame.display.set_mode((1280, 720), pygame.FULLSCREEN)
+                    else:
+                        screen = pygame.display.set_mode((1280, 720))
+
+            # Exit game
             if event.type == pygame.QUIT:
-                loop = False
-                quit = True
+                running = False
+                paused = False        
 
+        # Draw screen with player and prey
         screen.blit(background_image, (0, 0))
         player_1.draw()
         prey_1.draw()
 
+        # Draw text stuff
         paused_text = text_big.render('Game Paused', True, (255, 255, 255))
         paused_text_rect = paused_text.get_rect(center=(screen.get_width() / 2, screen.get_height() / 2 - 30))
         screen.blit(paused_text, paused_text_rect)
-
         press_text = text.render("Press 'P' to unpause", True, (255, 255, 255))
-        press_text_rect = press_text.get_rect(center=(screen.get_width() / 2, screen.get_height()/ 2 + 30))
+        press_text_rect = press_text.get_rect(center=(screen.get_width() / 2, screen.get_height() / 2 + 30))
         screen.blit(press_text, press_text_rect)
         pygame.display.flip()
-        
-    pygame.mixer.music.unpause()
 
-    if quit == True:
-        game_end()
-        return False 
-    else:
-        return True
-
-# Draws end game screen
 def game_end():
+    """
+    Displays the end game screen.
+    """
     screen.blit(background_image, (0, 0))
     player_1.draw_dead()
 
@@ -98,11 +112,15 @@ def game_end():
     points_final = text.render(f'Points: {points}', True, (255, 255, 255))
     points_final_rect = points_final.get_rect(center=(screen.get_width() / 2, screen.get_height() / 2 + 30))
     screen.blit(points_final, points_final_rect)
-
     pygame.display.flip()
 
-# Play music from the theme_songs list with the given index
 def music_player(index:int):
+    """
+    Plays music from the theme_songs list with the given index.
+    
+    Args:
+        index (int): The index of the song to play.
+    """
     if type(index) != int:
         raise ValueError("Index must be integer!")
     
@@ -114,9 +132,6 @@ def music_player(index:int):
 rand_player_image_index = rand_num(len(player_images))
 player_image = player_images[rand_player_image_index]
 player_image_dead = player_images_dead[rand_player_image_index]
-
-# Store backup Player image, so no loss of quality occurs with pygame.transform
-player_image_og = player_image
 
 # Declaring player
 # 10% Chance of reversing Player/Prey for easter egg
@@ -177,14 +192,52 @@ prey_1.coords_reset()
 # Hunger bar declaration
 bar = HungerBar(hunger_bar, screen)
 
-# Game Loop
+# Main game loop
+running = True
 while running:
+
+    for event in pygame.event.get():
+        # Game over if user quits window
+        if event.type == pygame.QUIT:
+            running = False
+
+        # Auto queue next music
+        if event.type == pygame.USEREVENT:
+            song_index += 1
+            music_player(song_index)
+
+        if event.type == pygame.KEYDOWN:
+
+            # Forward in list songs
+            if event.key == pygame.K_e:
+                song_index += 1
+                music_player(song_index)
+            # Backward in list songs
+            elif event.key == pygame.K_q:
+                song_index -= 1
+                music_player(song_index)
+
+            # Game pause
+            if event.key == pygame.K_p:
+                game_pause()
+
+            # Display mode change
+            if event.key == pygame.K_F11:
+                fullscreen = not fullscreen
+
+                if fullscreen:
+                    screen = pygame.display.set_mode((1280, 720), pygame.FULLSCREEN)
+                else:
+                    screen = pygame.display.set_mode((1280, 720))
+                
+                # Auto pause after display mode change 
+                game_pause()
 
     # Fill the screen with background image to wipe away anything from last frame
     screen.blit(background_image, (0, 0))
 
     # Player size decrease
-    player_1.size = -0.2, False
+    player_1.size -= 0.2
 
     # Player eat tolerance change based on easter mode
     if easter == False:
@@ -194,7 +247,7 @@ while running:
 
     # Player speed decrease
     if player_1.speed > 10:
-        player_1.speed = -0.1, False
+        player_1.speed -= 0.1
 
     # Draw player
     player_1.draw()
@@ -242,26 +295,26 @@ while running:
         if easter == False:
             # Bonus size, speed & points for sandwich.
             if prey_1.index == 0:
-                player_1.size = 40, False
-                player_1.speed = 20, False
+                player_1.size += 40
+                player_1.speed += 20
                 points += 5
             else:
-                player_1.size = 20, False
+                player_1.size += 20
                 points += 1
 
         # Different size/speed/points if easter mode is on
         else:
-            player_1.size = 16, False
-            player_1.speed = 8, False
+            player_1.size += 16
+            player_1.speed = 8
             points += 2
 
         # Check if player is getting too big
         if player_1.size > max_size:
-            player_1.size = max_size, True
+            player_1.size = max_size
 
         # Check if player is getting too fast
         if player_1.speed > max_speed:
-            player_1.speed = max_speed, True
+            player_1.speed = max_speed
 
         # Play eat random sound
         eat_sounds[rand_num(len(eat_sounds))].play()
@@ -278,7 +331,7 @@ while running:
         # Reset coords
         prey_1.coords_reset()
 
-    # Set True to use debug prints and dots
+    # Set True to use debug console prints and dots
     if False:
         print(f"player_1_pos X: {player_1.position.x:.2f} Y: {player_1.position.y:.2f}",end=" || ") 
 
@@ -298,7 +351,7 @@ while running:
         pygame.draw.circle(screen, "red", player_1.position, player_1.eat_tol) # Player eat range dot
         pygame.draw.circle(screen, "blue", prey_1.coords, 5) # Prey draw dot
 
-    # FPS Text
+    # FPS Text display
     fps = round(clock.get_fps())
     if fps > 55:
         fps_display = text_small.render(f'FPS: {fps}', True, (255, 255, 255))
@@ -307,69 +360,18 @@ while running:
         fps_display = text_small.render(f'FPS: {fps}', True, (255, 0, 0))
         screen.blit(fps_display, (1220, 695))
 
-    # Points text
+    # Points text display
     points_text = text.render(f'Points: {points}', True, (255, 255, 255))
     screen.blit(points_text, (10, 10))
 
-    # Hunger bar
+    # Hunger bar display
     bar.draw(player_1.size, death_size, (1000, 21))
     warn_msg = text.render('Hunger:', True, (255, 255, 255))
     screen.blit(warn_msg, (930, 10))
 
     # Game over
     if player_1.size < death_size:
-        
-        # Calls game end display function
-        game_end()
-
-        # Break game loop
         running = False
-
-    # Game events
-    for event in pygame.event.get():
-
-        # Close window
-        if event.type == pygame.QUIT:
-
-            # Calls game end display function
-            game_end()
-
-            # Break game loop
-            running = False
-
-        # Auto queue next music
-        if event.type == pygame.USEREVENT:
-            song_index += 1
-            music_player(song_index)
-
-        # Keybindings
-        if event.type == pygame.KEYDOWN:
-
-            # Change song
-            # Forward in list songs
-            if event.key == pygame.K_e:
-                song_index += 1
-                music_player(song_index)
-
-            # Backward in list songs
-            elif event.key == pygame.K_q:
-                song_index -= 1
-                music_player(song_index)
-
-            # Change screen mode
-            if event.key == pygame.K_F11:
-
-                if fullscreen == False:
-                    screen = pygame.display.set_mode((1280, 720), pygame.FULLSCREEN)
-                    fullscreen = True
-                else:
-                    screen = pygame.display.set_mode((1280, 720))
-                    fullscreen = False
-                running = game_pause()
-
-            # Game pause
-            if event.key == pygame.K_p:
-                running = game_pause()
 
     # Controls for Player 1
     keys = pygame.key.get_pressed()
@@ -398,12 +400,13 @@ while running:
     if player_1.position.y <= 0:
         player_1.position.y = 1
 
-    # flip() the display to put your work on screen
+    # flip() the display to put work on screen
     pygame.display.flip()
 
     # Limits FPS to 60
     dt = clock.tick(60) / 1000
 
-# Sleep for showing end screen
+# Draw game end screen
+game_end()
 sleep(3)
 pygame.quit()

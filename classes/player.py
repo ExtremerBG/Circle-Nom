@@ -2,11 +2,16 @@ import pygame
 
 class Player():
 
-    def __init__(self, image: pygame.image, image_dead: pygame.image, easter_mode: bool, screen:pygame.display):
+    def __init__(self, image: pygame.Surface, image_dead: pygame.Surface, easter_mode: bool, screen:pygame.Surface):
 
         """
-        Takes the directory to 2 pygame images, \n
-        bool for easter mode and a pygame display.
+        Initializes the Player object with images, easter mode, and screen.
+        
+        Args:
+            image (pygame.Surface): The player's image.
+            image_dead (pygame.Surface): The player's dead image.
+            easter_mode (bool): Flag for easter mode.
+            screen (pygame.Surface): The game screen.
         """
 
         self._image = image
@@ -18,14 +23,16 @@ class Player():
         self._size = 90
         self._scale = [self._size * 3, self._size * 3]
         self._eat_tol = self._size * 1.75
-        self._speed = 10
+        self._speed:float = 10
         self._eat_txt = False
         self._text = pygame.font.SysFont('Comic Sans MS', 30)
 
 
     def draw(self):
         """
-        Draws player on the screen.
+        Draws the player on the screen.
+        Scales the player's image based on the current size and blits it to the screen.
+        The position is adjusted based on whether the easter mode is active or not.
         """
         self._image = pygame.transform.smoothscale(self._image_og, self._scale)
         if self._easter == False:
@@ -35,7 +42,9 @@ class Player():
 
     def draw_dead(self):
         """
-        Draws dead player on the screen.
+        Draws the dead player on the screen.
+        Scales the player's dead image based on the current size and blits it to the screen.
+        The position is adjusted based on whether the easter mode is active or not.
         """
         self._image_dead = pygame.transform.smoothscale(self._image_dead, self._scale)
         if self._easter == False:
@@ -45,7 +54,8 @@ class Player():
 
     def draw_eat_text(self):
         """
-        Draw eat text.
+        Draws the "Nom!" text on the screen when the player eats.
+        The position of the text is adjusted based on whether the easter mode is active or not.
         """
         nom_text = self._text.render("Nom!", True, (255, 255, 255))
 
@@ -59,83 +69,67 @@ class Player():
     @property
     def eat_tol(self) -> float:
         """
-        Returns player eat tolerance.
+        Returns the player's eat tolerance.
+        The eat tolerance determines the range within which the player can eat prey.
         """
         return self._eat_tol
     
     @property
     def size(self) -> float:
         """
-        Returns player size.
+        Returns the player's size.
         """
         return self._size
     
     @property
     def speed(self) -> float:
         """
-        Returns player speed.
+        Returns the player's speed.
         """
         return self._speed
     
     @property
     def position(self) -> pygame.Vector2:
         """
-        Returns player position.
+        Returns the player's position.
         """
         return self._position
     
     @property
     def eat_txt(self) -> bool:
         """
-        Returns eat text state.
+        Returns whether the eat text is displayed.
         """
         return self._eat_txt
     
     @size.setter
-    def size(self, value:tuple):
+    def size(self, value:float):
         """
-        Value: Tuple with 2 elements: \n
-        1 - Given size, accepts float. \n
-        2 - ADD/SET: False to add the size, True to set it.
+        Sets the player's size.
+        
+        Args:
+            value (float): The new size of the player.
         """
-        if type(value) != tuple:
-            raise ValueError("Size setter only accepts tuple with 2 values: (int/float, bool)!")
-
-        if len(value) > 2 or len(value) < 2:
-            raise ValueError("Size setter only accepts tuple with 2 values: (int/float, bool)!")
-
-        # If bool is true, SET the size
-        if value[1] == True:
-
-            self._size = value[0]
-            self._scale = [self._size * 3, self._size * 3]
-
-        else:
-            self._size += value[0]
-            self._scale = [self._size * 3, self._size * 3]
+        self._size = value
+        self._scale = [self._size * 3, self._size * 3]
 
     @speed.setter
-    def speed(self, value:tuple):
+    def speed(self, value:float):
         """
-        Value: Tuple with 2 elements: \n
-        1 - Given speed, accepts integer or float. \n
-        2 - ADD/SET setting (bool): False to += the speed, True to = it.
-        """
-
-        if len(value) > 2 or len(value) < 2:
-            raise ValueError("Speed setter only accepts tuple with 2 values: (int/float, bool)!")
+        Sets the player's speed.
         
-        # If bool is true, SET the speed
-        if value[1] == True:
-            self._speed = value[0]
-
-        else:
-            self._speed += value[0]
+        Args:
+            value (float): The new speed of the player.
+        """
+        self._speed = value
 
     @position.setter
     def position(self, value: pygame.Vector2):
         """
-        SET player position to the given value.
+        Sets the player's position.
+        
+        Args:
+            value (pygame.Vector2): The new position of the player.
         """
         if type(value) != pygame.Vector2:
             raise ValueError("Position coordinates accepts pygame.Vector2 only!")
@@ -144,7 +138,10 @@ class Player():
     @eat_tol.setter
     def eat_tol(self, value:float):
         """
-        SET player eat tolerance to the given value.
+        Sets the player's eat tolerance.
+        
+        Args:
+            value (float): The new eat tolerance of the player.
         """
         if value < 0:
             raise ValueError("Eat tolerance cannot be less than 0!")
@@ -153,7 +150,10 @@ class Player():
     @eat_txt.setter
     def eat_txt(self, value:bool):
         """
-        SET player eat text value.
+        Sets whether the eat text is displayed.
+        
+        Args:
+            value (bool): The new state of the eat text display.
         """
         if type(value) != bool:
             raise ValueError("Eat text accepts bool only!")

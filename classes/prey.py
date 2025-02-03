@@ -3,7 +3,7 @@ from functions.game_funcs import *
 
 class Prey():
 
-    def __init__(self, list_images, easter_mode: bool, screen: pygame.display):
+    def __init__(self, list_images:list[pygame.Surface], easter_mode: bool, screen: pygame.Surface):
 
         """
         Takes with paths to images for random selection (index 0 is gif_pygame), \n
@@ -13,7 +13,7 @@ class Prey():
         self._created = True
         self._counter = 0
 
-        self._image_index = rand_num(len(list_images))
+        self._image_index:int = rand_num(len(list_images))
         self._image = list_images[self._image_index]
 
         self._coords = rand_screen_pos()
