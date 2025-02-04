@@ -197,6 +197,7 @@ running = True
 while running:
 
     for event in pygame.event.get():
+        
         # Game over if user quits window
         if event.type == pygame.QUIT:
             running = False
@@ -246,7 +247,7 @@ while running:
         player_1.eat_tol = player_1.size * 1.45
 
     # Player speed decrease
-    if player_1.speed > 10:
+    if player_1.speed >= 10.1:
         player_1.speed -= 0.1
 
     # Draw player
@@ -292,6 +293,7 @@ while running:
     # Eating prey
     if isclose(player_1.position.x, prey_1.coords[0], abs_tol=player_1.eat_tol) and isclose(player_1.position.y, prey_1.coords[1], abs_tol=player_1.eat_tol) and prey_1.created == True:
 
+        # Normal eating
         if easter == False:
             # Bonus size, speed & points for sandwich.
             if prey_1.index == 0:
@@ -305,7 +307,7 @@ while running:
         # Different size/speed/points if easter mode is on
         else:
             player_1.size += 16
-            player_1.speed = 8
+            player_1.speed += 6
             points += 2
 
         # Check if player is getting too big
