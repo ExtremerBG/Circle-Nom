@@ -18,7 +18,7 @@ pygame.init()
 # Screen size, title, icon and fullscreen bool
 screen = pygame.display.set_mode((1280, 720))
 pygame.display.set_caption("Circle Nom")
-pygame.display.set_icon(pygame.image.load(resource_path('images/icon.ico')))
+pygame.display.set_icon(pygame.image.load(resource_path('image/others/icon.ico')))
 fullscreen = False
 
 # Clock for framerate
