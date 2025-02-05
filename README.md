@@ -9,7 +9,7 @@
 
 ## Run Instructions
 
-To run the source code, open the folder with your preferred IDE. Ensure you have `pygame` and  `gif-pygame` libraries installed; otherwise, the game won't work. Install it using:
+To run the source code, open the folder with your preferred IDE. Ensure you have `pygame` and  `gif-pygame` libraries installed; otherwise, the game won't work. Install them using:
 
 ```sh
 pip install pygame

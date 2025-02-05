@@ -80,3 +80,36 @@ def image_rotate(image, angle):
         pygame.Surface: The rotated image.
     """
     return pygame.transform.rotate(image, angle)
+
+def get_song_name(index:int, theme_songs:list) -> str:
+    """
+    Finds the song name using the given index.
+
+    Args:
+        index (int): The current index in theme_songs.
+        theme_songs (list): Theme songs list. Used for error checking.
+
+    Returns:
+        str: Name of the song.
+    """
+    list_names = [
+        "Cowboy Bebop - Tank", #0
+        "Wii Sports - Title", #1
+        "Smash Ultimate - Chemical Plant Zone", #2
+        "Hideki Naganuma - Sneakman", #3
+        "Persona 5 - Last Surprise ", #4
+        "Persona 5 - Wake Up, Get up, Get Out There", #5
+        "Samba de Amigo - Samba de Janeiro", #6
+        "Sonic Mania - Theme of the Hard-Boiled Heavies", #7
+        "Mario Kart DS - Waluigi Pinball & Wario Stadium", #8
+        "Mortal Kombat - Techno Syndrome", #9
+        "Undertale - Hopes and Dreams", #10
+        "Persona 4 - Specialist", #11
+        "Mario Paint - Creative Exercise", #12
+        "Mt.dede - Kirby Superstar Theme", #13
+        "Yakuza - Friday Night", #14
+        "Skeleton Boomerang - Disco Necropolis" #15
+    ]
+    if len(list_names) != len(theme_songs):
+        raise ValueError(f"Lenght list_names: {len(list_names)} != Lenght theme_songs: {len(theme_songs)}")
+    return list_names[index % len(list_names)]

@@ -238,7 +238,7 @@ while running:
     screen.blit(background_image, (0, 0))
 
     # Player size decrease
-    player_1.size -= 0.2
+    player_1.size -= 0.15
 
     # Player eat tolerance change based on easter mode
     if easter == False:
@@ -365,6 +365,10 @@ while running:
     # Points text display
     points_text = text.render(f'Points: {points}', True, (255, 255, 255))
     screen.blit(points_text, (10, 10))
+
+    # Song name display
+    song_name = text_small.render(f"{get_song_name(song_index, theme_songs)}", True, (255, 255, 255))
+    screen.blit(song_name, (10, 695))
 
     # Hunger bar display
     bar.draw(player_1.size, death_size, (1000, 21))
