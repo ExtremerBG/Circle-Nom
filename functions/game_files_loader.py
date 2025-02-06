@@ -8,11 +8,11 @@ pygame.mixer.init()
 
 # EAT SOUNDS
 directories = [
-    resource_path('sound/effects/nom_1.mp3'),
-    resource_path('sound/effects/nom_2.mp3'),
-    resource_path('sound/effects/nom_3.mp3'),
-    resource_path('sound/effects/nom_4.mp3'),
-    resource_path('sound/effects/nom_5.mp3')
+    resource_path('sound/effects/nom/nom_1.mp3'),
+    resource_path('sound/effects/nom/nom_2.mp3'),
+    resource_path('sound/effects/nom/nom_3.mp3'),
+    resource_path('sound/effects/nom/nom_4.mp3'),
+    resource_path('sound/effects/nom/nom_5.mp3')
 ]
 eat_sounds: list[pygame.mixer.Sound] = []
 for path in directories:
@@ -108,5 +108,45 @@ directories = [
 hunger_bar: list[pygame.Surface] = []
 for path in directories:
     hunger_bar.append(pygame.image.load(path))
+
+################################################################################
+
+# DAGGER
+directories = [
+    resource_path('image/dagger/flame_dagger_right.gif'), # GIF PYGAME FILE!
+    resource_path('image/dagger/flame_dagger_left.gif'), # GIF PYGAME FILE!
+    resource_path('image/dagger/flame_dagger_up.gif'), # GIF PYGAME FILE!
+    resource_path('image/dagger/flame_dagger_down.gif'), # GIF PYGAME FILE!
+    resource_path('image/dagger/dagger_image_1.png')
+]
+dagger_images: list[pygame.Surface] = [pygame.image.load(directories.pop())]
+for path in directories:
+    dagger_images.append(gif_pygame.load(path))
+
+################################################################################
+
+# DAGGER FLY SOUNDS
+directories = [
+    resource_path('sound/effects/dagger/fly/dagger_whoosh_1.mp3'),
+    resource_path('sound/effects/dagger/fly/dagger_whoosh_2.mp3'),
+    resource_path('sound/effects/dagger/fly/dagger_whoosh_3.mp3'),
+]
+dagger_sounds: list[pygame.mixer.Sound] = []
+for path in directories:
+    dagger_sounds.append(pygame.mixer.Sound(path))
+
+################################################################################
+
+# DAGGER HIT SOUNDS
+directories = [
+    resource_path('sound/effects/dagger/hit/dagger_ouch_1.mp3'),
+    resource_path('sound/effects/dagger/hit/dagger_ouch_2.mp3'),
+    resource_path('sound/effects/dagger/hit/dagger_ouch_3.mp3'),
+    resource_path('sound/effects/dagger/hit/dagger_ouch_4.mp3'),
+    resource_path('sound/effects/dagger/hit/dagger_ouch_5.mp3')
+]
+hit_sounds: list[pygame.mixer.Sound] = []
+for path in directories:
+    hit_sounds.append(pygame.mixer.Sound(path))
 
 ################################################################################

@@ -27,12 +27,15 @@ Alternatively, you can run the game using the executable found in the Releases s
 
 ## Goal
 
-Score as many points as possible by eating randomly spawned food.
+Score as many points as possible by eating randomly spawned food, while dodging daggers!
 
 ## Credits
 
 Music used:
 - [Circle Nom Playlist - YouTube](https://youtube.com/playlist?list=PLXh2LnVpYeGshiAfckrBB0CvswgWv08WY&si=fghVy5HBqIqqJyV8)
+
+Dagger image:
+- [Dagger icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/dagger)
 
 Food images:
 - [Kale icons by AomAm - Flaticon](https://www.flaticon.com/free-icons/kale)
