@@ -2,7 +2,6 @@ import pygame
 from functions.game_funcs import *
 
 class Prey():
-
     spawn = 35
     despawn = 90
 

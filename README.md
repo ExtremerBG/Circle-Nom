@@ -20,10 +20,15 @@ Alternatively, you can run the game using the executable found in the Releases s
 
 ## Controls
 
-- Move the character using `W`, `A`, `S`, `D` or the arrow keys on your keyboard.
-- Toggle fullscreen mode using the `F11` key.
-- Pause Circle Nom with the `P` key.
+Menus:
+- Move up and down between options using the `W`, `S` or `↑`, `↓` keys on your keyboard.
+- Switch between options using the `A`, `D` or `←`, `→` keys on your keyboard.
+- Press `Enter` to enter the selected option.
+
+In-game:
+- Move the character using `W`, `A`, `S`, `D` or the `↑`, `↓`, `←`, `→` keys on your keyboard.
 - Change the music using the `Q` & `E` keys - previous & next song.
+- Pause Circle Nom with the `P` key.
 
 ## Goal
 

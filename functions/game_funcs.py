@@ -93,8 +93,7 @@ def get_song_name(index:int, theme_songs:list) -> str:
         str: Name of the song.
     """
     list_names = [
-        "Cowboy Bebop - Tank", #0
-        "Wii Sports - Title", #1
+        "Cowboy Bebop - Tank", #1
         "Smash Ultimate - Chemical Plant Zone", #2
         "Hideki Naganuma - Sneakman", #3
         "Persona 5 - Last Surprise ", #4

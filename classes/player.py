@@ -27,9 +27,9 @@ class Player():
         self._image_dead = image_dead
         self._screen = screen
         self._easter = easter_mode
-        self._position = pygame.Vector2(self._screen.get_width() / 2 - 128, self._screen.get_height() / 2 - 128)
-        self._size = 80
+        self._size = 90
         self._scale = [self._size * 3, self._size * 3]
+        self._position = pygame.Vector2(640, 170)
         self._speed = 24
         self._text = pygame.font.SysFont('Comic Sans MS', 30)
         self.ow_txt_counter = 0

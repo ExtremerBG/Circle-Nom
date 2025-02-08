@@ -1,3 +1,4 @@
+import gif_pygame.gif_pygame
 from functions.game_funcs import resource_path
 import gif_pygame
 import pygame
@@ -20,7 +21,7 @@ for path in directories:
 
 ################################################################################
 
-# THEME SONGS - LOADED IN MAIN FILE
+# THEME SONGS
 theme_songs = [
     resource_path('sound/themes/theme_song_1.mp3'),
     resource_path('sound/themes/theme_song_2.mp3'),
@@ -36,8 +37,7 @@ theme_songs = [
     resource_path('sound/themes/theme_song_12.mp3'),
     resource_path('sound/themes/theme_song_13.mp3'),
     resource_path('sound/themes/theme_song_14.mp3'),
-    resource_path('sound/themes/theme_song_15.mp3'),
-    resource_path('sound/themes/theme_song_16.mp3')
+    resource_path('sound/themes/theme_song_15.mp3')
 ]
 
 ################################################################################
@@ -148,5 +148,29 @@ directories = [
 hit_sounds: list[pygame.mixer.Sound] = []
 for path in directories:
     hit_sounds.append(pygame.mixer.Sound(path))
+
+################################################################################
+
+# PLAYER AURA IMAGE - USED IN MENU
+player_aura = gif_pygame.load(resource_path('image/menu/player_aura.png'))
+
+################################################################################
+
+# MAIN MENU THEMES
+main_menu_themes = [
+    resource_path('sound/menu/menu_theme_song_1.mp3')
+]
+
+################################################################################
+
+# MAIN MENU CLICKS
+directories = [
+    resource_path('sound/menu/menu_click_up_down.mp3'),
+    resource_path('sound/menu/menu_click_left_right.mp3'),
+    resource_path('sound/menu/menu_click_unknown.mp3'),
+]
+main_menu_clicks: list[pygame.mixer.Sound] = []
+for path in directories:
+    main_menu_clicks.append(pygame.mixer.Sound(path))
 
 ################################################################################
