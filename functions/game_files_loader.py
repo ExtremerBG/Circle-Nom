@@ -1,4 +1,3 @@
-import gif_pygame.gif_pygame
 from functions.game_funcs import resource_path
 import gif_pygame
 import pygame

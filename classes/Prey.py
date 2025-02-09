@@ -1,6 +1,5 @@
 import pygame
 from functions.game_funcs import *
-from random import randint
 
 class Prey():
     spawn = 35
