@@ -69,7 +69,6 @@ if len(player_images) != len(player_images_dead):
 
 # PREY IMAGES
 directories = [
-    resource_path('image/prey/glowing_sandwich.png'),  # GIF PYGAME FILE!
     resource_path('image/prey/prey_image_1.png'),
     resource_path('image/prey/prey_image_2.png'),
     resource_path('image/prey/prey_image_3.png'),
@@ -79,12 +78,17 @@ directories = [
     resource_path('image/prey/prey_image_7.png'),
     resource_path('image/prey/prey_image_8.png'),
     resource_path('image/prey/prey_image_9.png'),
-    resource_path('image/prey/prey_image_10.png')
+    resource_path('image/prey/prey_image_10.png'),
+    resource_path('image/prey/prey_image_11.png')
 ]
 prey_images = []
-prey_images.append(gif_pygame.load(directories[0]))
-for i in range(1, len(directories)):
-    prey_images.append(pygame.image.load(directories[i]))
+for path in directories:
+    prey_images.append(pygame.image.load(path))
+
+################################################################################
+
+# PREY AURA
+prey_aura = pygame.image.load(resource_path('image/prey/prey_aura.png'))
 
 ################################################################################
 
@@ -152,7 +156,7 @@ for path in directories:
 ################################################################################
 
 # PLAYER AURA IMAGE - USED IN MENU
-player_aura = gif_pygame.load(resource_path('image/menu/player_aura.png'))
+player_aura = pygame.image.load(resource_path('image/menu/aura.png'))
 
 ################################################################################
 

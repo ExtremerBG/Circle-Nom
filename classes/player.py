@@ -27,9 +27,9 @@ class Player():
         self._image_dead = image_dead
         self._screen = screen
         self._easter = easter_mode
-        self._size = 90
+        self._size = 60
         self._scale = [self._size * 3, self._size * 3]
-        self._position = pygame.Vector2(640, 170)
+        self._position = pygame.Vector2(640, 140)
         self._speed = 24
         self._text = pygame.font.SysFont('Comic Sans MS', 30)
         self.ow_txt_counter = 0
@@ -45,7 +45,6 @@ class Player():
         
         self._hit_pos = self._position
         self._hit_tol = self._size * 1.25
-
 
     def draw(self):
         """

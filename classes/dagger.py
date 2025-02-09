@@ -1,8 +1,8 @@
 import pygame
 import gif_pygame
-from functions.game_funcs import *
+from functions.game_funcs import image_rotate, rand_num
 from functions.game_files_loader import dagger_sounds
-from random import *
+from random import randint, uniform
 
 class Dagger():
     
@@ -71,16 +71,16 @@ class Dagger():
             else:
                 raise ValueError(f"'{self._direction}' is not a valid direction!")
         
-        # spawn time
+        # Spawn time
         self._spawn = randint(20, 40)
 
-        # despawn time
+        # Despawn time
         self._despawn = (240 + self._spawn) / self._speed_multiplier
 
-        # timer
+        # Timer for spawn/despawn
         self._timer = 0
 
-        # played sound flag
+        # Played sound flag
         self._played_sound = False
 
     @property
@@ -128,9 +128,6 @@ class Dagger():
             elif self._direction == "DOWN":
                 self._y_coord += 10 * self._speed_multiplier
 
-        # Debug
-        # print(f"X:{self._x_coord:.0f} | Y: {self._y_coord:.0f} | Timer {self._timer:.0f}: spawn {self._spawn:.0f}, despawn {self._despawn:.0f}")
-
         # Reset dagger and cancel next frame draw
         if self._timer > self._despawn:
             self.reset_dagger()
@@ -146,6 +143,11 @@ class Dagger():
 
         # increment timer
         self._timer += 1
+
+        # Debug
+        if False:
+            print(f"X:{self._x_coord:.0f} | Y: {self._y_coord:.0f} | Timer {self._timer:.0f}: spawn {self._spawn:.0f}, despawn {self._despawn:.0f}")
+            pygame.draw.circle(self._screen, "red", self.coords, 10)
 
     def play_sound(self):
         if self._played_sound == False:

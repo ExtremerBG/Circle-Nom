@@ -1,8 +1,7 @@
 import pygame
-import gif_pygame
 import sys
 from functions.game_files_loader import *
-from functions.game_funcs import rand_num
+from functions.game_funcs import rand_num, rot_center
 from classes.CircleNom import CircleNom
 
 # Initialize Pygame
@@ -43,21 +42,30 @@ selected_item = 0
 # Current selected item for the options menu
 selected_option = 0
 
+# Angle for rotation
+angle = 0
+
 # Select random background
 background_image = background_images[rand_num(len(background_images))]
+
+# Select random player image index
+player_image_index = rand_num(len(player_images))
 
 # Set end event for autoplaying
 pygame.mixer.music.set_endevent(pygame.USEREVENT)
 
 # Start game function
 def start_game():
+    global player_image_index
     game = CircleNom(
         screen=screen,
         difficulty=current_difficulty,
         eat_sounds=eat_sounds,
         theme_songs=theme_songs,
+        player_image_index=player_image_index,
         player_images=player_images,
         player_images_dead=player_images_dead,
+        prey_aura=prey_aura,
         prey_images=prey_images,
         background_image=background_image,
         hunger_bar=hunger_bar,
@@ -65,20 +73,27 @@ def start_game():
         dagger_sounds=dagger_sounds,
         hit_sounds=hit_sounds
     )
-    # Start game
+    # Start Circle Nom
     game.start()
+    # Select different random player image index
+    player_image_index = rand_num(len(player_images))
+
 
 # Draw the options menu
 def draw_options():
-    global options_items
+
+    # global angle for rotating aura
+    global angle
+
+    # Draw background
+    screen.blit(background_image, (0, 0))
+
+    # Draw player and aura
+    draw_aura()
 
     # Update options display
     options_items[0] = f"Difficulty: {difficulties[current_difficulty]}"
     options_items[1] = f"Display mode: {screen_modes[current_screen_mode]}"
-
-    # Draw screen stuff
-    screen.blit(background_image, (0,0))
-    player_aura.render(screen, (450, HEIGHT // 2 - 400))
 
     # Draw options title
     title = font_big.render("Options", True, WHITE)
@@ -121,13 +136,33 @@ def toggle_screen_mode():
     else:  # Windowed
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-# Draw the main menu
+def draw_aura():
+    
+    # Global angle for continuous rotation
+    global angle
+
+    player_position = pygame.Vector2(640, 140)
+    player_scale = [180, 180]
+
+    # Rotate and draw player aura
+    rotated_aura = rot_center(player_aura, angle, player_position)
+    screen.blit(rotated_aura[0], rotated_aura[1])
+
+    # Draw player
+    player_image = pygame.transform.smoothscale(player_images[player_image_index], player_scale)
+    screen.blit(player_image, player_position - pygame.Vector2(player_image.get_width() / 2, player_image.get_height() / 2))
+
+    # Increment the angle for continuous rotation
+    angle = (angle % 360) - 0.1
+
 def draw_menu():
 
-    # Draw screen stuff
-    screen.blit(background_image, (0,0))
-    player_aura.render(screen, (450, HEIGHT // 2 - 400))
-    
+    # Draw background
+    screen.blit(background_image, (0, 0))
+
+    # Draw player and aura
+    draw_aura()
+
     # Draw menu items
     for index, item in enumerate(menu_items):
         # Color change
@@ -140,9 +175,11 @@ def draw_menu():
         else:
             color = WHITE
 
+        # Draw title
         title = font_big.render("Circle Nom", True, WHITE)
         screen.blit(title, (WIDTH // 2 - title.get_width() // 2, HEIGHT // 2 - title.get_height() // 2 - 76))
 
+        # Draw items
         text = font.render(item, True, color)
         screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2 + index * 40))
     
@@ -152,7 +189,8 @@ def draw_menu():
 # Main menu functions
 def show_options():
     global selected_option
-    global current_difficulty, current_screen_mode
+    global current_difficulty
+    global current_screen_mode
 
     # Main loop for options menu
     while True:
@@ -218,6 +256,7 @@ menu_functions = [start_game, show_options, sys.exit]
 
 def main():
     global selected_item
+    global score
 
     # Play menu theme
     pygame.mixer.music.load(main_menu_themes[rand_num(len(main_menu_themes))])
@@ -243,7 +282,7 @@ def main():
                     
                 elif event.key == pygame.K_RETURN:
                     main_menu_clicks[0].play()
-                    menu_functions[selected_item]()
+                    score = menu_functions[selected_item]()
 
                 else:
                     main_menu_clicks[2].play()
@@ -253,8 +292,6 @@ def main():
                 pygame.mixer.music.load(main_menu_themes[rand_num(len(main_menu_themes))])
                 pygame.mixer.music.play()
 
-
-        
         # Draw the main menu
         draw_menu()
 

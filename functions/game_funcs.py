@@ -81,6 +81,13 @@ def image_rotate(image, angle):
     """
     return pygame.transform.rotate(image, angle)
 
+def rot_center(image, angle, xy):
+    
+    rotated_image = pygame.transform.rotate(image, angle)
+    new_rect = rotated_image.get_rect(center = image.get_rect(center = (xy)).center)
+
+    return rotated_image, new_rect
+
 def get_song_name(index:int, theme_songs:list) -> str:
     """
     Finds the song name using the given index.

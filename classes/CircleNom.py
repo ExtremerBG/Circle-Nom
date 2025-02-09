@@ -16,8 +16,8 @@ import sys
 class CircleNom():
 
     def __init__(self, screen, difficulty, eat_sounds, 
-                 theme_songs, player_images, 
-                 player_images_dead, prey_images, 
+                 theme_songs, player_images, player_image_index, 
+                 player_images_dead, prey_images, prey_aura,
                  background_image, hunger_bar, 
                  dagger_images, dagger_sounds, 
                  hit_sounds):
@@ -26,8 +26,10 @@ class CircleNom():
         self.difficulty = difficulty
         self.eat_sounds = eat_sounds
         self.theme_songs = theme_songs
+        self.player_image_index = player_image_index
         self.player_images = player_images
         self.player_images_dead = player_images_dead
+        self.prey_aura = prey_aura
         self.prey_images = prey_images
         self.background_image = background_image
         self.hunger_bar = hunger_bar
@@ -77,7 +79,7 @@ class CircleNom():
                 raise ValueError("Index must be integer!")
             
             pygame.mixer.music.unload()
-            pygame.mixer_music.load(self.theme_songs[index % len(self.theme_songs)])
+            pygame.mixer.music.load(self.theme_songs[index % len(self.theme_songs)])
             pygame.mixer.music.play()
 
         def eat_prey(player:Player, prey:Prey, easter:bool, points:int):
@@ -95,8 +97,8 @@ class CircleNom():
             if isclose(player.eat_pos.x, prey.coords[0], abs_tol=player.eat_tol) and isclose(player.eat_pos.y, prey.coords[1], abs_tol=player.eat_tol):
                 # Normal eating
                 if not easter:
-                    # Bonus size, speed & points for sandwich.
-                    if prey.index == 0:
+                    # Bonus size, speed & points for aura'd food
+                    if prey.aura:
                         player.size += 20
                         player.speed += 15
                         points += 3
@@ -106,9 +108,13 @@ class CircleNom():
                         points += 1
                 # Easter eating
                 else:
-                    player.size += 10
-                    player.speed += 7
-                    points += 2
+                    # Bonus points for aura'd food
+                    if prey.aura:
+                        points += 3
+                    else:
+                        player.size += 10
+                        player.speed += 6
+                        points += 1
 
                 # Play eat random sound
                 self.eat_sounds[rand_num(len(self.eat_sounds))].play()
@@ -122,15 +128,14 @@ class CircleNom():
 
             return points
 
-        # Get random Player image and its dead counterpart
-        rand_player_image_index = rand_num(len(self.player_images))
-        player_image = self.player_images[rand_player_image_index]
-        player_image_dead = self.player_images_dead[rand_player_image_index]
+        # Get Player image and its dead counterpart
+        player_image = self.player_images[self.player_image_index]
+        player_image_dead = self.player_images_dead[self.player_image_index]
 
         # Declaring player
         # 10% Chance of reversing Player/Prey for easter egg
-        easter = rand_num(9)
-        if easter == 9:
+        easter = randint(1, 10)
+        if easter == 10:
             # Turn on easter mode
             easter = True
             num = rand_num(len(self.prey_images))
@@ -159,8 +164,8 @@ class CircleNom():
             player_1 = Player(player_image, player_image_dead, easter, self.screen)
 
         # Prey declaration
-        prey_1 = Prey(self.prey_images, self.screen)
-        prey_2 = Prey(self.prey_images, self.screen)
+        prey_1 = Prey(self.prey_images, self.prey_aura, self.screen)
+        prey_2 = Prey(self.prey_images, self.prey_aura, self.screen)
 
         # Health bar declaration
         bar = HealthBar(self.hunger_bar, self.screen)
@@ -183,10 +188,13 @@ class CircleNom():
         # 2 - Hard
         if self.difficulty == 0:
             Prey.despawn = 100
+            grace_period = 240
         elif self.difficulty == 1:
-            Prey.despawn = 95
-        elif self.difficulty == 2:
             Prey.despawn = 90
+            grace_period = 200
+        elif self.difficulty == 2:
+            Prey.despawn = 80
+            grace_period = 160
         else:
             raise ValueError(f"Invalid difficulty!")
 
@@ -215,10 +223,6 @@ class CircleNom():
                             pygame.mixer.music.pause()
                         else:
                             pygame.mixer.music.unpause()
-                            
-                        # Auto pause when display mode changed
-                        paused = True
-                        pygame.mixer.music.pause()
 
                     # Music changer - works only when game is not paused
                     if not paused:
@@ -234,21 +238,25 @@ class CircleNom():
 
             # ACTUAL GAME LOOP
             if not paused:         
-                # Fill the self.screen with background image to wipe away anything from last frame
+                # Fill the screen with background image to wipe away anything from last frame
                 self.screen.blit(self.background_image, (0, 0))
 
                 # Draw player
                 player_1.draw()
 
-                # Play dagger sound if its on self.screen
+                # Play dagger sound if its on screen
                 if 0 <= dagger_1.coords[0] <= self.screen.get_width() and 0 <= dagger_1.coords[1] <= self.screen.get_height():
                     dagger_1.play_sound()
 
-                # Player decrease
+                # Player speed decrease
                 player_1.speed -= 0.1
 
                 # Player size decrease
-                player_1.size -= 0.15
+                if grace_period <= 0:
+                    player_1.size -= 0.15
+                else:
+                    player_1.size -= 0.10
+                    grace_period -= 1
 
                 # # Dagger hit
                 if isclose(player_1.hit_pos.x, dagger_1.coords[0], abs_tol=player_1.hit_tol) and isclose(player_1.hit_pos.y, dagger_1.coords[1], abs_tol=player_1.hit_tol):
@@ -318,11 +326,11 @@ class CircleNom():
                 # Set True to use Prey debug console prints and dot
                 if False:
                     print(f"prey_1_pos X: {prey_1.coords[0]} Y: {prey_1.coords[1]}",end=" | ")
-
+                    print(f"prey_1.aura: {prey_1.aura}", end=" | ")
                     print(f"prey_1.counter: {prey_1.counter}",end=" ||| ")
 
                     print(f"prey_2_pos X: {prey_2.coords[0]} Y: {prey_2.coords[1]}",end=" | ")
-
+                    print(f"prey_2.aura: {prey_2.aura}", end=" | ")
                     print(f"prey_2.counter: {prey_2.counter}")
 
                     # Prey position dots
@@ -379,9 +387,9 @@ class CircleNom():
                     player_1.position.y = 1
 
             # -------------------------------------------------------------------------------------------- 
-            # PAUSE self.screen
+            # PAUSE screen
             else:
-                # self.screen and player
+                # screen and player
                 self.screen.blit(self.background_image, (0, 0))
                 player_1.draw()
 
@@ -396,7 +404,7 @@ class CircleNom():
                 self.screen.blit(press_text, press_text_rect)
                 pygame.display.flip()
 
-            # flip() the display to put work on self.screen
+            # flip() the display to put work on screen
             pygame.display.flip()
 
             # Limits FPS to 60
@@ -404,7 +412,7 @@ class CircleNom():
 
         pygame.mixer.music.fadeout(2500)
 
-        # Draw game end self.screen
+        # Draw game end screen
         self.screen.blit(self.background_image, (0, 0))
         player_1.draw_dead()
 
@@ -419,6 +427,5 @@ class CircleNom():
         self.screen.blit(points_final, points_final_rect)
         pygame.display.flip()
 
-
-        # Sleep to show end self.screen
+        # Sleep to show end screen
         sleep(3)
