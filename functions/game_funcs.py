@@ -119,3 +119,79 @@ def get_song_name(index:int, theme_songs:list) -> str:
     if len(list_names) != len(theme_songs):
         raise ValueError(f"Lenght list_names: {len(list_names)} != Lenght theme_songs: {len(theme_songs)}")
     return list_names[index % len(list_names)]
+
+def check_bounds(screen:pygame.Surface, player):
+        """
+        Function for checking if player is outside of playable area / screen bounds.
+        """
+        if player.position.x >= screen.get_width():
+            player.position.x = screen.get_width() - 1
+
+        if player.position.y >= screen.get_height(): 
+            player.position.y = screen.get_height() - 1
+
+        if player.position.x <= 0:
+            player.position.x = 1
+
+        if player.position.y <= 0:
+            player.position.y = 1
+
+
+def player_debug(player, screen:pygame.Surface, enable:bool):
+    """
+    Debug function for class Player. Prints on console X/Y, size, speed, eat / hit tolerance and their ranges on screen.
+    """
+    if enable:
+        print(f"player X: {player.position.x:.2f} Y: {player.position.y:.2f}",end=" || ") 
+        print(f"player eat_tol: {player.eat_tol:.2f}",end=" || ")
+        print(f"player hit_tol: {player.hit_tol:.2f}",end=" || ")
+        print(f"player size: {player.size:.2f}", end=" || ")
+        print(f"player speed: {player.speed:.2f}")
+
+        # Player dots
+        pygame.draw.circle(screen, "green", player.hit_pos, player.hit_tol) # Player hit range dot
+        pygame.draw.circle(screen, "red", player.eat_pos, player.eat_tol) # Player eat range dot
+
+def prey_debug(prey, screen:pygame.Surface, enable:bool):
+    """
+    Debug function for class Prey. Prints on console X / Y with a dot on screen, prey counter and it's aura bool.
+    """
+    if enable:
+        print(f"prey X: {prey.coords[0]} Y: {prey.coords[1]}",end=" | ")
+        print(f"prey aura: {prey.aura}", end=" | ")
+        print(f"prey counter: {prey.counter}")
+
+        # Prey position dot
+        pygame.draw.circle(screen, "blue", prey.coords, 5)
+
+def player_control(player, dt:float, WASD:bool, ARROWS:bool):
+
+    keys = pygame.key.get_pressed()
+    if WASD:
+        if keys[pygame.K_w]:
+            player.position.y -= ((3300 / player.size) * player.speed) * dt
+
+        if keys[pygame.K_s]:
+            player.position.y += ((3300 / player.size) * player.speed) * dt
+
+        if keys[pygame.K_a]:
+            player.position.x -= ((3300 / player.size) * player.speed) * dt
+
+        if keys[pygame.K_d]:
+            player.position.x += ((3300 / player.size) * player.speed) * dt
+
+    if ARROWS:
+        if keys[pygame.K_UP]:
+            player.position.y -= ((3300 / player.size) * player.speed) * dt
+
+        if keys[pygame.K_DOWN]:
+            player.position.y += ((3300 / player.size) * player.speed) * dt
+
+        if keys[pygame.K_LEFT]:
+            player.position.x -= ((3300 / player.size) * player.speed) * dt
+
+        if keys[pygame.K_RIGHT]:
+            player.position.x += ((3300 / player.size) * player.speed) * dt
+
+    if WASD == False and ARROWS == False:
+        raise ValueError("Enable either WASD or ARROWS controls in player_control function!")

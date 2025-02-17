@@ -2,7 +2,7 @@ import pygame
 import sys
 from functions.game_files_loader import *
 from functions.game_funcs import rand_num, rot_center
-from classes.CircleNom import CircleNom
+from classes.temp_circle_nom import CircleNom
 
 # Initialize Pygame
 pygame.init()

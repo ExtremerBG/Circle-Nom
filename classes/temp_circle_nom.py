@@ -4,10 +4,10 @@
 
 # Importing modules
 from functions.game_funcs import *
-from classes.HealthBar import *
-from classes.Dagger import *
-from classes.Player import *
-from classes.Prey import *
+from classes.temp_health_bar import *
+from classes.temp_dagger import *
+from classes.temp_player import *
+from classes.temp_prey import *
 from math import isclose
 from time import sleep
 import pygame
@@ -22,8 +22,8 @@ class CircleNom():
                  dagger_images, dagger_sounds, 
                  hit_sounds):
         
-        self.screen = screen
-        self.difficulty = difficulty
+        self.screen:pygame.Surface = screen
+        self.difficulty:int = difficulty
         self.eat_sounds = eat_sounds
         self.theme_songs = theme_songs
         self.player_image_index = player_image_index
@@ -127,6 +127,36 @@ class CircleNom():
                 prey.reset_prey()
 
             return points
+        
+        def dagger_hit(player:Player, dagger:Dagger):
+            """
+            Checks if player is hit by a dagger object.
+            Args:
+                player (class Player): The player to check with.
+                dagger (class Dagger): The dagger to check with.
+            """
+
+            if isclose(player.hit_pos.x, dagger.coords[0], abs_tol=player.hit_tol) and isclose(player.hit_pos.y, dagger.coords[1], abs_tol=player.hit_tol):
+
+                # Bigger penalty if its a flaming dagger
+                if dagger.flame == True:
+                    player.size -= 15
+                    player.speed -= 5
+                else:
+                    player.size -= 10
+
+                # Set ow text to show & remove eat
+                player.ow_txt_counter = 30
+                player.nom_txt_counter = 0
+
+                # Reset dagger
+                dagger.reset_dagger()
+
+                # if player is hit: dagger spawn has a grace period
+                dagger.grace_spawn(randint(60, 90))
+
+                # Play random sound 
+                self.hit_sounds[rand_num(len(self.hit_sounds))].play()
 
         # Get Player image and its dead counterpart
         player_image = self.player_images[self.player_image_index]
@@ -187,10 +217,10 @@ class CircleNom():
         # 1 - Medium
         # 2 - Hard
         if self.difficulty == 0:
-            Prey.despawn = 100
+            Prey.despawn = 120
             grace_period = 240
         elif self.difficulty == 1:
-            Prey.despawn = 90
+            Prey.despawn = 100
             grace_period = 200
         elif self.difficulty == 2:
             Prey.despawn = 80
@@ -258,28 +288,6 @@ class CircleNom():
                     player_1.size -= 0.10
                     grace_period -= 1
 
-                # # Dagger hit
-                if isclose(player_1.hit_pos.x, dagger_1.coords[0], abs_tol=player_1.hit_tol) and isclose(player_1.hit_pos.y, dagger_1.coords[1], abs_tol=player_1.hit_tol):
-                    # Bigger penalty if its a flaming dagger
-                    if dagger_1.flame == True:
-                        player_1.size -= 15
-                        player_1.speed -= 5
-                    else:
-                        player_1.size -= 10
-
-                    # Set ow text to show & remove eat
-                    player_1.ow_txt_counter = 30
-                    player_1.nom_txt_counter = 0
-
-                    # Reset dagger
-                    dagger_1.reset_dagger()
-
-                    # if player is hit: dagger spawn has a grace period
-                    dagger_1.grace_spawn(randint(60, 90))
-
-                    # Play random sound 
-                    self.hit_sounds[rand_num(len(self.hit_sounds))].play()
-
                 # Player draw Ow! text & Draw hit red overlay
                 if player_1.ow_txt_counter > 0:
                     player_1.draw_text("Ow!")
@@ -299,6 +307,9 @@ class CircleNom():
                 points = eat_prey(player_1, prey_1, easter, points)
                 points = eat_prey(player_1, prey_2, easter, points)
 
+                # Check if player_1 is hit by dagger
+                dagger_hit(player_1, dagger_1)
+
                 # Player draw Nom! text
                 if player_1.nom_txt_counter > 0:
                     player_1.draw_text("Nom!")
@@ -308,34 +319,11 @@ class CircleNom():
                     running = False
 
                 # Set True to use Player debug console prints and dots
-                if False:
-                    print(f"player_1_pos X: {player_1.position.x:.2f} Y: {player_1.position.y:.2f}",end=" || ") 
-
-                    print(f"player_1.eat_tol: {player_1.eat_tol:.2f}",end=" || ")
-
-                    print(f"player_1.hit_tol: {player_1.hit_tol:.2f}",end=" || ")
-
-                    print(f"player_1.size: {player_1.size:.2f}", end=" || ")
-
-                    print(f"player_1.speed: {player_1.speed:.2f}")
-
-                    # Player dots
-                    pygame.draw.circle(self.screen, "green", player_1.hit_pos, player_1.hit_tol) # Player 1 hit range dot
-                    pygame.draw.circle(self.screen, "red", player_1.eat_pos, player_1.eat_tol) # Player 1 eat range dot
+                player_debug(player_1, self.screen, False)
 
                 # Set True to use Prey debug console prints and dot
-                if False:
-                    print(f"prey_1_pos X: {prey_1.coords[0]} Y: {prey_1.coords[1]}",end=" | ")
-                    print(f"prey_1.aura: {prey_1.aura}", end=" | ")
-                    print(f"prey_1.counter: {prey_1.counter}",end=" ||| ")
-
-                    print(f"prey_2_pos X: {prey_2.coords[0]} Y: {prey_2.coords[1]}",end=" | ")
-                    print(f"prey_2.aura: {prey_2.aura}", end=" | ")
-                    print(f"prey_2.counter: {prey_2.counter}")
-
-                    # Prey position dots
-                    pygame.draw.circle(self.screen, "blue", prey_1.coords, 5) # Prey 1
-                    pygame.draw.circle(self.screen, "blue", prey_2.coords, 5) # Prey 2
+                prey_debug(prey_1, self.screen, False)
+                prey_debug(prey_2, self.screen, False)
 
                 # FPS Text display
                 fps = round(clock.get_fps())
@@ -360,31 +348,10 @@ class CircleNom():
                 self.screen.blit(health_txt, (930, 10))
 
                 # Controls for Player 1
-                keys = pygame.key.get_pressed()
-                if keys[pygame.K_w] or keys[pygame.K_UP]:
-                    player_1.position.y -= ((3300 / player_1.size) * player_1.speed) * dt
+                player_control(player_1, dt, True, False)
 
-                if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-                    player_1.position.y += ((3300 / player_1.size) * player_1.speed) * dt
-
-                if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-                    player_1.position.x -= ((3300 / player_1.size) * player_1.speed) * dt
-
-                if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-                    player_1.position.x += ((3300 / player_1.size) * player_1.speed) * dt
-
-                # If player position is at the self.screen bounds, set it to the edge - 1, to limit going off self.screen
-                if player_1.position.x >= self.screen.get_width():
-                    player_1.position.x = self.screen.get_width() - 1
-
-                if player_1.position.y >= self.screen.get_height(): 
-                    player_1.position.y = self.screen.get_height() - 1
-
-                if player_1.position.x <= 0:
-                    player_1.position.x = 1
-
-                if player_1.position.y <= 0:
-                    player_1.position.y = 1
+                # Check if player is in screen bounds
+                check_bounds(self.screen, player_1)
 
             # -------------------------------------------------------------------------------------------- 
             # PAUSE screen

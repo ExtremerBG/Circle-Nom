@@ -1,5 +1,5 @@
+from functions.game_funcs import rand_num, rot_center, rand_screen_pos
 import pygame
-from functions.game_funcs import *
 
 class Prey():
     spawn = 35

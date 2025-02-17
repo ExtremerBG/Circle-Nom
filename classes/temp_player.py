@@ -49,7 +49,7 @@ class Player():
     def draw(self):
         """
         Draws the player on the screen.
-        Scales the player's image based on the current size and blits it to the screen.
+        Scales the player's image based on the current size and blits it to the screen.\n
         The position is adjusted based on whether the easter mode is active or not.
         """
 
