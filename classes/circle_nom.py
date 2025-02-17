@@ -4,10 +4,10 @@
 
 # Importing modules
 from functions.game_funcs import *
-from classes.temp_health_bar import *
-from classes.temp_dagger import *
-from classes.temp_player import *
-from classes.temp_prey import *
+from classes.health_bar import *
+from classes.dagger import *
+from classes.player import *
+from classes.prey import *
 from math import isclose
 from time import sleep
 import pygame
