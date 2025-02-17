@@ -108,9 +108,9 @@ directories = [
     resource_path('image/bar/hunger_bar_inner.png'),
     resource_path('image/bar/hunger_bar_outer.png')
 ]
-hunger_bar: list[pygame.Surface] = []
+health_bar: list[pygame.Surface] = []
 for path in directories:
-    hunger_bar.append(pygame.image.load(path))
+    health_bar.append(pygame.image.load(path))
 
 ################################################################################
 

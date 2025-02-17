@@ -1,4 +1,5 @@
 from random import randint
+from math import isclose
 import pygame
 import sys
 import os
@@ -120,7 +121,7 @@ def get_song_name(index:int, theme_songs:list) -> str:
         raise ValueError(f"Lenght list_names: {len(list_names)} != Lenght theme_songs: {len(theme_songs)}")
     return list_names[index % len(list_names)]
 
-def check_bounds(screen:pygame.Surface, player):
+def check_screen_bounds(screen:pygame.Surface, player):
         """
         Function for checking if player is outside of playable area / screen bounds.
         """
@@ -135,6 +136,48 @@ def check_bounds(screen:pygame.Surface, player):
 
         if player.position.y <= 0:
             player.position.y = 1
+
+def check_player_collision(player_1, player_2):
+    """
+    Function for checking if player_1 collides with player_2. Used in multiplayer only.
+    """
+    # Check if player_1 is close enough to player_2
+    if isclose(player_1.position.x, player_2.position.x, abs_tol=player_1.collision_tol) and isclose(player_1.position.y, player_2.position.y, abs_tol=player_1.collision_tol):
+        
+        # If player_1 is to the right of player_2, move them apart horizontally
+        if player_1.position.x > player_2.position.x:
+            player_1.position.x += 1
+            player_2.position.x -= 1
+        else:
+            player_1.position.x -= 1
+            player_2.position.x += 1
+
+        # If player_1 is below player_2, move them apart vertically
+        if player_1.position.y > player_2.position.y:
+            player_1.position.y += 1
+            player_2.position.y -= 1
+        else:
+            player_1.position.y -= 1
+            player_2.position.y += 1
+
+    # Check if player_2 is close enough to player_1
+    if isclose(player_2.position.x, player_1.position.x, abs_tol=player_2.collision_tol) and isclose(player_2.position.y, player_1.position.y, abs_tol=player_2.collision_tol):
+
+        # If player_2 is to the right of player_1, move them apart horizontally
+        if player_2.position.x > player_1.position.x:
+            player_2.position.x += 1
+            player_1.position.x -= 1
+        else:
+            player_2.position.x -= 1
+            player_1.position.x += 1
+
+        # If player_2 is below player_1, move them apart vertically
+        if player_2.position.y > player_1.position.y:
+            player_2.position.y += 1
+            player_1.position.y -= 1
+        else:
+            player_2.position.y -= 1
+            player_1.position.y += 1
 
 
 def player_debug(player, screen:pygame.Surface, enable:bool):

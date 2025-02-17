@@ -1,4 +1,5 @@
 import pygame
+import numpy as np
 
 class Player():
 
@@ -34,6 +35,7 @@ class Player():
         self._text = pygame.font.SysFont('Comic Sans MS', 30)
         self.ow_txt_counter = 0
         self.nom_txt_counter = 0
+        self._points = 0
 
        # Different eat pos / eat_tol if easter is on
         if self._easter == True:
@@ -73,6 +75,7 @@ class Player():
         
         self._hit_pos = self._position
         self._hit_tol = self._size * 1.25
+        self._collision_tol = self._size * 1.5
 
     def draw_dead(self):
         """
@@ -96,23 +99,44 @@ class Player():
 
     def draw_hit(self):
         """
-        Draws a red semi-transparent overlay over the player.
+        Temporarily modifies the player's image to be more reddish.
         """
-        # Calculate the size of the hit overlay based on the player's size
-        overlay_size = self.scale
+        # Method 1 for easter mode.
+        if self._easter:
+            # Create a copy of the original image
+            reddish_image = self._image.copy()
 
-        # Create a surface with an alpha channel (RGBA)
-        hit_overlay = pygame.Surface(overlay_size, pygame.SRCALPHA)
+            # Fill the image with a red color, using the BLEND_RGBA_ADD flag to add the red component
+            reddish_image.fill((200, 0, 0, 0), special_flags=pygame.BLEND_RGBA_ADD)
 
-        # Calculate the position and radius of the circle
-        circle_center = (overlay_size[0] // 2, overlay_size[1] // 2)
-        circle_radius = self._size * 1.5
+            # Blit the reddish image onto the screen
+            self._screen.blit(reddish_image, self._position - pygame.Vector2(reddish_image.get_width() / 2, reddish_image.get_height() / 2))
 
-        # Draw a red circle with a specified alpha value (0-255)
-        pygame.draw.circle(hit_overlay, (255, 0, 0, 128), circle_center, int(circle_radius))  # 128 is the alpha value for 50% transparency
+        # Method 2 for non-easter mode.
+        else:
+            # Create a copy of the original image
+            reddish_image = self._image.copy()
 
-        # Blit (copy) the surface with the circle onto the display
-        self._screen.blit(hit_overlay, self._position - pygame.Vector2(overlay_size[0] // 2, overlay_size[1] // 2))
+            # Convert the surface to a NumPy array
+            pixel_array = pygame.surfarray.pixels3d(reddish_image)
+
+            # Define the range for yellow color
+            yellow_min = np.array([200, 200, 0])
+            yellow_max = np.array([255, 255, 100])
+
+            # Create a mask for yellow pixels
+            mask = np.all((pixel_array >= yellow_min) & (pixel_array <= yellow_max), axis=-1)
+
+            # Increase the red component and decrease the green and blue components for yellow pixels
+            pixel_array[..., 0][mask] = np.minimum(255, pixel_array[..., 0][mask] + 240) # R
+            pixel_array[..., 1][mask] = np.maximum(0, pixel_array[..., 1][mask] + 60)   # G
+            pixel_array[..., 2][mask] = np.maximum(0, pixel_array[..., 2][mask] - 0)   # B
+
+            # Unlock the surface
+            del pixel_array
+
+            # Blit the reddish image onto the screen
+            self._screen.blit(reddish_image, self._position - pygame.Vector2(reddish_image.get_width() / 2, reddish_image.get_height() / 2))
 
     @property
     def eat_pos(self):
@@ -133,6 +157,10 @@ class Player():
     @property
     def hit_tol(self):
         return self._hit_tol
+    
+    @property
+    def collision_tol(self):
+        return self._collision_tol
     
     @property
     def size(self) -> float:
@@ -172,6 +200,13 @@ class Player():
         Returns wheter the ow text is displayed.
         """
         return self._ow_txt_counter > 0
+    
+    @property
+    def points(self) -> int:
+        """
+        Returns the player's points.
+        """
+        return self._points
     
     @size.setter
     def size(self, value:float):
@@ -259,3 +294,19 @@ class Player():
             self._ow_txt_counter = value  # Display "Ow!" text for 60 frames (1 second at 60 FPS)
         else:
             self._ow_txt_counter = 0
+
+    @points.setter
+    def points(self, value:int):
+        """
+        Sets the player's points.
+        
+        Args:
+            value (int): The new points of the player.
+        """
+        if type(value) != int:
+            raise ValueError("Points accepts int only!")
+        
+        if value < 0:
+            raise ValueError("Points cannot be less than 0!")
+
+        self._points = value

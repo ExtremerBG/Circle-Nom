@@ -9,11 +9,12 @@
 
 ## Run Instructions
 
-To run the source code, open the folder with your preferred IDE. Ensure you have `pygame` and  `gif-pygame` libraries installed; otherwise, the game won't work. Install them using:
+To run the source code, open the folder with your preferred IDE. Ensure you have `pygame`,  `gif-pygame` and `numpy` libraries installed; otherwise, the game won't work. Install them using:
 
 ```sh
 pip install pygame
 pip install gif-pygame
+pip install numpy
 ```
 
 Alternatively, you can run the game using the executable found in the Releases section or create your own by running the `.spec` file with `pyinstaller`. Note: Both executables, whether from Releases or your own compilation, will **not** have a digital signature. As a result, some antivirus programs may flag them as malicious and delete them.
@@ -24,15 +25,25 @@ Menus:
 - Move up and down between options using the `W`, `S` or `↑`, `↓` keys on your keyboard.
 - Switch between options using the `A`, `D` or `←`, `→` keys on your keyboard.
 - Press `Enter` to enter the selected option.
+- Press `Escape` or `Backspace` to go back in the menus or exit Circle Nom.
 
 In-game:
-- Move the character using `W`, `A`, `S`, `D` or the `↑`, `↓`, `←`, `→` keys on your keyboard.
-- Change the music using the `Q` & `E` keys - previous & next song.
-- Pause Circle Nom with the `P` key.
+- Singleplayer:
+    - Move using `W`, `A`, `S`, `D` or the `↑`, `↓`, `←`, `→` keys on your keyboard.
+    - Change the music using the `Q` & `E` keys - previous & next song.
+    - Pause Circle Nom with the `P` key.
+- Multiplayer:
+    - Move Player 1 using the `W`, `A`, `S`, `D` keys on your keyboard.
+    - Move Player 2 using the `↑`, `↓`, `←`, `→` keys on your keyboard.
+    - Change the music using the `Q` & `E` keys - previous & next song.
+    - Pause Circle Nom with the `P` key.
 
 ## Goal
+Singleplayer:
+- Score as many points as possible by eating randomly spawned food, while dodging daggers!
 
-Score as many points as possible by eating randomly spawned food, while dodging daggers!
+Multiplayer:
+- Survive longer than the other player.
 
 ## Credits
 
