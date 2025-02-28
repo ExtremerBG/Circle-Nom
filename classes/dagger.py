@@ -1,14 +1,17 @@
 import pygame
 import gif_pygame
-from functions.game_funcs import image_rotate, rand_num
 from functions.game_files_loader import dagger_sounds
-from random import randint, uniform
+from random import randint, uniform, choice
 
 class Dagger():
     
     def __init__(self, list_daggers:list[pygame.Surface], screen:pygame.Surface):
         """
-        Dagger with direction.
+        Initialize a Dagger object with direction and other attributes.
+
+        Args:
+            list_daggers (list[pygame.Surface]): List of dagger images.
+            screen (pygame.Surface): The game screen.
         """
         self._screen = screen
 
@@ -57,7 +60,7 @@ class Dagger():
         self._speed_multiplier = uniform(1, 2)
         if self._speed_multiplier < 1.6:
             self._flame = False
-            self._image:pygame.Surface = image_rotate(self._list_daggers[0],  self._angle)
+            self._image:pygame.Surface = pygame.transform.rotate(self._list_daggers[0], self._angle)
         else:
             self._flame = True
             if self._direction == "RIGHT":
@@ -86,27 +89,42 @@ class Dagger():
     @property
     def get_dir(self) -> str:
         """
-        Returns direction string: 'RIGHT', 'LEFT ,'UP' or 'DOWN'.
+        Returns the direction of the dagger.
+
+        Returns:
+            str: The direction of the dagger ('RIGHT', 'LEFT', 'UP', or 'DOWN').
         """
         return self._direction
     
     @property
     def coords(self) -> tuple:
         """
-        Returns coordinates
+        Returns the coordinates of the dagger.
+
+        Returns:
+            tuple: The x and y coordinates of the dagger.
         """
         return self._x_coord, self._y_coord
     
     @property
     def flame(self) -> bool:
         """
-        Returns flame bool.
+        Returns whether the dagger has a flame effect.
+
+        Returns:
+            bool: True if the dagger has a flame effect, False otherwise.
         """
         return self._flame
     
     def grace_spawn(self, value):
         """
-        Set grace spawn for next dagger.
+        Set grace spawn time for the next dagger.
+
+        Args:
+            value (int | float): The value to add to the spawn time.
+
+        Raises:
+            ValueError: If the value is not an int or float.
         """
         if type(value) == int or type(value) == float:
             self._spawn += value
@@ -116,7 +134,7 @@ class Dagger():
     
     def draw(self):
         """
-        Draw dagger.
+        Draw the dagger on the screen.
         """
         if self._timer > self._spawn:
             if self._direction == "RIGHT":
@@ -141,7 +159,7 @@ class Dagger():
         if self._flame == True and self._timer > self._spawn:
             self._image.render(self._screen, (self._x_coord, self._y_coord) - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
 
-        # increment timer
+        # Increment timer
         self._timer += 1
 
         # Debug
@@ -150,6 +168,9 @@ class Dagger():
             pygame.draw.circle(self._screen, "red", self.coords, 10)
 
     def play_sound(self):
+        """
+        Play a random dagger sound if it hasn't been played yet.
+        """
         if self._played_sound == False:
-            dagger_sounds[rand_num(len(dagger_sounds))].play()
+            choice(dagger_sounds).play()
             self._played_sound = True

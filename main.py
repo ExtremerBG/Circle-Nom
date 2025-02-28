@@ -1,7 +1,8 @@
 import pygame
 import sys
+from random import choice, randint
 from functions.game_files_loader import *
-from functions.game_funcs import rand_num, rot_center
+from functions.game_funcs import rot_center
 from classes.circle_nom import CircleNom
 
 # Initialize Pygame
@@ -42,6 +43,12 @@ current_play_mode = 0
 
 # Set volume for all sounds
 def set_sound_volume(volume):
+    """
+    Set the volume for all game sounds.
+
+    Args:
+        volume (float): The volume level to set (0.0 to 1.0).
+    """
     pygame.mixer.music.set_volume(volume)
     for sound in main_menu_clicks:
         sound.set_volume(volume)
@@ -68,43 +75,43 @@ selected_option = 0
 angle = 0
 
 # Select random background index
-background_image_index = rand_num(len(background_images))
+background_image = choice(background_images)
 
-# Select random player image index
-player_image_index = rand_num(len(player_images))
+# Select random player images index
+player_images_index = randint(0, len(player_images)-1)
 
 # Set end event for autoplaying
 pygame.mixer.music.set_endevent(pygame.USEREVENT)
 
 # Start game function
 def start_game():
-    global player_image_index
-    global background_image_index
-    game = CircleNom(
-        screen=screen,
-        difficulty=current_difficulty,
-        play_mode=current_play_mode,
-        eat_sounds=eat_sounds,
-        theme_songs=theme_songs,
-        player_image_index=player_image_index,
-        player_images=player_images,
-        player_images_dead=player_images_dead,
-        prey_aura=prey_aura,
-        prey_images=prey_images,
-        background_image=background_images[background_image_index],
-        health_bar=health_bar,
-        dagger_images=dagger_images,
-        dagger_sounds=dagger_sounds,
-        hit_sounds=hit_sounds
-    )
+    """
+    Start the Circle Nom game.
+    """
+    global player_images_index
+    global background_image
+    
+    # Select player image from lists
+    player_image = player_images[player_images_index]
+    player_image_dead = player_images_dead[player_images_index]
+    
+    game = CircleNom(screen, current_difficulty, current_play_mode,
+                     eat_sounds, theme_songs, player_image, player_image_dead,
+                     prey_images, prey_aura, background_image, health_bar,
+                     dagger_images, dagger_sounds, hit_sounds)
+    
     # Start Circle Nom
     game.start()
-    # New random player/background image index
-    player_image_index = rand_num(len(player_images))
-    background_image_index = rand_num(len(background_images))
+    
+    # New random player images index and background image
+    player_images_index = randint(0, len(player_images)-1)
+    background_image = choice(background_images)
 
 # Toggle screen mode function
 def toggle_screen_mode():
+    """
+    Toggle between windowed and fullscreen modes.
+    """
     main_menu_clicks[1].play()
     global current_screen_mode, screen
     current_screen_mode = (current_screen_mode + 1) % len(screen_modes)
@@ -115,10 +122,12 @@ def toggle_screen_mode():
 
 # Draw player and aura
 def draw_aura():
+    """
+    Draw the player and its aura on the screen.
+    """
+    global player_images_index
+    global angle # Global angle for continuous rotation
     
-    # Global angle for continuous rotation
-    global angle
-
     player_position = pygame.Vector2(640, 140)
     player_scale = [180, 180]
 
@@ -127,7 +136,7 @@ def draw_aura():
     screen.blit(rotated_aura[0], rotated_aura[1])
 
     # Draw player
-    player_image = pygame.transform.smoothscale(player_images[player_image_index], player_scale)
+    player_image = pygame.transform.smoothscale(player_images[player_images_index], player_scale)
     screen.blit(player_image, player_position - pygame.Vector2(player_image.get_width() / 2, player_image.get_height() / 2))
 
     # Increment the angle for continuous rotation
@@ -135,6 +144,9 @@ def draw_aura():
 
 # Select and update options menu
 def show_options():
+    """
+    Display and handle the options menu.
+    """
     global selected_option
     global current_volume
     global current_difficulty
@@ -152,7 +164,7 @@ def show_options():
             elif event.type == pygame.KEYDOWN:
 
                 # Enter key
-                if event.key == pygame.K_RETURN:
+                if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
                     if options_items[selected_option] == "Back":
                         main_menu_clicks[0].play()
                         return  # Exit options menu
@@ -218,18 +230,20 @@ def show_options():
                     elif selected_option == 3:
                         main_menu_clicks[1].play()
                         toggle_screen_mode()
-                
-                # Play sound for invalid key press
-                else:
+
+
+                # Invalid key presses
+                # Special case if selected option is 1, 2 or 3 - play invalid key press sounds for all keys except W, S, A, D, ↑, ↓, ←, →
+                if selected_option in [1, 2, 3] and event.key not in [pygame.K_w, pygame.K_UP, pygame.K_a, pygame.K_LEFT, pygame.K_d, pygame.K_RIGHT, pygame.K_s, pygame.K_DOWN]:
                     main_menu_clicks[2].play()
                 
-                # Special case if selected option is 4 (Back) - play invalid key press sound for all keys except Enter, Backspace and Escape
-                if selected_option == 4 and event.key not in [pygame.K_RETURN, pygame.K_BACKSPACE, pygame.K_ESCAPE, pygame.K_DOWN, pygame.K_UP, pygame.K_w, pygame.K_s]:
+                # Special case if selected option is 4 - play invalid key press sound for all keys except Enter, Backspace and Escape
+                elif selected_option == 4 and event.key not in [pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_BACKSPACE, pygame.K_ESCAPE, pygame.K_DOWN, pygame.K_UP, pygame.K_w, pygame.K_s]:
                     main_menu_clicks[2].play()
 
             # Music replay
             if event.type == pygame.USEREVENT:
-                pygame.mixer.music.load(main_menu_themes[rand_num(len(main_menu_themes))])
+                pygame.mixer.music.load(choice(main_menu_themes))
                 pygame.mixer.music.play()
 
         # Draw the options menu
@@ -237,12 +251,14 @@ def show_options():
 
 # Draw the options menu
 def draw_options():
-
+    """
+    Draw the options menu on the screen.
+    """
     # global angle for rotating aura
     global angle
 
     # Draw background
-    screen.blit(background_images[background_image_index], (0, 0))
+    screen.blit(background_image, (0, 0))
 
     # Draw player and aura
     draw_aura()
@@ -304,9 +320,11 @@ def draw_options():
 
 # Draw the main menu
 def draw_menu():
-
+    """
+    Draw the main menu on the screen.
+    """
     # Draw background
-    screen.blit(background_images[background_image_index], (0, 0))
+    screen.blit(background_image, (0, 0))
 
     # Draw player and aura
     draw_aura()
@@ -337,11 +355,14 @@ def draw_menu():
 menu_functions = [start_game, show_options, sys.exit]
 
 def main():
+    """
+    Main function to run the game.
+    """
     global selected_item
     global score
 
     # Play menu theme
-    pygame.mixer.music.load(main_menu_themes[rand_num(len(main_menu_themes))])
+    pygame.mixer.music.load(choice(main_menu_themes))
     pygame.mixer.music.play()
     
     # Main loop for main menu
@@ -355,7 +376,7 @@ def main():
             elif event.type == pygame.KEYDOWN:
 
                 # Enter key
-                if event.key == pygame.K_RETURN:
+                if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
                     main_menu_clicks[0].play()
                     score = menu_functions[selected_item]()
                 
@@ -385,7 +406,7 @@ def main():
 
              # Music replay
             if event.type == pygame.USEREVENT:
-                pygame.mixer.music.load(main_menu_themes[rand_num(len(main_menu_themes))])
+                pygame.mixer.music.load(choice(main_menu_themes))
                 pygame.mixer.music.play()
 
         # Draw the main menu

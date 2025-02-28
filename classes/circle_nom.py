@@ -3,6 +3,8 @@
 # Circle Nom Game
 
 # Importing modules
+from functions.game_files_loader import player_images, player_images_dead # Used for easter mode
+from random import randint, choice
 from functions.game_funcs import *
 from classes.health_bar import *
 from classes.dagger import *
@@ -15,30 +17,52 @@ import sys
 
 class CircleNom():
 
-    def __init__(self, screen, difficulty, play_mode, eat_sounds, 
-                 theme_songs, player_images, player_image_index, 
-                 player_images_dead, prey_images, prey_aura,
-                 background_image, health_bar, dagger_images, 
-                 dagger_sounds, hit_sounds):
-        
-        self.screen:pygame.Surface = screen
-        self.difficulty:int = difficulty
-        self.play_mode:int = play_mode
-        self.eat_sounds:list[pygame.Sound] = eat_sounds
-        self.theme_songs:list = theme_songs
-        self.player_image_index:int = player_image_index
-        self.player_images:list[pygame.Surface] = player_images
-        self.player_images_dead:list[pygame.Surface] = player_images_dead
-        self.prey_aura:pygame.Surface = prey_aura
-        self.prey_images:list[pygame.Surface] = prey_images
-        self.background_image:pygame.Surface = background_image
-        self.health_bar:list[pygame.Surface] = health_bar
-        self.dagger_images:list[pygame.Surface] = dagger_images
-        self.dagger_sounds:list[pygame.Sound] = dagger_sounds
-        self.hit_sounds:list[pygame.Sound] = hit_sounds
+    def __init__(self, screen:pygame.Surface, difficulty:int,
+                 play_mode:int, eat_sounds:list[pygame.Sound],
+                 theme_songs:list[pygame.Sound], player_image:pygame.Surface,
+                 player_image_dead:pygame.Surface, prey_images:list[pygame.Surface],
+                 prey_aura:pygame.Surface, background_image:pygame.Surface,
+                 health_bar:list[pygame.Surface], dagger_images:list[pygame.Surface],
+                 dagger_sounds:list[pygame.Sound], hit_sounds:list[pygame.Sound]
+                 ):
+        """
+        Initializes the CircleNom game with various assets and settings.
+
+        Args:
+            screen (pygame.Surface): The game screen.
+            difficulty (int): The game difficulty level.
+            play_mode (int): The game play mode (0 for singleplayer, 1 for multiplayer).
+            eat_sounds (list[pygame.Sound]): List of sounds to play when eating prey.
+            theme_songs (list[pygame.Sound]): List of theme songs for the game.
+            player_image (pygame.Surface): The player's image.
+            player_image_dead (pygame.Surface): The player's dead image.
+            prey_images (list[pygame.Surface]): List of prey images.
+            prey_aura (pygame.Surface): The aura image for prey.
+            background_image (pygame.Surface): The background image for the game.
+            health_bar (list[pygame.Surface]): List of health bar images.
+            dagger_images (list[pygame.Surface]): List of dagger images.
+            dagger_sounds (list[pygame.Sound]): List of sounds to play when a dagger is used.
+            hit_sounds (list[pygame.Sound]): List of sounds to play when the player is hit.
+        """
+        self.screen = screen
+        self.difficulty = difficulty
+        self.play_mode = play_mode
+        self.eat_sounds = eat_sounds
+        self.theme_songs = theme_songs
+        self.player_image = player_image
+        self.player_image_dead = player_image_dead
+        self.prey_images = prey_images
+        self.prey_aura = prey_aura
+        self.background_image = background_image
+        self.health_bar = health_bar
+        self.dagger_images = dagger_images
+        self.dagger_sounds = dagger_sounds
+        self.hit_sounds = hit_sounds
 
     def start(self):
-
+        """
+        Starts the Circle Nom game.
+        """
         # Pygame initialization
         pygame.init()
 
@@ -61,7 +85,7 @@ class CircleNom():
         pygame.mixer.init()
         
         # Play random theme song from list
-        song_index = rand_num(len(self.theme_songs))
+        song_index = randint(0, len(self.theme_songs) - 1)
         pygame.mixer_music.load(self.theme_songs[song_index % len(self.theme_songs)])
         pygame.mixer_music.play()
 
@@ -120,7 +144,7 @@ class CircleNom():
                         player.points += 1
 
                 # Play eat random sound
-                self.eat_sounds[rand_num(len(self.eat_sounds))].play()
+                choice(self.eat_sounds).play()
 
                 # Set eat text to show & remove ow
                 player.nom_txt_counter = 30
@@ -157,7 +181,7 @@ class CircleNom():
                 dagger.grace_spawn(randint(60, 90))
 
                 # Play random sound 
-                self.hit_sounds[rand_num(len(self.hit_sounds))].play()
+                choice(self.hit_sounds).play()
 
         # Check if play_mode is valid
         if self.play_mode not in [0, 1]:
@@ -179,56 +203,53 @@ class CircleNom():
         else:
             raise ValueError(f"Invalid difficulty!")
 
-        # Get Player image and its dead counterpart
-        player_image = self.player_images[self.player_image_index]
-        player_image_dead = self.player_images_dead[self.player_image_index]
-
         # Declaring player
         # 10% Chance of reversing Player/Prey for easter egg
         list_players:list[Player] = []
         easter = randint(1, 10) == 10
-        if easter:
+        
+        if easter: # Easter mode
             
-            # Random num for prey image
-            num = rand_num(len(self.prey_images))
+            # Random prey_images_index for prey image
+            prey_images_index = randint(0, len(self.prey_images) - 1)
 
             # Singleplayer
             if self.play_mode == 0:
                 list_players = [
-                    Player(self.prey_images[num], self.prey_images[num], easter, self.screen)
+                    Player(self.prey_images[prey_images_index], self.prey_images[prey_images_index], easter, self.screen)
                 ]
 
             # Multiplayer
             elif self.play_mode == 1:
                 list_players = [
-                    Player(self.prey_images[num], self.prey_images[num], easter, self.screen),
-                    Player(self.prey_images[num], self.prey_images[num], easter, self.screen)
+                    Player(self.prey_images[prey_images_index], self.prey_images[prey_images_index], easter, self.screen),
+                    Player(self.prey_images[prey_images_index], self.prey_images[prey_images_index], easter, self.screen)
                 ]
             
             # Resets prey list
             self.prey_images = []
 
-            # Add all player images to prey list
-            for image in self.player_images:
+            # Add all player images to prey list instead
+            for image in player_images:
                 prey_image = pygame.transform.smoothscale(image, (64, 64))
                 self.prey_images.append(prey_image)
-            for image in self.player_images_dead:
+            for image in player_images_dead:
                 prey_image = pygame.transform.smoothscale(image, (64, 64))
                 self.prey_images.append(prey_image)
 
-        else:
+        else: # Normal mode
 
             # Singleplayer
             if self.play_mode == 0:
                 list_players = [
-                    Player(player_image, player_image_dead, easter, self.screen)
+                    Player(self.player_image, self.player_image_dead, easter, self.screen)
                 ]
 
             # Multiplayer
             elif self.play_mode == 1:
                 list_players = [
-                    Player(player_image, player_image_dead, easter, self.screen),
-                    Player(player_image, player_image_dead, easter, self.screen)
+                    Player(self.player_image, self.player_image_dead, easter, self.screen),
+                    Player(self.player_image, self.player_image_dead, easter, self.screen)
                 ]
 
         # Prey declaration

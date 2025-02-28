@@ -12,7 +12,6 @@ class Player():
     max_size = 120
 
     def __init__(self, image: pygame.Surface, image_dead: pygame.Surface, easter_mode: bool, screen:pygame.Surface):
-
         """
         Initializes the Player object with images, easter mode, and screen.
         
@@ -22,7 +21,6 @@ class Player():
             easter_mode (bool): Flag for easter mode.
             screen (pygame.Surface): The game screen.
         """
-
         self._image = image
         self._image_og = self._image
         self._image_dead = image_dead
@@ -51,10 +49,9 @@ class Player():
     def draw(self):
         """
         Draws the player on the screen.
-        Scales the player's image based on the current size and blits it to the screen.\n
+        Scales the player's image based on the current size and blits it to the screen.
         The position is adjusted based on whether the easter mode is active or not.
         """
-
         self._image = pygame.transform.smoothscale(self._image_og, self._scale)
         self._screen.blit(self._image, self._position - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
 
@@ -88,13 +85,13 @@ class Player():
 
     def draw_text(self, text:str):
         """
-        Draws the "Nom!" text on the screen when the player eats.
-        The position of the text is adjusted based on whether the easter mode is active or not.
+        Draws the specified text on the screen.
+        
+        Args:
+            text (str): The text to draw.
         """
         text = self._text.render(f"{text}", True, (255, 255, 255))
-
         nom_text_rect = text.get_rect(center=(self._position.x, self._position.y - self._image.get_height() / 2 - self._size * 0.5))
-
         self._screen.blit(text, nom_text_rect)
 
     def draw_hit(self):
@@ -140,6 +137,12 @@ class Player():
 
     @property
     def eat_pos(self):
+        """
+        Returns the player's eat position.
+        
+        Returns:
+            pygame.Vector2: The eat position of the player.
+        """
         return self._eat_pos
 
     @property
@@ -147,25 +150,49 @@ class Player():
         """
         Returns the player's eat tolerance.
         The eat tolerance determines the range within which the player can eat prey.
+        
+        Returns:
+            float: The eat tolerance of the player.
         """
         return self._eat_tol
     
     @property
     def hit_pos(self):
+        """
+        Returns the player's hit position.
+        
+        Returns:
+            pygame.Vector2: The hit position of the player.
+        """
         return self._hit_pos
     
     @property
     def hit_tol(self):
+        """
+        Returns the player's hit tolerance.
+        
+        Returns:
+            float: The hit tolerance of the player.
+        """
         return self._hit_tol
     
     @property
     def collision_tol(self):
+        """
+        Returns the player's collision tolerance.
+        
+        Returns:
+            float: The collision tolerance of the player.
+        """
         return self._collision_tol
     
     @property
     def size(self) -> float:
         """
         Returns the player's size.
+        
+        Returns:
+            float: The size of the player.
         """
         return self._size
     
@@ -173,6 +200,9 @@ class Player():
     def speed(self) -> float:
         """
         Returns the player's speed.
+        
+        Returns:
+            float: The speed of the player.
         """
         return self._speed
     
@@ -180,24 +210,39 @@ class Player():
     def position(self) -> pygame.Vector2:
         """
         Returns the player's position.
+        
+        Returns:
+            pygame.Vector2: The position of the player.
         """
         return self._position
     
     @property
     def scale(self):
+        """
+        Returns the player's scale.
+        
+        Returns:
+            list: The scale of the player.
+        """
         return self._scale
     
     @property
     def eat_txt(self) -> bool:
         """
         Returns whether the eat text is displayed.
+        
+        Returns:
+            bool: True if the eat text is displayed, False otherwise.
         """
         return self._nom_txt_counter > 0
     
     @property
     def ow_txt(self) -> bool:
         """
-        Returns wheter the ow text is displayed.
+        Returns whether the ow text is displayed.
+        
+        Returns:
+            bool: True if the ow text is displayed, False otherwise.
         """
         return self._ow_txt_counter > 0
     
@@ -205,6 +250,9 @@ class Player():
     def points(self) -> int:
         """
         Returns the player's points.
+        
+        Returns:
+            int: The points of the player.
         """
         return self._points
     

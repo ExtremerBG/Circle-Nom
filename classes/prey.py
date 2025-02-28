@@ -1,4 +1,5 @@
-from functions.game_funcs import rand_num, rot_center, rand_screen_pos
+from functions.game_funcs import rot_center, rand_screen_pos
+from random import randint
 import pygame
 
 class Prey():
@@ -6,9 +7,13 @@ class Prey():
     despawn = 90
 
     def __init__(self, list_images:list[pygame.Surface], aura_image:pygame.Surface, screen: pygame.Surface):
-
         """
-        Takes with paths to images for random selection, aura image and pygame display.
+        Initializes the Prey object with images, aura image, and screen.
+
+        Args:
+            list_images (list[pygame.Surface]): List of prey images.
+            aura_image (pygame.Surface): The aura image.
+            screen (pygame.Surface): The game screen.
         """
         # List of all prey images
         self._list_images = list_images
@@ -25,14 +30,17 @@ class Prey():
         # Counter for spawn/despawn
         self._counter = 0
 
-        # Initial prey atributes
+        # Initial prey attributes
         self.reset_prey()
 
     def draw(self, increment:bool=True):
         """
         Draw prey on the screen.
+
+        Args:
+            increment (bool): Flag to increment the counter. Default is True.
         """
-        # Reset prey atributes and cancel frame draw
+        # Reset prey attributes and cancel frame draw
         if self._counter >= Prey.despawn:
             self.reset_prey()
             return
@@ -66,9 +74,11 @@ class Prey():
             self._counter += 1
     
     def reset_prey(self):
-
+        """
+        Resets the prey's attributes including image, aura flag, angle, counter, and coordinates.
+        """
         # New image
-        self._image_index:int = rand_num(len(self._list_images))
+        self._image_index:int = randint(0, len(self._list_images) - 1)
         self._image = self._list_images[self._image_index]
 
         # New aura flag - apply only to sandwich, which is on index 0
@@ -78,7 +88,7 @@ class Prey():
             self._aura_flag = False
 
         # New prey angle
-        self._prey_angle = rand_num(360)
+        self._prey_angle = randint(0, 360)
 
         # Reset counter
         self._counter = 0
@@ -89,16 +99,40 @@ class Prey():
 
     @property
     def aura(self):
+        """
+        Returns whether the prey has an aura effect.
+
+        Returns:
+            bool: True if the prey has an aura effect, False otherwise.
+        """
         return self._aura_flag
     
     @property
     def coords(self):
+        """
+        Returns the coordinates of the prey.
+
+        Returns:
+            tuple: The x and y coordinates of the prey.
+        """
         return self._coords
     
     @property
     def counter(self):
+        """
+        Returns the counter for the prey's spawn/despawn.
+
+        Returns:
+            int: The counter value.
+        """
         return self._counter
     
     @counter.setter
     def counter(self, value):
+        """
+        Sets the counter for the prey's spawn/despawn.
+
+        Args:
+            value (int): The new counter value.
+        """
         self._counter = value

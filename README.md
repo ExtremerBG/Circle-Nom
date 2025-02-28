@@ -9,15 +9,22 @@
 
 ## Run Instructions
 
-To run the source code, open the folder with your preferred IDE. Ensure you have `pygame`,  `gif-pygame` and `numpy` libraries installed; otherwise, the game won't work. Install them using:
+To run the source code, open the folder with your preferred IDE. Ensure you have `pygame`,  `gif-pygame` and `numpy` libraries installed; otherwise, it won't work. Assuming you have `pip`, install them using:
 
 ```sh
 pip install pygame
+```
+
+```sh
 pip install gif-pygame
+```
+
+```sh
 pip install numpy
 ```
 
-Alternatively, you can run the game using the executable found in the Releases section or create your own by running the `.spec` file with `pyinstaller`. Note: Both executables, whether from Releases or your own compilation, will **not** have a digital signature. As a result, some antivirus programs may flag them as malicious and delete them.
+Alternatively, you can run the game using the executable found in the Releases section or create your own by running the `main.spec` file with `pyinstaller`. 
+- Note: Both executables, whether from Releases or your own compilation, will **not** have a digital signature. As a result, some antivirus programs may flag them as malicious and delete them.
 
 ## Controls
 

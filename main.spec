@@ -75,7 +75,7 @@ a = Analysis(  # type: ignore
     runtime_hooks=[],
     excludes=[],
     noarchive=False,
-    optimize=0,
+    optimize=1, # =2 breaks for some reason
 )
 pyz = PYZ(a.pure)  # type: ignore
 

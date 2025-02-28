@@ -1,4 +1,3 @@
-from functions.game_funcs import rand_num
 import pygame
 
 class HealthBar():
