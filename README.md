@@ -1,30 +1,46 @@
 ![Game Image](image/others/readme_image_1.png)
 
 ## Table of Contents
-- [Run Instructions](#run-instructions)
-- [Controls](#controls)
+
+- [Features](#features)
 - [Goal](#goal)
+- [Prerequisites](#prerequisites)
+- [Running](#running)
+- [Controls](#controls)
 - [Credits](#credits)
 - [License](#license)
 
-## Run Instructions
+## Features
 
-To run the source code, open the folder with your preferred IDE. Ensure you have `pygame`,  `gif-pygame` and `numpy` libraries installed; otherwise, it won't work. Assuming you have `pip`, install them using:
+- Big variety with the game's foods, songs, backgrounds and others.
+- Menus with many functions, including difficulty selection and play mode.
+- Some of the in-game features are the Game Pause and song switcher. 
+- Easter egg mode and many others.
 
-```sh
-pip install pygame
+## Goal
+
+Singleplayer:
+- Score as many points as possible.
+
+Multiplayer:
+- Survive longer than the other player.
+
+## Prerequisites
+
+- Python 3.10 or higher.
+- Install required libraries:
+```bash
+pip install -r requirements.txt
 ```
 
-```sh
-pip install gif-pygame
-```
+## Running
 
-```sh
-pip install numpy
+- Open the Circle-Nom folder with your preferred IDE and launch the `main.py` file.
+- Launch the `.exe` file from the releases section. You can also make your own executable by running the `main.spec` file with pyinstaller:
+```bash
+pyinstaller main.spec
 ```
-
-Alternatively, you can run the game using the executable found in the Releases section or create your own by running the `main.spec` file with `pyinstaller`. 
-- Note: Both executables, whether from Releases or your own compilation, will **not** have a digital signature. As a result, some antivirus programs may flag them as malicious and delete them.
+- Please note that current both executables do **not** have digital signatures, which might result in some antivirus software flagging them as malicious.
 
 ## Controls
 
@@ -44,13 +60,6 @@ In-game:
     - Move Player 2 using the `↑`, `↓`, `←`, `→` keys on your keyboard.
     - Change the music using the `Q` & `E` keys - previous & next song.
     - Pause Circle Nom with the `P` key.
-
-## Goal
-Singleplayer:
-- Score as many points as possible by eating randomly spawned food, while dodging daggers!
-
-Multiplayer:
-- Survive longer than the other player.
 
 ## Credits
 

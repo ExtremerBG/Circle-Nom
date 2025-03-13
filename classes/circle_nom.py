@@ -280,7 +280,10 @@ class CircleNom():
                 Dagger(self.dagger_images, self.screen),
                 Dagger(self.dagger_images, self.screen)
             ]
-
+        
+        # Dagger initial grace period
+        for dagger in list_daggers:
+            dagger.grace_spawn(randint(60, 90))
 
         # Health bar declaration
         health_bar = HealthBar(self.health_bar, self.screen)
