@@ -33,11 +33,12 @@ class Prey():
         # Initial prey attributes
         self.reset_prey()
 
-    def draw(self, increment:bool=True):
+    def draw(self, dt:float, increment:bool=True):
         """
         Draw prey on the screen.
 
         Args:
+            dt (float): Delta time, used for frame independent drawing.
             increment (bool): Flag to increment the counter. Default is True.
         """
         # Reset prey attributes and cancel frame draw
@@ -59,7 +60,7 @@ class Prey():
                 # Rotate aura constantly and display
                 rotated_aura = rot_center(self._aura_image, self._aura_angle, self._coords)
                 self._screen.blit(rotated_aura[0], rotated_aura[1])
-                self._aura_angle = (self._aura_angle % 360) - 1
+                self._aura_angle = (self._aura_angle % 360) - 60 * dt
 
                 # Rotate prey once and display
                 rotated_prey = rot_center(self._image, self._prey_angle, self._coords)
@@ -71,7 +72,7 @@ class Prey():
                 self._screen.blit(rotated_prey[0], rotated_prey[1])
 
         if increment:
-            self._counter += 1
+            self._counter += 60 * dt
     
     def reset_prey(self):
         """

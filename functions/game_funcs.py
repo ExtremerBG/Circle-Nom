@@ -207,7 +207,7 @@ def player_control(player, dt: float, WASD: bool, ARROWS: bool):
 
     Args:
         player: The player object with position, size, and speed attributes.
-        dt (float): Delta time from the game clock.
+        dt (float): Delta time, used for frame independent drawing.
         WASD (bool): Flag to enable WASD controls.
         ARROWS (bool): Flag to enable arrow key controls.
 
@@ -243,3 +243,18 @@ def player_control(player, dt: float, WASD: bool, ARROWS: bool):
 
     if not WASD and not ARROWS:
         raise ValueError("Enable either WASD or ARROWS controls in player_control function!")
+    
+def draw_fps(screen:pygame.Surface, clock: pygame.Clock) -> None:
+    """
+    Draw rounded FPS onto screen from pygame Clock.
+    """
+    fps = round(clock.get_fps())
+    coords = 1215, 695
+    font_size = 15
+    text = pygame.font.SysFont('Comic Sans MS', font_size)
+    if fps >= 30:
+        fps_display = text.render(f'FPS: {fps}', True, (255, 255, 255))
+        screen.blit(fps_display, coords)
+    else:
+        fps_display = text.render(f'FPS: {fps}', True, (255, 0, 0))
+        screen.blit(fps_display, coords)

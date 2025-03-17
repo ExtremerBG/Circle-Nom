@@ -17,7 +17,7 @@ import sys
 
 class CircleNom():
 
-    def __init__(self, screen:pygame.Surface, difficulty:int,
+    def __init__(self, screen:pygame.Surface, fps:int, difficulty:int,
                  play_mode:int, eat_sounds:list[pygame.Sound],
                  theme_songs:list[pygame.Sound], player_image:pygame.Surface,
                  player_image_dead:pygame.Surface, prey_images:list[pygame.Surface],
@@ -30,6 +30,7 @@ class CircleNom():
 
         Args:
             screen (pygame.Surface): The game screen.
+            FPS (int): The FPS the game should run at.
             difficulty (int): The game difficulty level.
             play_mode (int): The game play mode (0 for singleplayer, 1 for multiplayer).
             eat_sounds (list[pygame.Sound]): List of sounds to play when eating prey.
@@ -45,6 +46,7 @@ class CircleNom():
             hit_sounds (list[pygame.Sound]): List of sounds to play when the player is hit.
         """
         self.screen = screen
+        self.fps = fps
         self.difficulty = difficulty
         self.play_mode = play_mode
         self.eat_sounds = eat_sounds
@@ -161,7 +163,7 @@ class CircleNom():
                 dagger (class Dagger): The dagger to check with.
             """
 
-            if isclose(player.hit_pos.x, dagger.coords[0], abs_tol=player.hit_tol) and isclose(player.hit_pos.y, dagger.coords[1], abs_tol=player.hit_tol):
+            if isclose(player.hit_pos.x, dagger.coords.x, abs_tol=player.hit_tol) and isclose(player.hit_pos.y, dagger.coords.y, abs_tol=player.hit_tol):
 
                 # Bigger penalty if its a flaming dagger
                 if dagger.flame == True:
@@ -340,24 +342,24 @@ class CircleNom():
 
                 # Play dagger sound if its on screen
                 for dagger in list_daggers:
-                    if 0 <= dagger.coords[0] <= self.screen.get_width() and 0 <= dagger.coords[1] <= self.screen.get_height():
+                    if 0 <= dagger.coords.x <= self.screen.get_width() and 0 <= dagger.coords.y <= self.screen.get_height():
                         dagger.play_sound()
 
                 # Player speed decrease
                 for player in list_players:
-                    player.speed -= 0.10
+                    player.speed -= 6 * dt
 
                 # Player size decrease
                 if grace_period <= 0:
                     for player in list_players:
-                        player.size -= 0.15
+                        player.size -= 9 * dt
                 else:
-                    grace_period -= 1
+                    grace_period -= 60 * dt
                     for player in list_players:
-                        player.size -= 0.10
+                        player.size -= 6 * dt
 
                 # Draw player/s
-                [player.draw() for player in list_players]
+                for player in list_players: player.draw(dt)
 
                 # Player draw Ow! text & Draw hit red overlay
                 for player in list_players:
@@ -366,10 +368,10 @@ class CircleNom():
                         player.draw_hit()
                 
                 # Draw prey
-                [prey.draw() for prey in list_preys]
+                for prey in list_preys: prey.draw(dt)
                     
                 # Draw dagger
-                [dagger.draw() for dagger in list_daggers]
+                for dagger in list_daggers: dagger.draw(dt)
                 
                 # Trying to eat prey
                 for player in list_players:
@@ -400,13 +402,7 @@ class CircleNom():
                 prey_debug(list_preys[m], self.screen, False)
 
                 # FPS Text display
-                fps = round(clock.get_fps())
-                if fps > 55:
-                    fps_display = text_small.render(f'FPS: {fps}', True, (255, 255, 255))
-                    self.screen.blit(fps_display, (1220, 695))
-                else:
-                    fps_display = text_small.render(f'FPS: {fps}', True, (255, 0, 0))
-                    self.screen.blit(fps_display, (1220, 695))
+                draw_fps(self.screen, clock)
 
                 # Song name display
                 song_name = text_small.render(f"{get_song_name(song_index, self.theme_songs)}", True, (255, 255, 255))
@@ -447,7 +443,7 @@ class CircleNom():
             else:
                 # screen and player
                 self.screen.blit(self.background_image, (0, 0))
-                [player.draw() for player in list_players]
+                for player in list_players: player.draw(dt)
 
                 # Game paused text
                 paused_text = text_big.render('Game Paused', True, (255, 255, 255))
@@ -463,8 +459,8 @@ class CircleNom():
             # flip() the display to put work on screen
             pygame.display.flip()
 
-            # Limits FPS to 60
-            dt = clock.tick(60) / 1000
+            # Limit FPS to 60. Set delta time.
+            dt = clock.tick(self.fps) / 1000
 
         # --------------------------------------------------------------------------------------------
         # GAME OVER SCREEN 
@@ -494,13 +490,13 @@ class CircleNom():
         
             if list_players[0].size <= list_players[0].min_size:
                 list_players[0].draw_dead()
-                list_players[1].draw()
+                list_players[1].draw(dt)
                 game_over = text_big.render('Player 1 Lost!', True, (255, 255, 255))
                 game_over_rect = game_over.get_rect(center=(self.screen.get_width() / 2, self.screen.get_height() / 2 - 30))
                 self.screen.blit(game_over, game_over_rect)
 
             elif list_players[1].size <= list_players[1].min_size:
-                list_players[0].draw()
+                list_players[0].draw(dt)
                 list_players[1].draw_dead()
                 game_over = text_big.render('Player 2 Lost!', True, (255, 255, 255))
                 game_over_rect = game_over.get_rect(center=(self.screen.get_width() / 2, self.screen.get_height() / 2 - 30))

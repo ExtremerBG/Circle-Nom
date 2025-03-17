@@ -1,14 +1,23 @@
+from functions.game_funcs import rot_center, draw_fps
+from functions.game_files_loader import *
+from classes.circle_nom import CircleNom
+from random import choice, randint
 import pygame
 import sys
-from random import choice, randint
-from functions.game_files_loader import *
-from functions.game_funcs import rot_center
-from classes.circle_nom import CircleNom
 
 class Menu: 
     
     # Init pygame
     pygame.init()
+    
+    # Pygame clock for framerate
+    CLOCK = pygame.time.Clock()
+    
+    # Delta time
+    DT = 0
+    
+    # FPS limiter
+    FPS = 60
     
     # Screen dimentions and modes
     WIDTH, HEIGHT = 1280, 720
@@ -22,6 +31,7 @@ class Menu:
     LIGHT_BLUE = (0, 125, 255)
     
     # Fonts
+    FONT_SMALL = pygame.font.SysFont('Comic Sans MS', 15)
     FONT = pygame.font.SysFont('Comic Sans MS', 36)
     FONT_BIG = pygame.font.SysFont('Comic Sans MS', 60)
     
@@ -31,9 +41,10 @@ class Menu:
     # Option items
     DIFF_MODES = ["Easy", "Medium", "Hard"]
     PLAY_MODES = ["Singleplayer", "Multiplayer"]
-    VOL_LEVELS = ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]    
+    VOL_LEVELS = ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]
+    FPS_CAPS = ["30", "60", "120", "240", "None"]    
     
-    def __init__(self):  
+    def __init__(self) -> None:  
         
         # Init screen
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
@@ -43,12 +54,13 @@ class Menu:
         # Init setting values
         self.current_screen_mode = 0
         self.current_difficulty = 0
+        self.current_fps_cap = 1
         self.current_play_mode = 0
         self.current_volume = 5
         self._set_sound_vol(self.current_volume, len(self.VOL_LEVELS) - 1)
         
         # Init options items - WARN: this list will change - check _draw_options()
-        self.options_items = ["Volume", "Difficulty", "Play Mode", "Display Mode", "Back"]
+        self.options_items = ["Volume", "Difficulty", "FPS Cap", "Mode", "Display", "Back"]
         
         # Init selected item for menus
         self.selected_menu_item = 0
@@ -63,6 +75,19 @@ class Menu:
         
         # End event for music autoplay
         pygame.mixer.music.set_endevent(pygame.USEREVENT)
+        
+    @classmethod
+    def _fps_cap(cls, value:str) -> None:
+        """
+        Cap the pygame's FPS with the given value.
+        
+        Args:
+            value (str): The fps value. Takes string and converts to int. If it fails, value = inf.
+        """
+        try:
+            cls.FPS = int(value)
+        except ValueError:
+            cls.FPS = float('inf')
         
     def _set_sound_vol(self, volume:int|float, max_volume:int|float) -> None:
         """
@@ -105,7 +130,7 @@ class Menu:
         self.screen.blit(aura[0], aura[1])
         
         # Increment aura for rotation
-        self.player_aura_angle = (self.player_aura_angle % 360) - 0.1
+        self.player_aura_angle = (self.player_aura_angle % 360) - 24 * self.DT
         
         # Draw player on top of aura
         player = pygame.transform.smoothscale(player_images[self.player_image_index], player_scale)
@@ -164,18 +189,24 @@ class Menu:
                             self.current_volume = (self.current_volume + 1) % len(self.VOL_LEVELS)
                             self._set_sound_vol(self.current_volume, len(self.VOL_LEVELS) - 1)
                             
-                        # Difficulty
+                        # FPS Cap
                         elif self.selected_options_item == 1:
+                            main_menu_clicks[1].play()
+                            self.current_fps_cap = (self.current_fps_cap + 1) % len(self.FPS_CAPS)
+                            self._fps_cap(self.FPS_CAPS[self.current_fps_cap])
+                            
+                        # Difficulty
+                        elif self.selected_options_item == 2:
                             main_menu_clicks[1].play()
                             self.current_difficulty = (self.current_difficulty + 1) % len(self.DIFF_MODES)
                             
                         # Play mode
-                        elif self.selected_options_item == 2:
+                        elif self.selected_options_item == 3:
                             main_menu_clicks[1].play()
                             self.current_play_mode = (self.current_play_mode + 1) % len(self.PLAY_MODES)
                             
                         # Screen mode
-                        elif self.selected_options_item == 3:
+                        elif self.selected_options_item == 4:
                             main_menu_clicks[1].play()
                             self._toggle_screen_mode()
                             
@@ -188,28 +219,34 @@ class Menu:
                             self.current_volume = (self.current_volume - 1) % len(self.VOL_LEVELS)
                             self._set_sound_vol(self.current_volume, len(self.VOL_LEVELS) - 1)
                             
-                        # Difficulty
+                        # FPS Cap
                         elif self.selected_options_item == 1:
+                            main_menu_clicks[1].play()
+                            self.current_fps_cap = (self.current_fps_cap - 1) % len(self.FPS_CAPS)
+                            self._fps_cap(self.FPS_CAPS[self.current_fps_cap])
+                            
+                        # Difficulty
+                        elif self.selected_options_item == 2:
                             main_menu_clicks[1].play()
                             self.current_difficulty = (self.current_difficulty - 1) % len(self.DIFF_MODES)
                             
                         # Play mode
-                        elif self.selected_options_item == 2:
+                        elif self.selected_options_item == 3:
                             main_menu_clicks[1].play()
                             self.current_play_mode = (self.current_play_mode - 1) % len(self.PLAY_MODES)
                             
                         # Screen mode
-                        elif self.selected_options_item == 3:
+                        elif self.selected_options_item == 4:
                             main_menu_clicks[1].play()
                             self._toggle_screen_mode()
                             
                     # Invalid key presses
-                    # Special case if selected option is 1, 2 or 3 - play invalid key press sounds for all keys except W, S, A, D, ↑, ↓, ←, →
-                    if self.selected_options_item in [1, 2, 3] and event.key not in [pygame.K_w, pygame.K_UP, pygame.K_a, pygame.K_LEFT, pygame.K_d, pygame.K_RIGHT, pygame.K_s, pygame.K_DOWN]:
+                    # Special case if selected option is 1, 2, 3 - play invalid key press sounds for all keys except W, S, A, D, ↑, ↓, ←, →
+                    if self.selected_options_item in [1, 2, 3, 4] and event.key not in [pygame.K_w, pygame.K_UP, pygame.K_a, pygame.K_LEFT, pygame.K_d, pygame.K_RIGHT, pygame.K_s, pygame.K_DOWN]:
                         main_menu_clicks[2].play()
                             
-                    # Special case if selected option is 4 - play invalid key press sound for all keys except Enter, Backspace and Escape
-                    elif self.selected_options_item == 4 and event.key not in [pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_BACKSPACE, pygame.K_ESCAPE, pygame.K_DOWN, pygame.K_UP, pygame.K_w, pygame.K_s]:
+                    # Special case if selected option is 5 - play invalid key press sound for all keys except Enter, Backspace and Escape
+                    elif self.selected_options_item == 5 and event.key not in [pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_BACKSPACE, pygame.K_ESCAPE, pygame.K_DOWN, pygame.K_UP, pygame.K_w, pygame.K_s]:
                         main_menu_clicks[2].play()
                             
                 # Music replay
@@ -218,23 +255,25 @@ class Menu:
                     pygame.mixer.music.play()
                         
             # Draw options
-            self._draw_options()  
+            self._draw_options()
     
-    def _draw_options(self):
+    def _draw_options(self) -> None:
         """
         Display the options menu on the screen.
         """
-        # Draw background, player and title
+        # Draw background, player, title and FPS
         self.screen.blit(self.background_image, (0, 0))
         self._draw_player_and_aura()
         title = self.FONT_BIG.render("Options", True, self.WHITE)
         self.screen.blit(title, (self.WIDTH // 2 - title.get_width() // 2, self.HEIGHT // 2 - title.get_height() // 2 - 76))
+        draw_fps(self.screen, self.CLOCK)
         
         # Update options items
         self.options_items[0] = f"Volume: {self.VOL_LEVELS[self.current_volume]}"
-        self.options_items[1] = f"Difficulty: {self.DIFF_MODES[self.current_difficulty]}"
-        self.options_items[2] = f"Play Mode: {self.PLAY_MODES[self.current_play_mode]}"
-        self.options_items[3] = f"Display Mode: {self.SCREEN_MODES[self.current_screen_mode]}"
+        self.options_items[1] = f"Limit FPS: {self.FPS_CAPS[self.current_fps_cap]}"
+        self.options_items[2] = f"Difficulty: {self.DIFF_MODES[self.current_difficulty]}"
+        self.options_items[3] = f"Mode: {self.PLAY_MODES[self.current_play_mode]}"
+        self.options_items[4] = f"Display: {self.SCREEN_MODES[self.current_screen_mode]}"
         
         # Draw options items
         for index, item in enumerate(self.options_items):
@@ -254,42 +293,57 @@ class Menu:
                 volume_level_text = self.FONT.render(self.VOL_LEVELS[self.current_volume], True, self.WHITE)
                 volume_x = self.WIDTH // 2 - text.get_width() // 2 + self.FONT.size("Volume: ")[0]
                 self.screen.blit(volume_level_text, (volume_x, self.HEIGHT // 2 - text.get_height() // 2 + index * 42))
-                
-            # Difficulty
+              
+              
+            # FPS Cap
             elif index == 1:
+                fps_cap_colour = self.LIGHT_BLUE if index == self.selected_options_item else self.WHITE
+                fps_cap_text = self.FONT.render("Limit FPS: ", True, fps_cap_colour)
+                self.screen.blit(fps_cap_text, (self.WIDTH // 2 - text.get_width() // 2, self.HEIGHT // 2 - text.get_height() // 2 + index * 42))
+                fps_text = self.FONT.render(self.FPS_CAPS[self.current_fps_cap], True, self.WHITE)
+                fps_text_x = self.WIDTH // 2 - text.get_width() // 2 + self.FONT.size("Limit FPS: ")[0]
+                self.screen.blit(fps_text, (fps_text_x, self.HEIGHT // 2 - text.get_height() // 2 + index * 42))   
+                  
+            # Difficulty
+            elif index == 2:
                 difficulty_colour = [self.GREEN, self.YELLOW, self.RED][self.current_difficulty]
                 difficulty_text = self.FONT.render(self.DIFF_MODES[self.current_difficulty], True, difficulty_colour)
                 difficulty_x = self.WIDTH // 2 - text.get_width() // 2 + self.FONT.size("Difficulty: ")[0]
                 self.screen.blit(difficulty_text, (difficulty_x, self.HEIGHT // 2 - text.get_height() // 2 + index * 42))
                 
+                
             # Play Mode
-            elif index == 2:
+            elif index == 3:
                 play_mode_color = self.LIGHT_BLUE if index == self.selected_options_item else self.WHITE
-                play_mode_text = self.FONT.render("Play Mode: ", True, play_mode_color)
+                play_mode_text = self.FONT.render("Mode: ", True, play_mode_color)
                 self.screen.blit(play_mode_text, (self.WIDTH // 2 - text.get_width() // 2, self.HEIGHT // 2 - text.get_height() // 2 + index * 42))
                 mode_text = self.FONT.render(self.PLAY_MODES[self.current_play_mode], True, self.WHITE)
-                mode_x = self.WIDTH // 2 - text.get_width() // 2 + self.FONT.size("Play Mode: ")[0]
+                mode_x = self.WIDTH // 2 - text.get_width() // 2 + self.FONT.size("Mode: ")[0]
                 self.screen.blit(mode_text, (mode_x, self.HEIGHT // 2 - text.get_height() // 2 + index * 42))
             
             # Display Mode 
-            elif index == 3:
+            elif index == 4:
                 screen_mode_color = self.LIGHT_BLUE if index == self.selected_options_item else self.WHITE
-                screen_mode_text = self.FONT.render("Display Mode: ", True, screen_mode_color)
+                screen_mode_text = self.FONT.render("Display: ", True, screen_mode_color)
                 self.screen.blit(screen_mode_text, (self.WIDTH // 2 - text.get_width() // 2, self.HEIGHT // 2 - text.get_height() // 2 + index * 42))
                 mode_text = self.FONT.render(self.SCREEN_MODES[self.current_screen_mode], True, self.WHITE)
-                mode_x = self.WIDTH // 2 - text.get_width() // 2 + self.FONT.size("Display Mode: ")[0]
+                mode_x = self.WIDTH // 2 - text.get_width() // 2 + self.FONT.size("Display: ")[0]
                 self.screen.blit(mode_text, (mode_x, self.HEIGHT // 2 - text.get_height() // 2 + index * 42))
                  
         # Update display
         pygame.display.flip()
         
-    def _draw_main_menu(self):
+        # Limit FPS to 60. Set delta time.
+        self.DT = self.CLOCK.tick(self.FPS) / 1000
+        
+    def _draw_main_menu(self) -> None:
         """
         Display the main menu on the screen.
         """
-        # Draw background and player
+        # Draw background player and FPS
         self.screen.blit(self.background_image, (0, 0))
         self._draw_player_and_aura()
+        draw_fps(self.screen, self.CLOCK)
         
         # Set colours for menu items
         for index, item in enumerate(self.MAIN_MENU_ITEMS):
@@ -320,8 +374,11 @@ class Menu:
 
         # Update display
         pygame.display.flip()
+        
+        # Limit FPS to 60. Set delta time.
+        self.DT = self.CLOCK.tick(self.FPS) / 1000
     
-    def _start_game(self):
+    def _start_game(self) -> None:
         """
         Start the Circle Nom game.
         """
@@ -331,7 +388,7 @@ class Menu:
         
         # Define Circle Nom
         game = CircleNom(
-            self.screen, self.current_difficulty, self.current_play_mode,
+            self.screen, self.FPS, self.current_difficulty, self.current_play_mode,
             eat_sounds, theme_songs, player_image, player_image_dead,
             prey_images, prey_aura, self.background_image, health_bar,
             dagger_images, dagger_sounds, hit_sounds
@@ -344,7 +401,7 @@ class Menu:
         self.player_image_index = randint(0, len(player_images) - 1)
         self.background_image = choice(background_images)
     
-    def launch(self):
+    def launch(self) -> None:
         """
         Launch the main menu.
         """

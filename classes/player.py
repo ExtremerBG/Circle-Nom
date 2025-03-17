@@ -46,21 +46,24 @@ class Player():
         self._hit_pos = self._position
         self._hit_tol = self._size * 1.25
 
-    def draw(self):
+    def draw(self, dt:float):
         """
         Draws the player on the screen.
         Scales the player's image based on the current size and blits it to the screen.
         The position is adjusted based on whether the easter mode is active or not.
+        
+        Args:
+            dt (float): Delta time, used for frame independent drawing.
         """
         self._image = pygame.transform.smoothscale(self._image_og, self._scale)
         self._screen.blit(self._image, self._position - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
 
         if self.ow_txt_counter > 0:
             self.draw_text("Ow!")
-            self.ow_txt_counter -= 1
+            self.ow_txt_counter -= 60 * dt
         if self.nom_txt_counter > 0:
             self.draw_text("Nom!")
-            self.nom_txt_counter -= 1
+            self.nom_txt_counter -= 60 * dt
 
        # Different eat pos / eat_tol if easter is on
         if self._easter == True:

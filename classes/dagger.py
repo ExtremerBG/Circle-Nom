@@ -25,34 +25,33 @@ class Dagger():
         """
         Resets the dagger's position, direction, and image.
         """
-        self._x_coord = float('inf')
-        self._y_coord = float('inf')
+        self._coords = pygame.Vector2(float('inf'), float('inf'))
         self._created = True
 
         self._rand_dir = randint(0, 3)
         if self._rand_dir == 0:
             self._direction = "RIGHT"
             self._angle = 270
-            self._x_coord = -100 # margin
-            self._y_coord = randint(100, 620)
+            self._coords.x = -100 # margin
+            self._coords.y = randint(100, 620)
 
         elif self._rand_dir == 1:
             self._direction = "LEFT"
             self._angle = 90
-            self._x_coord = self._screen.get_width() + 100 # margin
-            self._y_coord = randint(100, 620)
+            self._coords.x = self._screen.get_width() + 100 # margin
+            self._coords.y = randint(100, 620)
 
         elif self._rand_dir == 2:
             self._direction = "UP"
             self._angle = 0
-            self._x_coord = randint(100, 1180)
-            self._y_coord = self._screen.get_height() + 100 # margin
+            self._coords.x = randint(100, 1180)
+            self._coords.y = self._screen.get_height() + 100 # margin
 
         elif self._rand_dir == 3:
             self._direction = "DOWN"
             self._angle = 180
-            self._x_coord = randint(100, 1180)
-            self._y_coord = -100 # margin
+            self._coords.x = randint(100, 1180)
+            self._coords.y = -100 # margin
         else:
             raise ValueError(f"rand_dir ({self._rand_dir}) is invalid!")
 
@@ -97,14 +96,14 @@ class Dagger():
         return self._direction
     
     @property
-    def coords(self) -> tuple:
+    def coords(self) -> pygame.Vector2:
         """
         Returns the coordinates of the dagger.
 
         Returns:
-            tuple: The x and y coordinates of the dagger.
+            Vector2: Vector2 type with the dagger's coordinates.
         """
-        return self._x_coord, self._y_coord
+        return self._coords
     
     @property
     def flame(self) -> bool:
@@ -132,19 +131,22 @@ class Dagger():
         else:
             raise ValueError("Func grace_spawn accepts int/float only!")
     
-    def draw(self):
+    def draw(self, dt:float):
         """
         Draw the dagger on the screen.
+        
+        Args:
+            dt (float): Delta time, used for frame independent drawing.
         """
         if self._timer > self._spawn:
             if self._direction == "RIGHT":
-                self._x_coord += 10 * self._speed_multiplier
+                self._coords.x += 600 * self._speed_multiplier * dt
             elif self._direction == "LEFT":
-                self._x_coord -= 10 * self._speed_multiplier
+                self._coords.x -= 600 * self._speed_multiplier * dt
             elif self._direction == "UP":
-                self._y_coord -= 10 * self._speed_multiplier
+                self._coords.y -= 600 * self._speed_multiplier * dt
             elif self._direction == "DOWN":
-                self._y_coord += 10 * self._speed_multiplier
+                self._coords.y += 600 * self._speed_multiplier * dt
 
         # Reset dagger and cancel next frame draw
         if self._timer > self._despawn:
@@ -153,18 +155,18 @@ class Dagger():
 
         # Pygame draw
         if self._flame == False and self._timer > self._spawn:
-            self._screen.blit(self._image, (self._x_coord, self._y_coord) - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
+            self._screen.blit(self._image, (self._coords.x, self._coords.y) - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
 
         # Gif pygame draw
         if self._flame == True and self._timer > self._spawn:
-            self._image.render(self._screen, (self._x_coord, self._y_coord) - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
+            self._image.render(self._screen, (self._coords.x, self._coords.y) - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
 
         # Increment timer
-        self._timer += 1
+        self._timer += 60 * dt
 
         # Debug
         if False:
-            print(f"X:{self._x_coord:.0f} | Y: {self._y_coord:.0f} | Timer {self._timer:.0f}: spawn {self._spawn:.0f}, despawn {self._despawn:.0f}")
+            print(f"X:{self._coords.x:.0f} | Y: {self._coords.y:.0f} | Timer {self._timer:.0f}: spawn {self._spawn:.0f}, despawn {self._despawn:.0f}")
             pygame.draw.circle(self._screen, "red", self.coords, 10)
 
     def play_sound(self):
