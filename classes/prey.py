@@ -3,8 +3,9 @@ from random import randint
 import pygame
 
 class Prey():
-    spawn = 35
-    despawn = 90
+    
+    SPAWN = 35
+    DESPAWN = 90
 
     def __init__(self, list_images:list[pygame.Surface], aura_image:pygame.Surface, screen: pygame.Surface):
         """
@@ -33,21 +34,20 @@ class Prey():
         # Initial prey attributes
         self.reset_prey()
 
-    def draw(self, dt:float, increment:bool=True):
+    def draw(self, dt:float):
         """
         Draw prey on the screen.
 
         Args:
             dt (float): Delta time, used for frame independent drawing.
-            increment (bool): Flag to increment the counter. Default is True.
         """
         # Reset prey attributes and cancel frame draw
-        if self._counter >= Prey.despawn:
+        if self._counter >= Prey.DESPAWN:
             self.reset_prey()
             return
 
         # Frame draw
-        if self._counter >= Prey.spawn:
+        if self._counter >= Prey.SPAWN:
 
             # Check if coords are generated
             if self._generated_coords == False:
@@ -71,8 +71,8 @@ class Prey():
                 rotated_prey = rot_center(self._image, self._prey_angle, self._coords)
                 self._screen.blit(rotated_prey[0], rotated_prey[1])
 
-        if increment:
-            self._counter += 60 * dt
+        # Increment counter
+        self._counter += 60 * dt
     
     def reset_prey(self):
         """

@@ -30,7 +30,7 @@ class CircleNom():
 
         Args:
             screen (pygame.Surface): The game screen.
-            FPS (int): The FPS the game should run at.
+            fps (int): The FPS the game should run at.
             difficulty (int): The game difficulty level.
             play_mode (int): The game play mode (0 for singleplayer, 1 for multiplayer).
             eat_sounds (list[pygame.Sound]): List of sounds to play when eating prey.
@@ -61,7 +61,7 @@ class CircleNom():
         self.dagger_sounds = dagger_sounds
         self.hit_sounds = hit_sounds
 
-    def start(self):
+    def start(self) -> None:
         """
         Starts the Circle Nom game.
         """
@@ -194,13 +194,13 @@ class CircleNom():
         # 1 - Medium
         # 2 - Hard
         if self.difficulty == 0:
-            Prey.despawn = 120
+            Prey.DESPAWN = 120
             grace_period = 240
         elif self.difficulty == 1:
-            Prey.despawn = 100
+            Prey.DESPAWN = 100
             grace_period = 200
         elif self.difficulty == 2:
-            Prey.despawn = 80
+            Prey.DESPAWN = 80
             grace_period = 160
         else:
             raise ValueError(f"Invalid difficulty!")
@@ -364,7 +364,6 @@ class CircleNom():
                 # Player draw Ow! text & Draw hit red overlay
                 for player in list_players:
                     if player.ow_txt_counter > 0:
-                        player.draw_text("Ow!")
                         player.draw_hit()
                 
                 # Draw prey
@@ -383,23 +382,19 @@ class CircleNom():
                     for dagger in list_daggers:
                         dagger_hit(player, dagger)
 
-                # Player draw Nom! text
-                for player in list_players:
-                    if player.nom_txt_counter > 0:
-                        player.draw_text("Nom!")
-
                 # Game over
                 for player in list_players:
-                    if player.size <= player.min_size:
+                    if player.size <= player.MIN_SIZE:
                         running = False
 
                 # Set True to use Player debug console prints and dots
-                n = 0
-                player_debug(list_players[n], self.screen, False)
+                player_debug(list_players, 0, self.screen, False)
 
                 # Set True to use Prey debug console prints and dot
-                m = 0
-                prey_debug(list_preys[m], self.screen, False)
+                prey_debug(list_preys, 0, self.screen, False)
+                
+                # Set True to use Dagger debug console prints and dot
+                dagger_debug(list_daggers, 0, self.screen, False) 
 
                 # FPS Text display
                 draw_fps(self.screen, clock)
@@ -416,15 +411,15 @@ class CircleNom():
                 # Health bar display
                 # Singleplayer
                 if self.play_mode == 0:
-                    health_bar.draw("Health:", list_players[0].size, list_players[0].max_size, list_players[0].min_size, (1000, 20))
+                    health_bar.draw("Health:", list_players[0].size, list_players[0].MAX_SIZE, list_players[0].MIN_SIZE, (1000, 20))
                 # Multiplayer
                 elif self.play_mode == 1:
 
                     # Player 1
-                    health_bar.draw("Player 1 Health:", list_players[0].size, list_players[0].max_size, list_players[0].min_size, (188, 20))
+                    health_bar.draw("Player 1 Health:", list_players[0].size, list_players[0].MAX_SIZE, list_players[0].MIN_SIZE, (188, 20))
                     
                     # Player 2
-                    health_bar.draw("Player 2 Health:", list_players[1].size, list_players[1].max_size, list_players[1].min_size, (1000, 20))
+                    health_bar.draw("Player 2 Health:", list_players[1].size, list_players[1].MAX_SIZE, list_players[1].MIN_SIZE, (1000, 20))
 
                 # Controls for Player/s
                 # Singleplayer
@@ -488,14 +483,14 @@ class CircleNom():
         # Multiplayer
         elif self.play_mode == 1:
         
-            if list_players[0].size <= list_players[0].min_size:
+            if list_players[0].size <= list_players[0].MIN_SIZE:
                 list_players[0].draw_dead()
                 list_players[1].draw(dt)
                 game_over = text_big.render('Player 1 Lost!', True, (255, 255, 255))
                 game_over_rect = game_over.get_rect(center=(self.screen.get_width() / 2, self.screen.get_height() / 2 - 30))
                 self.screen.blit(game_over, game_over_rect)
 
-            elif list_players[1].size <= list_players[1].min_size:
+            elif list_players[1].size <= list_players[1].MIN_SIZE:
                 list_players[0].draw(dt)
                 list_players[1].draw_dead()
                 game_over = text_big.render('Player 2 Lost!', True, (255, 255, 255))

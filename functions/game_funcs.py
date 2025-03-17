@@ -4,7 +4,9 @@ import pygame
 import sys
 import os
 
-def resource_path(relative_path):
+# Player movement rate, overriden in player_control and used in player_debug
+MOVEMENT_RATE = 0
+def resource_path(relative_path) -> str:
     """
     Get the absolute path to a resource, works for PyInstaller.
 
@@ -21,7 +23,7 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-def rand_screen_pos():
+def rand_screen_pos() -> tuple[int, int]:
     """
     Generate a random position on the screen with a bias towards certain areas.
 
@@ -50,7 +52,7 @@ def rand_screen_pos():
     else:
         return randint(480, 960), randint(270, 540)
 
-def rot_center(image: pygame.Surface, angle: int | float, xy):
+def rot_center(image: pygame.Surface, angle: int | float, xy) -> tuple[pygame.Surface, pygame.Rect]:
     """
     Rotate an image around its center.
 
@@ -98,7 +100,7 @@ def get_song_name(index: int, theme_songs: list) -> str:
         raise ValueError(f"Length list_names: {len(list_names)} != Length theme_songs: {len(theme_songs)}")
     return list_names[index % len(list_names)]
 
-def check_screen_bounds(screen: pygame.Surface, player):
+def check_screen_bounds(screen: pygame.Surface, player) -> None:
     """
     Check if the player is outside the screen bounds and adjust position if necessary.
 
@@ -118,7 +120,7 @@ def check_screen_bounds(screen: pygame.Surface, player):
     if player.position.y <= 0:
         player.position.y = 1
 
-def check_player_collision(player_1, player_2):
+def check_player_collision(player_1, player_2) -> None:
     """
     Check if player_1 collides with player_2 and adjust positions if necessary.
 
@@ -163,45 +165,108 @@ def check_player_collision(player_1, player_2):
         else:
             player_2.position.y -= 1
             player_1.position.y += 1
+            
+def _check_obj_exists(list_objs:list, obj_n:int) -> bool:
+    """
+    Helper for debug functions. Checks if the given obj_n exists in the list_objs.
+    
+    Args:
+        list_obj (list): The objects list.
+        obj_n (int): The given object number.
+    """
+    return obj_n >= 0 and obj_n <= len(list_objs) - 1
 
-def player_debug(player, screen: pygame.Surface, enable: bool):
+def player_debug(players:list, player_n:int, screen:pygame.Surface, enable: bool) -> None:
     """
     Debug function for the Player class. Prints player attributes and draws debug circles on the screen.
 
     Args:
-        player: The player object with position, size, speed, eat_tol, and hit_tol attributes.
+        players (list): The list of Player objects.
+        player_n (int): The specific Player from the list.
         screen (pygame.Surface): The game screen.
         enable (bool): Flag to enable or disable debugging.
     """
     if enable:
-        print(f"player X: {player.position.x:.2f} Y: {player.position.y:.2f}", end=" || ") 
-        print(f"player eat_tol: {player.eat_tol:.2f}", end=" || ")
-        print(f"player hit_tol: {player.hit_tol:.2f}", end=" || ")
-        print(f"player size: {player.size:.2f}", end=" || ")
-        print(f"player speed: {player.speed:.2f}")
-
+        global MOVEMENT_RATE
+        if not _check_obj_exists(players, player_n):
+            raise ValueError(f"player_n {player_n} does not exist in players!")
+        # Select player from list
+        player = players[player_n]
+        debug_string = (
+            f"[PLAYER № {player_n} DEBUG] " 
+            f"X: {player.position.x:.2f} "
+            f"Y: {player.position.y:.2f} | "
+            f"eat_tol: {player.eat_tol:.2f} | "
+            f"hit_tol: {player.hit_tol:.2f} | "
+            f"size: {player.size:.2f} | "
+            f"speed: {player.speed:.2f} | "
+            f"movement_rate: {MOVEMENT_RATE:.2f}"
+        )
+        print(debug_string)
+        
         # Player dots
         pygame.draw.circle(screen, "green", player.hit_pos, player.hit_tol) # Player hit range dot
         pygame.draw.circle(screen, "red", player.eat_pos, player.eat_tol) # Player eat range dot
 
-def prey_debug(prey, screen: pygame.Surface, enable: bool):
+def prey_debug(preys:list, prey_n:int, screen:pygame.Surface, enable: bool) -> None:
     """
     Debug function for the Prey class. Prints prey attributes and draws a debug dot on the screen.
 
     Args:
-        prey: The prey object with coords, aura, and counter attributes.
+        preys (list): The list of Prey objects.
+        prey_n (int): The specific Prey from the list.
         screen (pygame.Surface): The game screen.
         enable (bool): Flag to enable or disable debugging.
     """
     if enable:
-        print(f"prey X: {prey.coords[0]} Y: {prey.coords[1]}", end=" | ")
-        print(f"prey aura: {prey.aura}", end=" | ")
-        print(f"prey counter: {prey.counter}")
+        if not _check_obj_exists(preys, prey_n):
+            raise ValueError(f"prey_n {prey_n} does not exist in preys!")
+        # Select prey from list
+        prey = preys[prey_n]
+        debug_string = (f"[PREY № {prey_n} DEBUG] "
+                        f"X: {prey.coords[0]:.2f} "
+                        f"Y: {prey.coords[1]:.2f} | " 
+                        f"aura: {prey.aura} | " 
+                        f"counter: {prey.counter:.2f}"
+        )
+        print(debug_string)
 
         # Prey position dot
         pygame.draw.circle(screen, "blue", prey.coords, 5)
+        
+def dagger_debug(daggers:list, dagger_n:int, screen:pygame.Surface, enable:bool) -> None:
+    """
+    Debug function for the Dagger class. Prints prey attributes and draws a debug dot on the screen.
+    
+    Args:
+        daggers (list): The list of Dagger objects.
+        dagger_n (int): The specific Dagger from the list.
+        screen (pygame.Surface): The game screen.
+        enable (bool): Flag to enable or disable debugging.
+    """
+    if enable:
+        if not _check_obj_exists(daggers, dagger_n):
+            raise ValueError(f"dagger_n {dagger_n} does not exist in daggers!")
+        # Select dagger from list
+        dagger = daggers[dagger_n]
+        debug_string = (
+            f"[DAGGER № {dagger_n} DEBUG] "
+            f"X: {dagger.coords.x:.2f} | "
+            f"Y: {dagger.coords.y:.2f} | "
+            f"timer: {dagger.timer:.2f} | "
+            f"spawn: {dagger.spawn_despawn[0]:.2f} | "
+            f"despawn {dagger.spawn_despawn[1]:.2f} | "
+            f"direction: {dagger.get_dir} | "
+            f"speed_multiplier: {dagger.speed_multiplier:.2f} | "
+            f"flame: {dagger.flame} | "
+            f"played_sound: {dagger.played_sound}"
+        )
+        print(debug_string)
+        
+        # Dagger position dot
+        pygame.draw.circle(screen, "red", dagger.coords, 10)
 
-def player_control(player, dt: float, WASD: bool, ARROWS: bool):
+def player_control(player, dt: float, WASD: bool, ARROWS: bool) -> None:
     """
     Control the player movement based on keyboard input.
 
@@ -215,44 +280,46 @@ def player_control(player, dt: float, WASD: bool, ARROWS: bool):
         ValueError: If both WASD and ARROWS are disabled.
     """
     keys = pygame.key.get_pressed()
+    global MOVEMENT_RATE # override MOVEMENT_RATE
+    MOVEMENT_RATE = ((3300 / player.size) * player.speed) * dt
     if WASD:
         if keys[pygame.K_w]:
-            player.position.y -= ((3300 / player.size) * player.speed) * dt
+            player.position.y -= MOVEMENT_RATE
 
         if keys[pygame.K_s]:
-            player.position.y += ((3300 / player.size) * player.speed) * dt
+            player.position.y += MOVEMENT_RATE
 
         if keys[pygame.K_a]:
-            player.position.x -= ((3300 / player.size) * player.speed) * dt
+            player.position.x -= MOVEMENT_RATE
 
         if keys[pygame.K_d]:
-            player.position.x += ((3300 / player.size) * player.speed) * dt
+            player.position.x += MOVEMENT_RATE
 
     if ARROWS:
         if keys[pygame.K_UP]:
-            player.position.y -= ((3300 / player.size) * player.speed) * dt
+            player.position.y -= MOVEMENT_RATE
 
         if keys[pygame.K_DOWN]:
-            player.position.y += ((3300 / player.size) * player.speed) * dt
+            player.position.y += MOVEMENT_RATE
 
         if keys[pygame.K_LEFT]:
-            player.position.x -= ((3300 / player.size) * player.speed) * dt
+            player.position.x -= MOVEMENT_RATE
 
         if keys[pygame.K_RIGHT]:
-            player.position.x += ((3300 / player.size) * player.speed) * dt
+            player.position.x += MOVEMENT_RATE
 
     if not WASD and not ARROWS:
         raise ValueError("Enable either WASD or ARROWS controls in player_control function!")
     
 def draw_fps(screen:pygame.Surface, clock: pygame.Clock) -> None:
     """
-    Draw rounded FPS onto screen from pygame Clock.
+    Draw rounded FPS onto screen from the pygame Clock.
     """
     fps = round(clock.get_fps())
     coords = 1215, 695
     font_size = 15
     text = pygame.font.SysFont('Comic Sans MS', font_size)
-    if fps >= 30:
+    if fps >= 29:
         fps_display = text.render(f'FPS: {fps}', True, (255, 255, 255))
         screen.blit(fps_display, coords)
     else:

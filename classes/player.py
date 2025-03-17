@@ -1,15 +1,23 @@
-import pygame
+from random import choice
 import numpy as np
+import pygame
+
+
 
 class Player():
 
     # Speed limiters
-    min_speed = 12    
-    max_speed = 30
+    MIN_SPEED = 12    
+    MAX_SPEED = 30
 
     # Size limiters
-    min_size = 30
-    max_size = 120
+    MIN_SIZE = 30
+    MAX_SIZE = 120
+    
+    # Texts for drawing
+    TEXTS_NOM = "Nom!", "nom", "Nom-Nom!", "nom-nom"
+    TEXTS_OW = "Ow!", "ow", "Ouch!", "ouch"
+    
 
     def __init__(self, image: pygame.Surface, image_dead: pygame.Surface, easter_mode: bool, screen:pygame.Surface):
         """
@@ -31,8 +39,10 @@ class Player():
         self._position = pygame.Vector2(640, 140)
         self._speed = 24
         self._text = pygame.font.SysFont('Comic Sans MS', 30)
-        self.ow_txt_counter = 0
         self.nom_txt_counter = 0
+        self.ow_txt_counter = 0
+        self._txt_nom = choice(Player.TEXTS_NOM)
+        self._txt_ow = choice(Player.TEXTS_OW)
         self._points = 0
 
        # Different eat pos / eat_tol if easter is on
@@ -45,6 +55,13 @@ class Player():
         
         self._hit_pos = self._position
         self._hit_tol = self._size * 1.25
+        
+    def _new_texts(self):
+        """
+        Selects new strings for ow_txt and nom_txt.
+        """
+        self._txt_nom = choice(Player.TEXTS_NOM)
+        self._txt_ow = choice(Player.TEXTS_OW)
 
     def draw(self, dt:float):
         """
@@ -55,16 +72,22 @@ class Player():
         Args:
             dt (float): Delta time, used for frame independent drawing.
         """
+        # Player resize and draw
         self._image = pygame.transform.smoothscale(self._image_og, self._scale)
         self._screen.blit(self._image, self._position - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
-
-        if self.ow_txt_counter > 0:
-            self.draw_text("Ow!")
-            self.ow_txt_counter -= 60 * dt
+        
+        # Text draw
         if self.nom_txt_counter > 0:
-            self.draw_text("Nom!")
+            self._draw_text(self._txt_nom)
             self.nom_txt_counter -= 60 * dt
-
+        if self.ow_txt_counter > 0:
+            self._draw_text(self._txt_ow)
+            self.ow_txt_counter -= 60 * dt
+            
+        # New texts
+        if (self.nom_txt_counter or self.ow_txt_counter) <= 0:
+            self._new_texts()
+            
        # Different eat pos / eat_tol if easter is on
         if self._easter == True:
             self._eat_pos = self._position
@@ -86,7 +109,7 @@ class Player():
         self._image_dead = pygame.transform.smoothscale(self._image_dead, self._scale)
         self._screen.blit(self._image_dead, self._position - pygame.Vector2(self._image_dead.get_width() / 2, self._image_dead.get_height() / 2))
 
-    def draw_text(self, text:str):
+    def _draw_text(self, text:str):
         """
         Draws the specified text on the screen.
         
@@ -94,7 +117,7 @@ class Player():
             text (str): The text to draw.
         """
         text = self._text.render(f"{text}", True, (255, 255, 255))
-        nom_text_rect = text.get_rect(center=(self._position.x, self._position.y - self._image.get_height() / 2 - self._size * 0.5))
+        nom_text_rect = text.get_rect(center=(self._position.x, self._position.y - self._image.get_height() / 2 - self._size * 0.4))
         self._screen.blit(text, nom_text_rect)
 
     def draw_hit(self):
@@ -262,35 +285,35 @@ class Player():
     @size.setter
     def size(self, value:float):
         f"""
-        Sets the player's size. Min/Max values: {Player.min_size}/{Player.max_size}
+        Sets the player's size. Min/Max values: {Player.MIN_SIZE}/{Player.MAX_SIZE}
         
         Args:
             value (float): The new size of the player.
         """
         self._size = value
 
-        if self._size < Player.min_size:
-            self._size = Player.min_size
+        if self._size < Player.MIN_SIZE:
+            self._size = Player.MIN_SIZE
         
-        if self._size > Player.max_size:
-            self._size = Player.max_size
+        if self._size > Player.MAX_SIZE:
+            self._size = Player.MAX_SIZE
 
         self._scale = [self._size * 3, self._size * 3]
 
     @speed.setter
     def speed(self, value:float):
         f"""
-        Sets the player's speed. Min/Max values: {Player.min_speed}/{Player.max_speed}
+        Sets the player's speed. Min/Max values: {Player.MIN_SPEED}/{Player.MAX_SPEED}
         
         Args:
             value (float): The new speed of the player.
         """
         self._speed = value
-        if self._speed < Player.min_speed:
-            self._speed = Player.min_speed
+        if self._speed < Player.MIN_SPEED:
+            self._speed = Player.MIN_SPEED
         
-        if self._speed > Player.max_speed:
-            self._speed = Player.max_speed
+        if self._speed > Player.MAX_SPEED:
+            self._speed = Player.MAX_SPEED
 
     @position.setter
     def position(self, value: pygame.Vector2):
@@ -327,7 +350,7 @@ class Player():
         if type(value) != int:
             raise ValueError("Nom text accepts int only!")
         if value:
-            self._nom_txt_counter = value  # Display "Nom!" text for 60 frames (1 second at 60 FPS)
+            self._nom_txt_counter = value
         else:
             self._nom_txt_counter = 0
 
@@ -342,7 +365,7 @@ class Player():
         if type(value) != int:
             raise ValueError("Ow text accepts int only!")
         if value:
-            self._ow_txt_counter = value  # Display "Ow!" text for 60 frames (1 second at 60 FPS)
+            self._ow_txt_counter = value
         else:
             self._ow_txt_counter = 0
 

@@ -55,7 +55,7 @@ class Dagger():
         else:
             raise ValueError(f"rand_dir ({self._rand_dir}) is invalid!")
 
-        # dagger image declaration based on speed
+        # Dagger image declaration based on speed
         self._speed_multiplier = uniform(1, 2)
         if self._speed_multiplier < 1.6:
             self._flame = False
@@ -108,13 +108,53 @@ class Dagger():
     @property
     def flame(self) -> bool:
         """
-        Returns whether the dagger has a flame effect.
+        Return whether the dagger has a flame effect, based on the speed_multiplier.
 
         Returns:
             bool: True if the dagger has a flame effect, False otherwise.
         """
         return self._flame
     
+    @property
+    def played_sound(self) -> bool:
+        """
+        Return the played_sound flag. True if Dagger has played a sound, false otherwise.
+        
+        Returns:
+            bool: The played_sound flag.
+        """
+        return self._played_sound
+    
+    @property
+    def speed_multiplier(self) -> float:
+        """
+        Return the dagger's speed multiplier value.
+        
+        Returns:
+            float: The speed_multiplier value.
+        """
+        return self._speed_multiplier
+    
+    @property
+    def timer(self) -> float:
+        """ 
+        Return the timer of the dagger.
+        
+        Returns:
+            float: Dagger timer.
+        """
+        return self._timer
+    
+    @property
+    def spawn_despawn(self) -> tuple:
+        """ 
+        Return the spawn and despawn numbers.
+        
+        Returns:
+            tuple: spawn, despawn.
+        """
+        return self._spawn, self._despawn
+        
     def grace_spawn(self, value):
         """
         Set grace spawn time for the next dagger.
@@ -129,7 +169,7 @@ class Dagger():
             self._spawn += value
             self._despawn = (240 + self._spawn) / self._speed_multiplier # update despawn
         else:
-            raise ValueError("Func grace_spawn accepts int/float only!")
+            raise ValueError("Method grace_spawn accepts int/float only!")
     
     def draw(self, dt:float):
         """
@@ -163,11 +203,6 @@ class Dagger():
 
         # Increment timer
         self._timer += 60 * dt
-
-        # Debug
-        if False:
-            print(f"X:{self._coords.x:.0f} | Y: {self._coords.y:.0f} | Timer {self._timer:.0f}: spawn {self._spawn:.0f}, despawn {self._despawn:.0f}")
-            pygame.draw.circle(self._screen, "red", self.coords, 10)
 
     def play_sound(self):
         """
