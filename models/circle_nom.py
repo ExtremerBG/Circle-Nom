@@ -123,7 +123,8 @@ class CircleNom():
                 prey (class Prey): The prey to check with.
                 easter (bool): Bool if easter mode is on.
             """
-            if isclose(player.eat_pos.x, prey.coords.x, abs_tol=player.eat_tol) and isclose(player.eat_pos.y, prey.coords.y, abs_tol=player.eat_tol) and prey.eatable:
+            if isclose(player.eat_pos.x, prey.coords.x, abs_tol=player.eat_tol) and \
+                isclose(player.eat_pos.y, prey.coords.y, abs_tol=player.eat_tol) and prey.eatable:
 
                 # Normal eating
                 if not easter:
@@ -169,7 +170,8 @@ class CircleNom():
                 dagger (class Dagger): The dagger to check with.
             """
 
-            if isclose(player.hit_pos.x, dagger.coords.x, abs_tol=player.hit_tol) and isclose(player.hit_pos.y, dagger.coords.y, abs_tol=player.hit_tol):
+            if isclose(player.hit_pos.x, dagger.coords.x, abs_tol=player.hit_tol) and \
+                isclose(player.hit_pos.y, dagger.coords.y, abs_tol=player.hit_tol):
 
                 # Bigger penalty if its a flaming dagger
                 if dagger.flame == True:
@@ -414,10 +416,24 @@ class CircleNom():
                 self.screen.blit(song_name, (10, 695))
                 
                 # Dash image display
-                if player.dash_available:
-                    self.screen.blit(self.dash_images[1], (890, 18))
-                else:
-                    self.screen.blit(self.dash_images[0], (890, 18))
+                # Singleplayer
+                if self.play_mode == 0:
+                    if list_players[0].dash_available:
+                        self.screen.blit(self.dash_images[1], (1234, 18))
+                    else:
+                        self.screen.blit(self.dash_images[0], (1234, 18))
+                # Multiplayer
+                elif self.play_mode == 1:
+                    # Player 1
+                    if list_players[0].dash_available:
+                        self.screen.blit(self.dash_images[1], (472, 18))
+                    else:
+                        self.screen.blit(self.dash_images[0], (472, 18))
+                    # Player 2
+                    if list_players[1].dash_available:
+                        self.screen.blit(self.dash_images[1], (1234, 18))
+                    else:
+                        self.screen.blit(self.dash_images[0], (1234, 18))
 
                 # Points text display - only for singleplayer
                 if self.play_mode == 0:
@@ -427,7 +443,7 @@ class CircleNom():
                 # Health bar display
                 # Singleplayer
                 if self.play_mode == 0:
-                    health_bar.draw("Health:", list_players[0].size, list_players[0].MAX_SIZE, list_players[0].MIN_SIZE, (1000, 20))
+                    health_bar.draw("Health:", list_players[0].size, list_players[0].MAX_SIZE, list_players[0].MIN_SIZE, (950, 20))
                 # Multiplayer
                 elif self.play_mode == 1:
 
@@ -435,17 +451,17 @@ class CircleNom():
                     health_bar.draw("Player 1 Health:", list_players[0].size, list_players[0].MAX_SIZE, list_players[0].MIN_SIZE, (188, 20))
                     
                     # Player 2
-                    health_bar.draw("Player 2 Health:", list_players[1].size, list_players[1].MAX_SIZE, list_players[1].MIN_SIZE, (1000, 20))
+                    health_bar.draw("Player 2 Health:", list_players[1].size, list_players[1].MAX_SIZE, list_players[1].MIN_SIZE, (950, 20))
 
                 # Controls for Player/s
                 # Singleplayer
                 if self.play_mode == 0:
-                    player_control(list_players[0], dt)
+                    player_control(list_players[0], dt, True, True)
                     check_screen_bounds(self.screen, list_players[0])
                 # Multiplayer
                 elif self.play_mode == 1:
-                    player_control(list_players[0], dt)
-                    player_control(list_players[1], dt)
+                    player_control(list_players[0], dt, True, False)
+                    player_control(list_players[1], dt, False, True)
                     check_screen_bounds(self.screen, list_players[0])
                     check_screen_bounds(self.screen, list_players[1])
                     check_player_collision(list_players[0], list_players[1])

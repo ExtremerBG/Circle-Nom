@@ -106,6 +106,7 @@ class Menu:
         for sound in eat_sounds: sound.set_volume(volume)
         for sound in dagger_sounds: sound.set_volume(volume)
         for sound in hit_sounds: sound.set_volume(volume)
+        for sound in dash_sounds: sound.set_volume(volume)
     
     def _toggle_screen_mode(self) -> None:
         """

@@ -1,11 +1,10 @@
+
 from random import uniform
 from math import isclose
 import pygame
 import sys
 import os
 
-# Player movement rate, overriden in player_control and used in player_debug
-MOVEMENT_RATE = 0
 def resource_path(relative_path) -> str:
     """
     Get the absolute path to a resource, works for PyInstaller.
@@ -129,7 +128,8 @@ def check_player_collision(player_1, player_2) -> None:
         player_2: The second player object with position and collision tolerance attributes.
     """
     # Check if player_1 is close enough to player_2
-    if isclose(player_1.position.x, player_2.position.x, abs_tol=player_1.collision_tol) and isclose(player_1.position.y, player_2.position.y, abs_tol=player_1.collision_tol):
+    if isclose(player_1.position.x, player_2.position.x, abs_tol=player_1.collision_tol) \
+        and isclose(player_1.position.y, player_2.position.y, abs_tol=player_1.collision_tol):
         
         # If player_1 is to the right of player_2, move them apart horizontally
         if player_1.position.x > player_2.position.x:
@@ -148,7 +148,8 @@ def check_player_collision(player_1, player_2) -> None:
             player_2.position.y += 1
 
     # Check if player_2 is close enough to player_1
-    if isclose(player_2.position.x, player_1.position.x, abs_tol=player_2.collision_tol) and isclose(player_2.position.y, player_1.position.y, abs_tol=player_2.collision_tol):
+    if isclose(player_2.position.x, player_1.position.x, abs_tol=player_2.collision_tol) \
+        and isclose(player_2.position.y, player_1.position.y, abs_tol=player_2.collision_tol):
 
         # If player_2 is to the right of player_1, move them apart horizontally
         if player_2.position.x > player_1.position.x:
@@ -166,43 +167,46 @@ def check_player_collision(player_1, player_2) -> None:
             player_2.position.y -= 1
             player_1.position.y += 1
             
-def player_control(player, dt: float):
+def player_control(player, dt: float, arrows: bool, wasd: bool):
     """
     Control the player movement based on keyboard input.
 
     Args:
         player: The player object with position, size, and speed attributes.
         dt (float): Delta time, used for frame-independent drawing.
+        arrows (bool): Arrows control mode.
+        wasd (bool): WASD control mode.
     """
-    # Formula components
-    scale_factor = 100
-    exponent = 0.25 
-    
-    global MOVEMENT_RATE  # override MOVEMENT_RATE
-    # check others/movement_rate_graph.py for visualization of this formula
-    MOVEMENT_RATE = ((scale_factor / (player.size ** exponent)) * player.speed) * dt
+    MOVEMENT_RATE = player_movement_rate(player, dt)
     direction = pygame.Vector2(0, 0)
-    
-    # Movement triggers
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_w] or keys[pygame.K_UP]:  # UP
-        direction.y -= 1
-    if keys[pygame.K_s] or keys[pygame.K_DOWN]:  # DOWN
-        direction.y += 1
-    if keys[pygame.K_a] or keys[pygame.K_LEFT]:  # LEFT
-        direction.x -= 1
-    if keys[pygame.K_d] or keys[pygame.K_RIGHT]:  # RIGHT
-        direction.x += 1
 
-    if direction.length() > 0:
-        direction = direction.normalize()
-        # Update direction based on movement formula
-        player.position += direction * MOVEMENT_RATE
+    # Dictionary with Key: Movement pairs
+    movement_keys = {
+        pygame.K_w: (0, -1), pygame.K_s: (0, 1),
+        pygame.K_a: (-1, 0), pygame.K_d: (1, 0),
+        pygame.K_UP: (0, -1), pygame.K_DOWN: (0, 1),
+        pygame.K_LEFT: (-1, 0), pygame.K_RIGHT: (1, 0)
+    }
+    # Set with dash keys
+    dash_keys = {pygame.K_LSHIFT, pygame.K_RSHIFT}
 
-    # Dash trigger
-    if keys[pygame.K_LSHIFT] or keys[pygame.K_SPACE]:
+    # Player movement
+    for key, (dx, dy) in movement_keys.items():
+        if (arrows and key in {pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT}) or \
+           (wasd and key in {pygame.K_w, pygame.K_s, pygame.K_a, pygame.K_d}):
+            if keys[key]:
+                direction.x += dx
+                direction.y += dy
+
+    # Player dash
+    if any(keys[k] for k in dash_keys):
         player.dash()
-            
+
+    # Apply current player movement rate
+    if direction.length() > 0:
+        player.position += direction.normalize() * MOVEMENT_RATE
+
 def _check_obj_exists(list_objs:list, obj_n:int) -> bool:
     """
     Helper for debug helpers. Checks if the given obj_n exists in the list_objs.
@@ -212,6 +216,18 @@ def _check_obj_exists(list_objs:list, obj_n:int) -> bool:
         obj_n (int): The given object number.
     """
     return obj_n >= 0 and obj_n <= len(list_objs) - 1
+
+def player_movement_rate(player, dt:float) -> float:
+    """
+    Get player movement rate from formula.
+    
+    Args:
+        player (Player): The Player object.
+        dt (float): Delta time for frame-independent calculation.
+    """
+    SCALE_FACTOR = 100
+    EXPONENT = 0.25
+    return ((SCALE_FACTOR / (player.size ** EXPONENT)) * player.speed) * dt
 
 def player_debug(players:list, player_n:int, screen:pygame.Surface, enable: bool) -> None:
     """
@@ -224,11 +240,10 @@ def player_debug(players:list, player_n:int, screen:pygame.Surface, enable: bool
         enable (bool): Flag to enable or disable debugging.
     """
     if enable:
-        global MOVEMENT_RATE
         if not _check_obj_exists(players, player_n):
             raise ValueError(f"player_n {player_n} does not exist in players!")
-        # Select player from list
         player = players[player_n]
+        MOVEMENT_RATE = player_movement_rate(player)
         debug_string = (
             f"[PLAYER № {player_n} DEBUG] " 
             f"X: {player.position.x:.2f} "

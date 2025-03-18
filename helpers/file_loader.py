@@ -130,9 +130,11 @@ for path in directories:
 
 # DAGGER FLY SOUNDS
 directories = [
-    # resource_path('sound/effects/dagger/fly/dagger_whoosh_1.mp3'),
-    # resource_path('sound/effects/dagger/fly/dagger_whoosh_2.mp3'),
-    resource_path('sound/effects/dagger/fly/dagger_whoosh_3.mp3'),
+    resource_path('sound/effects/dagger/fly/whoosh_1.mp3'),
+    resource_path('sound/effects/dagger/fly/whoosh_2.mp3'),
+    resource_path('sound/effects/dagger/fly/whoosh_3.mp3'),
+    resource_path('sound/effects/dagger/fly/whoosh_4.mp3'),
+    resource_path('sound/effects/dagger/fly/whoosh_5.mp3')
 ]
 dagger_sounds: list[pygame.mixer.Sound] = []
 for path in directories:
