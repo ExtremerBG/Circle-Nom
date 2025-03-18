@@ -2,6 +2,7 @@
 
 ## Table of Contents
 
+- [Table of Contents](#table-of-contents)
 - [Features](#features)
 - [Goal](#goal)
 - [Prerequisites](#prerequisites)
@@ -45,19 +46,22 @@ pyinstaller main.spec
 ## Controls
 
 Menus:
-- Move up and down between options using the `W`, `S` or `↑`, `↓` keys on your keyboard.
-- Switch between options using the `A`, `D` or `←`, `→` keys on your keyboard.
+- Move up and down between options using the `W`, `S` or `↑`, `↓` keys.
+- Switch between options using the `A`, `D` or `←`, `→` keys.
 - Press `Enter` to enter the selected option.
 - Press `Escape` or `Backspace` to go back in the menus or exit Circle Nom.
 
 In-game:
 - Singleplayer:
-    - Move using `W`, `A`, `S`, `D` or the `↑`, `↓`, `←`, `→` keys on your keyboard.
+    - Move using `W`, `A`, `S`, `D` or the `↑`, `↓`, `←`, `→` keys.
+    - Dash using the `LSHIFT` or `RSHIFT` key.
     - Change the music using the `Q` & `E` keys - previous & next song.
     - Pause Circle Nom with the `P` key.
 - Multiplayer:
-    - Move Player 1 using the `W`, `A`, `S`, `D` keys on your keyboard.
-    - Move Player 2 using the `↑`, `↓`, `←`, `→` keys on your keyboard.
+    - Move Player 1 using the `W`, `A`, `S`, `D` keys.
+    - Player 1 can dash using the `LSHIFT` key.
+    - Move Player 2 using the `↑`, `↓`, `←`, `→` keys.
+    - Player 2 can dash using the `RSHIFT` key.
     - Change the music using the `Q` & `E` keys - previous & next song.
     - Pause Circle Nom with the `P` key.
 
@@ -68,6 +72,9 @@ Music used:
 
 Dagger image:
 - [Dagger icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/dagger)
+
+Dash image:
+- [Dashes icons created by Flowicon - Flaticon](https://www.flaticon.com/free-icons/dashes)
 
 Food images:
 - [Kale icons by AomAm - Flaticon](https://www.flaticon.com/free-icons/kale)
