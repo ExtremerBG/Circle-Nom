@@ -28,6 +28,7 @@ a = Analysis(  # type: ignore
         ('sound/themes/theme_song_14.mp3', 'sound/themes'),
         ('sound/themes/theme_song_15.mp3', 'sound/themes'),
         ('sound/menu/menu_theme_song_1.mp3', 'sound/menu'),
+        ('sound/menu/menu_theme_song_2.mp3', 'sound/menu'),
         ('sound/menu/menu_click_up_down.mp3', 'sound/menu'),
         ('sound/menu/menu_click_left_right.mp3', 'sound/menu'),
         ('sound/menu/menu_click_unknown.mp3', 'sound/menu'),
@@ -68,6 +69,8 @@ a = Analysis(  # type: ignore
         ('sound/effects/dagger/hit/dagger_ouch_3.mp3', 'sound/effects/dagger/hit'),
         ('sound/effects/dagger/hit/dagger_ouch_4.mp3', 'sound/effects/dagger/hit'),
         ('sound/effects/dagger/hit/dagger_ouch_5.mp3', 'sound/effects/dagger/hit'),
+        ('image/dash/dash_available.png', 'image/dash'),
+        ('image/dash/dash_unavailable.png', 'image/dash')
     ],
     hiddenimports=[],
     hookspath=[],
