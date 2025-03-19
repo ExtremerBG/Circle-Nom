@@ -188,8 +188,6 @@ def player_control(player, dt: float, arrows: bool, wasd: bool):
         pygame.K_UP: (0, -1), pygame.K_DOWN: (0, 1),
         pygame.K_LEFT: (-1, 0), pygame.K_RIGHT: (1, 0)
     }
-    # Set with dash keys
-    dash_keys = {pygame.K_LSHIFT, pygame.K_RSHIFT}
 
     # Player movement
     for key, (dx, dy) in movement_keys.items():
@@ -199,8 +197,10 @@ def player_control(player, dt: float, arrows: bool, wasd: bool):
                 direction.x += dx
                 direction.y += dy
 
-    # Player dash
-    if any(keys[k] for k in dash_keys):
+    # Separate dash for WASD and arrows
+    if wasd and keys[pygame.K_LSHIFT]:
+        player.dash()
+    if arrows and keys[pygame.K_RSHIFT]:
         player.dash()
 
     # Apply current player movement rate
