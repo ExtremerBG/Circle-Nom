@@ -241,13 +241,15 @@ class Menu:
                             main_menu_clicks[1].play()
                             self._toggle_screen_mode()
                             
-                    # Invalid key presses
-                    # Special case if selected option is 1, 2, 3 - play invalid key press sounds for all keys except W, S, A, D, ↑, ↓, ←, →
-                    if self.selected_options_item in [1, 2, 3, 4] and event.key not in [pygame.K_w, pygame.K_UP, pygame.K_a, pygame.K_LEFT, pygame.K_d, pygame.K_RIGHT, pygame.K_s, pygame.K_DOWN]:
+                    # Invalid key presses - these checks are stupid
+                    # Special case if selected option is 0, 1, 2, 3 - play invalid key press sounds for all keys except W, S, A, D, ↑, ↓, ←, →
+                    if self.selected_options_item in [0, 1, 2, 3, 4] and event.key not in\
+                        [pygame.K_w, pygame.K_UP, pygame.K_a, pygame.K_LEFT, pygame.K_d, pygame.K_RIGHT, pygame.K_s, pygame.K_DOWN]:
                         main_menu_clicks[2].play()
                             
                     # Special case if selected option is 5 - play invalid key press sound for all keys except Enter, Backspace and Escape
-                    elif self.selected_options_item == 5 and event.key not in [pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_BACKSPACE, pygame.K_ESCAPE, pygame.K_DOWN, pygame.K_UP, pygame.K_w, pygame.K_s]:
+                    elif self.selected_options_item == 5 and event.key not in\
+                        [pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_BACKSPACE, pygame.K_ESCAPE, pygame.K_DOWN, pygame.K_UP, pygame.K_w, pygame.K_s]:
                         main_menu_clicks[2].play()
                             
                 # Music replay

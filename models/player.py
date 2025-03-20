@@ -6,7 +6,7 @@ import pygame
 class Player():
     
     # Dash cooldown and duration
-    DASH_CD = 100
+    DASH_CD = 70
     DASH_DUR = 6
 
     # Speed limiters
@@ -39,7 +39,8 @@ class Player():
         self._size = 60
         self._scale = [self._size * 3, self._size * 3]
         self._position = pygame.Vector2(640, 140)
-        self._speed = 24
+        self._speed = 30
+        self._last_speed = 30
         self._dash_on = False
         self._dash_cd = Player.DASH_CD
         self._dash_dur = Player.DASH_DUR
@@ -131,6 +132,16 @@ class Player():
             float: The speed of the player.
         """
         return self._speed
+    
+    @property
+    def last_speed(self) -> int|float:
+        """
+        Returns the player's last speed before dash.
+        
+        Returns:
+            float: The last speed of the player.
+        """
+        return self._last_speed
     
     @property
     def dash_available(self) -> bool:
@@ -232,6 +243,17 @@ class Player():
         if self._speed < Player.MIN_SPEED: self._speed = Player.MIN_SPEED
         if not self._dash_on: # Max speed cap only if dash is not on
             if self._speed > Player.MAX_SPEED: self._speed = Player.MAX_SPEED
+            
+            
+    @last_speed.setter
+    def last_speed(self, value:float):
+        """
+        Set the player's last speed before a dash.
+        
+        Args:
+            value (float): The new last speed of the player.
+        """
+        self._last_speed = value
         
     @position.setter
     def position(self, value: pygame.Vector2):
@@ -302,6 +324,19 @@ class Player():
             raise ValueError("Points cannot be less than 0!")
 
         self._points = value
+        
+        
+    @classmethod
+    def dash_cd(cls, value:int):
+        """ 
+        Sets the Player's dash cooldown to the given value.
+        
+        Args:
+            value (int): The given new value for the cooldown.
+        """
+        if type(value) != int:
+            raise ValueError("dash_cd accepts int only!")
+        cls.DASH_CD = value
         
     def _draw_text(self, text:str):
         """
@@ -381,7 +416,7 @@ class Player():
         self._collision_tol = self._size * 1.5
         
         # Debug
-        # print(f"dash_cd: {self._dash_cd:.2f} | dash_dur: {self._dash_dur:.2f} | dash_on: {self._dash_on} | speed: {self._speed:.2f}")
+        # print(f"dash_cd: {self.dash_cd:.2f} | dash_dur: {self._dash_dur:.2f} | dash_on: {self.dash_on}")
 
     def draw_dead(self):
         """

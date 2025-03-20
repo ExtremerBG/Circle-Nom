@@ -133,10 +133,12 @@ class CircleNom():
                     if prey.aura:
                         player.size += 20
                         player.speed += 15
+                        player.last_speed += 15
                         player.points += 3
                     else:
                         player.size += 12
                         player.speed += 5
+                        player.last_speed += 5
                         player.points += 1
 
                 # Easter eating
@@ -146,10 +148,12 @@ class CircleNom():
                     if prey.aura:
                         player.size += 16
                         player.speed += 10
+                        player.last_speed += 10
                         player.points += 2
                     else:
                         player.size += 8
                         player.speed += 5
+                        player.last_speed += 5
                         player.points += 1
 
                 # Play eat random sound
@@ -202,14 +206,11 @@ class CircleNom():
         # 1 - Medium
         # 2 - Hard
         if self.difficulty == 0:
-            Prey.DESPAWN = 105
-            grace_period = 240
+            Prey.DESPAWN = 110
         elif self.difficulty == 1:
-            Prey.DESPAWN = 85
-            grace_period = 200
+            Prey.DESPAWN = 90
         elif self.difficulty == 2:
-            Prey.DESPAWN = 65
-            grace_period = 160
+            Prey.DESPAWN = 70
         else:
             raise ValueError(f"Invalid difficulty!")
 
@@ -246,6 +247,9 @@ class CircleNom():
             for image in player_images_dead:
                 prey_image = pygame.transform.smoothscale(image, (64, 64))
                 self.prey_images.append(prey_image)
+                
+            # Different dash cooldown in easter mode
+            for player in list_players: player.dash_cd(30)
 
         else: # Normal mode
 
@@ -354,24 +358,21 @@ class CircleNom():
 
                 # Play dagger sound if its on screen
                 for dagger in list_daggers:
-                    if 0 <= dagger.coords.x <= self.screen.get_width() and 0 <= dagger.coords.y <= self.screen.get_height():
+                    if 0 <= dagger.coords.x <= self.screen.get_width() and \
+                        0 <= dagger.coords.y <= self.screen.get_height():
                         dagger.play_sound()
 
                 # Player size decrease
-                if grace_period <= 0:
-                    for player in list_players:
-                        player.size -= 9 * dt
-                else:
-                    grace_period -= 60 * dt
-                    for player in list_players:
-                        player.size -= 6 * dt
+                for player in list_players:
+                    player.size -= player_size_reduct(player, dt)
                         
                 # Player speed decrease
                 for player in list_players:
                     player.speed -= 6 * dt
 
-                # Draw player/s
-                for player in list_players: player.draw(dt)
+                # Draw player
+                for player in list_players:
+                    player.draw(dt)
 
                 # Player draw Ow! text & Draw hit red overlay
                 for player in list_players:
@@ -379,10 +380,12 @@ class CircleNom():
                         player.draw_hit()
                 
                 # Draw prey
-                for prey in list_preys: prey.draw(dt)
+                for prey in list_preys:
+                    prey.draw(dt)
                     
                 # Draw dagger
-                for dagger in list_daggers: dagger.draw(dt)
+                for dagger in list_daggers:
+                    dagger.draw(dt)
                 
                 # Trying to eat prey
                 for player in list_players:
@@ -465,6 +468,7 @@ class CircleNom():
                     check_screen_bounds(self.screen, list_players[0])
                     check_screen_bounds(self.screen, list_players[1])
                     check_player_collision(list_players[0], list_players[1])
+                    
             # -------------------------------------------------------------------------------------------- 
             # PAUSE screen
             else:

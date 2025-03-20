@@ -169,7 +169,7 @@ def check_player_collision(player_1, player_2) -> None:
             
 def player_control(player, dt: float, arrows: bool, wasd: bool):
     """
-    Control the player movement based on keyboard input.
+    Control the player movement and dash based on keyboard input.
 
     Args:
         player: The player object with position, size, and speed attributes.
@@ -206,20 +206,24 @@ def player_control(player, dt: float, arrows: bool, wasd: bool):
     # Apply current player movement rate
     if direction.length() > 0:
         player.position += direction.normalize() * MOVEMENT_RATE
-
-def _check_obj_exists(list_objs:list, obj_n:int) -> bool:
+def draw_fps(screen:pygame.Surface, clock) -> None:
     """
-    Helper for debug helpers. Checks if the given obj_n exists in the list_objs.
-    
-    Args:
-        list_obj (list): The objects list.
-        obj_n (int): The given object number.
+    Draw rounded FPS onto screen from the pygame Clock.
     """
-    return obj_n >= 0 and obj_n <= len(list_objs) - 1
+    fps = round(clock.get_fps())
+    coords = 1215, 695
+    font_size = 15
+    text = pygame.font.SysFont('Comic Sans MS', font_size)
+    if fps >= 29:
+        fps_display = text.render(f'FPS: {fps}', True, (255, 255, 255))
+        screen.blit(fps_display, coords)
+    else:
+        fps_display = text.render(f'FPS: {fps}', True, (255, 0, 0))
+        screen.blit(fps_display, coords)
 
 def player_movement_rate(player, dt:float) -> float:
     """
-    Get player movement rate from formula.
+    Get player movement rate number from formula.
     
     Args:
         player (Player): The Player object.
@@ -228,6 +232,28 @@ def player_movement_rate(player, dt:float) -> float:
     SCALE_FACTOR = 100
     EXPONENT = 0.25
     return ((SCALE_FACTOR / (player.size ** EXPONENT)) * player.speed) * dt
+
+def player_size_reduct(player, dt:float) -> float:
+    """
+    Get player size reduction number from formula.
+    
+    Args:
+        player (Player): The Player object.
+        dt (float): Delta time for frame-independent calculation.
+    """
+    FACTOR = 30e-3
+    EXPONENT = 1.4
+    return ((FACTOR * (player.size ** EXPONENT))) * dt
+
+def _check_obj_exists(list_objs:list, obj_idx:int) -> bool:
+    """
+    Helper for debug functions. Checks if the given obj_idx exists in the list_objs.
+    
+    Args:
+        list_obj (list): The objects list.
+        obj_idx (int): The given object index number.
+    """
+    return obj_idx >= 0 and obj_idx <= len(list_objs) - 1
 
 def player_debug(players:list, player_n:int, screen:pygame.Surface, enable: bool) -> None:
     """
@@ -243,7 +269,6 @@ def player_debug(players:list, player_n:int, screen:pygame.Surface, enable: bool
         if not _check_obj_exists(players, player_n):
             raise ValueError(f"player_n {player_n} does not exist in players!")
         player = players[player_n]
-        MOVEMENT_RATE = player_movement_rate(player)
         debug_string = (
             f"[PLAYER № {player_n} DEBUG] " 
             f"X: {player.position.x:.2f} "
@@ -252,8 +277,9 @@ def player_debug(players:list, player_n:int, screen:pygame.Surface, enable: bool
             f"hit_tol: {player.hit_tol:.2f} | "
             f"size: {player.size:.2f} | "
             f"speed: {player.speed:.2f} | "
-            f"movement_rate: {MOVEMENT_RATE:.2f} | "
-            f"dash_on: {player.dash_on}"
+            f"last_speed {player.last_speed:.2f} | "
+            f"dash_on: {player.dash_on} | "
+            f"dash_available: {player.dash_available}"
         )
         print(debug_string)
         
@@ -277,8 +303,8 @@ def prey_debug(preys:list, prey_n:int, screen:pygame.Surface, enable: bool) -> N
         # Select prey from list
         prey = preys[prey_n]
         debug_string = (f"[PREY № {prey_n} DEBUG] "
-                        f"X: {prey.coords[0]:.2f} "
-                        f"Y: {prey.coords[1]:.2f} | " 
+                        f"X: {prey.coords.x:.2f} "
+                        f"Y: {prey.coords.y:.2f} | " 
                         f"aura: {prey.aura} | "
                         f"eatable: {prey.eatable} | " 
                         f"counter: {prey.counter:.2f}"
@@ -319,18 +345,3 @@ def dagger_debug(daggers:list, dagger_n:int, screen:pygame.Surface, enable:bool)
         
         # Dagger position dot
         pygame.draw.circle(screen, "red", dagger.coords, 10)
-    
-def draw_fps(screen:pygame.Surface, clock) -> None:
-    """
-    Draw rounded FPS onto screen from the pygame Clock.
-    """
-    fps = round(clock.get_fps())
-    coords = 1215, 695
-    font_size = 15
-    text = pygame.font.SysFont('Comic Sans MS', font_size)
-    if fps >= 29:
-        fps_display = text.render(f'FPS: {fps}', True, (255, 255, 255))
-        screen.blit(fps_display, coords)
-    else:
-        fps_display = text.render(f'FPS: {fps}', True, (255, 0, 0))
-        screen.blit(fps_display, coords)
