@@ -1,4 +1,5 @@
+from helpers.profile import profile
 from models.menu import Menu
 
-game_menu = Menu()
-game_menu.launch()
+ # Set True to enable performance profiling
+profile(False, Menu().launch)

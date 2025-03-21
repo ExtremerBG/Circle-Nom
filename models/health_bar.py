@@ -15,6 +15,7 @@ class HealthBar():
         self._bar_inner = hunger_bar[0] # moving (red) bit
         self._bar_outer = hunger_bar[1] # static (white) bit
         self._bar_inner_og = self._bar_inner
+        self._font = pygame.font.SysFont('Comic Sans MS', 30)
         self._screen = screen
 
     def draw(self, text: str, size: float, max_size: float, death_size: float, coords: list):
@@ -28,8 +29,7 @@ class HealthBar():
             coords (list): The position coordinates to draw the hunger bar.
         """
         # Text draw
-        font = pygame.font.SysFont('Comic Sans MS', 30)
-        text_display = font.render(text, True, (255, 255, 255))
+        text_display = self._font.render(text, True, (255, 255, 255))
         text_x = coords[0] - text_display.get_width() + 40
         text_y = coords[1] - text_display.get_height() + 33
         self._screen.blit(text_display, (text_x, text_y))

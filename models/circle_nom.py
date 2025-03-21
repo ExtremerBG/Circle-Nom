@@ -33,7 +33,7 @@ class CircleNom():
             screen (pygame.Surface): The game screen.
             fps (int): The FPS the game should run at.
             difficulty (int): The game difficulty level.
-            play_mode (int): The game play mode (0 for singleplayer, 1 for multiplayer).
+            play_mode (int): The game mode: 0 for Singleplayer, 1 for Multiplayer.
             eat_sounds (list[pygame.mixer.Sound]): List of sounds to play when eating prey.
             theme_songs (list[pygame.mixer.Sound]): List of theme songs for the game.
             player_image (pygame.Surface): The player's image.
@@ -51,6 +51,9 @@ class CircleNom():
         self.fps = fps
         self.difficulty = difficulty
         self.play_mode = play_mode
+        self.player_count = play_mode + 1 # 1 or 2 players
+        self.prey_count = (play_mode + 1) * 2 # 2 or 4 preys
+        self.dagger_count = play_mode + 1 # 1 or 2 daggers
         self.eat_sounds = eat_sounds
         self.theme_songs = theme_songs
         self.player_image = player_image
@@ -82,9 +85,9 @@ class CircleNom():
 
         # Font setup
         pygame.font.init()
-        text = pygame.font.SysFont('Comic Sans MS', 30)
-        text_big = pygame.font.SysFont('Comic Sans MS', 60)
-        text_small = pygame.font.SysFont('Comic Sans MS', 15)
+        font = pygame.font.SysFont('Comic Sans MS', 30)
+        font_big = pygame.font.SysFont('Comic Sans MS', 60)
+        font_small = pygame.font.SysFont('Comic Sans MS', 15)
 
         # SFX setup
         pygame.mixer.init()
@@ -216,26 +219,21 @@ class CircleNom():
 
         # Declaring player
         # 10% Chance of reversing Player/Prey for easter egg
-        list_players:list[Player] = []
+        tuple_players:list[Player] = []
         easter = randint(1, 10) == 10
         
-        if easter: # Easter mode
+        # Normal mode
+        if not easter:
             
+            # Player/s declaration
+            tuple_players:tuple[Player] = declare_objects(self.player_count, Player, self.player_image, self.player_image_dead, easter, self.screen)
+
+        # Easter mode
+        else:
+    
             # Random prey_images_index for prey image
             prey_images_index = randint(0, len(self.prey_images) - 1)
-
-            # Singleplayer
-            if self.play_mode == 0:
-                list_players = [
-                    Player(self.prey_images[prey_images_index], self.prey_images[prey_images_index], easter, self.screen)
-                ]
-
-            # Multiplayer
-            elif self.play_mode == 1:
-                list_players = [
-                    Player(self.prey_images[prey_images_index], self.prey_images[prey_images_index], easter, self.screen),
-                    Player(self.prey_images[prey_images_index], self.prey_images[prey_images_index], easter, self.screen)
-                ]
+            tuple_players:tuple[Player] = declare_objects(self.player_count, Player, self.prey_images[prey_images_index], self.prey_images[prey_images_index], easter, self.screen)
             
             # Resets prey list
             self.prey_images = []
@@ -249,60 +247,22 @@ class CircleNom():
                 self.prey_images.append(prey_image)
                 
             # Different dash cooldown in easter mode
-            for player in list_players: player.dash_cd(30)
-
-        else: # Normal mode
-
-            # Singleplayer
-            if self.play_mode == 0:
-                list_players = [
-                    Player(self.player_image, self.player_image_dead, easter, self.screen)
-                ]
-
-            # Multiplayer
-            elif self.play_mode == 1:
-                list_players = [
-                    Player(self.player_image, self.player_image_dead, easter, self.screen),
-                    Player(self.player_image, self.player_image_dead, easter, self.screen)
-                ]
-
-        # Prey declaration
-        list_preys:list[Prey] = []
-        if self.play_mode == 0:
-            list_preys = [
-                Prey(self.prey_images, self.prey_aura, self.screen),
-                Prey(self.prey_images, self.prey_aura, self.screen)
-            ]
-
-        elif self.play_mode == 1:
-            list_preys = [
-                Prey(self.prey_images, self.prey_aura, self.screen),
-                Prey(self.prey_images, self.prey_aura, self.screen),
-                Prey(self.prey_images, self.prey_aura, self.screen),
-                Prey(self.prey_images, self.prey_aura, self.screen)
-            ]
-
-        # Dagger declaration
-        list_daggers:list[Dagger] = []
-        if self.play_mode == 0:
-            list_daggers:list[Dagger] = [
-                Dagger(self.dagger_images, self.screen)
-            ]
-
-        elif self.play_mode == 1:
-            list_daggers:list[Dagger] = [
-                Dagger(self.dagger_images, self.screen),
-                Dagger(self.dagger_images, self.screen)
-            ]
-        
-        # Dagger initial grace period
-        for dagger in list_daggers:
-            dagger.grace_spawn(randint(60, 90))
+            for player in tuple_players: player.dash_cd(30)
 
         # Health bar declaration
         health_bar = HealthBar(self.health_bar, self.screen)
+        
+        # Preys declaration
+        tuple_preys:tuple[Prey] = declare_objects(self.prey_count, Prey, self.prey_images, self.prey_aura, self.screen)
 
-        # Pause - Skips over entire game loop, except the event checker.
+        # Dagger/s declaration
+        tuple_daggers:tuple[Dagger] = declare_objects(self.dagger_count, Dagger, self.dagger_images, self.screen)
+        
+        # Dagger initial grace period
+        for dagger in tuple_daggers:
+            dagger.grace_spawn(randint(60, 90))
+
+        # Pause - Skips over game loop, excluding event checker and pause screen
         paused = False
 
         # Main game loop
@@ -315,6 +275,7 @@ class CircleNom():
                     
                 # QUIT WINDOW / ALT + F4
                 if event.type == pygame.QUIT:
+                    pygame.quit()
                     sys.exit()
 
                 # Music auto queue
@@ -356,133 +317,133 @@ class CircleNom():
                 # Fill the screen with background image to wipe away anything from last frame
                 self.screen.blit(self.background_image, (0, 0))
 
-                # Play dagger sound if its on screen
-                for dagger in list_daggers:
+                # Iterate over daggers
+                for dagger in tuple_daggers:
+                    
+                    # Play dagger sound if its on screen
                     if 0 <= dagger.coords.x <= self.screen.get_width() and \
                         0 <= dagger.coords.y <= self.screen.get_height():
                         dagger.play_sound()
-
-                # Player size decrease
-                for player in list_players:
-                    player.size -= player_size_reduct(player, dt)
-                        
-                # Player speed decrease
-                for player in list_players:
-                    player.speed -= 6 * dt
-
-                # Draw player
-                for player in list_players:
-                    player.draw(dt)
-
-                # Player draw Ow! text & Draw hit red overlay
-                for player in list_players:
-                    if player.ow_txt_counter > 0:
-                        player.draw_hit()
-                
-                # Draw prey
-                for prey in list_preys:
-                    prey.draw(dt)
                     
-                # Draw dagger
-                for dagger in list_daggers:
+                    # Draw dagger
                     dagger.draw(dt)
-                
-                # Trying to eat prey
-                for player in list_players:
-                    for prey in list_preys:
-                        eat_prey(player, prey, easter)
-                
-                # Check if player is hit by dagger
-                for player in list_players:
-                    for dagger in list_daggers:
-                        dagger_hit(player, dagger)
 
-                # Game over
-                for player in list_players:
+                # Iterate over players
+                for player in tuple_players:
+                    
+                    # Player size decrease
+                    player.size -= player_size_reduct(player, dt)  
+                    
+                    # Player speed decrease
+                    player.speed -= 6 * dt
+                    
+                    # Player draw hit text and use image_hit
+                    if player.ow_txt_counter > 0:
+                        player.draw_hit = True
+                    else:
+                        player.draw_hit = False
+
+                    # Draw player with image/image_hit
+                    player.draw(dt)
+                    
+                    # Iterate over preys
+                    for prey in tuple_preys:
+                        
+                        # Draw prey
+                        prey.draw(dt)
+                        
+                        # Try to eat prey
+                        eat_prey(player, prey, easter)
+                    
+                    # Check if player is hit by dagger
+                    for dagger in tuple_daggers:
+                        dagger_hit(player, dagger)
+                    
+                    # Game over
                     if player.size <= player.MIN_SIZE:
                         running = False
 
                 # Set True to use Player debug console prints and dots
-                player_debug(list_players, 0, self.screen, False)
+                player_debug(tuple_players, 0, self.screen, False)
 
                 # Set True to use Prey debug console prints and dot
-                prey_debug(list_preys, 0, self.screen, False)
+                prey_debug(tuple_preys, 0, self.screen, False)
                 
                 # Set True to use Dagger debug console prints and dot
-                dagger_debug(list_daggers, 0, self.screen, False) 
+                dagger_debug(tuple_daggers, 0, self.screen, False) 
 
                 # FPS Text display
-                draw_fps(self.screen, clock)
+                draw_fps(self.screen, clock, font_small)
 
                 # Song name display
-                song_name = text_small.render(f"{get_song_name(song_index, self.theme_songs)}", True, WHITE)
+                song_name = font_small.render(f"{get_song_name(song_index, self.theme_songs)}", True, WHITE)
                 self.screen.blit(song_name, (10, 695))
                 
                 # Dash image display
                 # Singleplayer
                 if self.play_mode == 0:
-                    if list_players[0].dash_available:
+                    if tuple_players[0].dash_available:
                         self.screen.blit(self.dash_images[1], (1234, 18))
                     else:
                         self.screen.blit(self.dash_images[0], (1234, 18))
                 # Multiplayer
                 elif self.play_mode == 1:
                     # Player 1
-                    if list_players[0].dash_available:
+                    if tuple_players[0].dash_available:
                         self.screen.blit(self.dash_images[1], (472, 18))
                     else:
                         self.screen.blit(self.dash_images[0], (472, 18))
                     # Player 2
-                    if list_players[1].dash_available:
+                    if tuple_players[1].dash_available:
                         self.screen.blit(self.dash_images[1], (1234, 18))
                     else:
                         self.screen.blit(self.dash_images[0], (1234, 18))
 
                 # Points text display - only for singleplayer
                 if self.play_mode == 0:
-                    points_text = text.render(f'Points: {list_players[0].points}', True, WHITE)
+                    points_text = font.render(f'Points: {tuple_players[0].points}', True, WHITE)
                     self.screen.blit(points_text, (10, 10))
                 
                 # Health bar display
                 # Singleplayer
                 if self.play_mode == 0:
-                    health_bar.draw("Health:", list_players[0].size, list_players[0].MAX_SIZE, list_players[0].MIN_SIZE, (950, 20))
+                    health_bar.draw("Health:", tuple_players[0].size, tuple_players[0].MAX_SIZE, tuple_players[0].MIN_SIZE, (950, 20))
                 # Multiplayer
                 elif self.play_mode == 1:
 
                     # Player 1
-                    health_bar.draw("Player 1 Health:", list_players[0].size, list_players[0].MAX_SIZE, list_players[0].MIN_SIZE, (188, 20))
+                    health_bar.draw("Player 1 Health:", tuple_players[0].size, tuple_players[0].MAX_SIZE, tuple_players[0].MIN_SIZE, (188, 20))
                     
                     # Player 2
-                    health_bar.draw("Player 2 Health:", list_players[1].size, list_players[1].MAX_SIZE, list_players[1].MIN_SIZE, (950, 20))
+                    health_bar.draw("Player 2 Health:", tuple_players[1].size, tuple_players[1].MAX_SIZE, tuple_players[1].MIN_SIZE, (950, 20))
 
                 # Controls for Player/s
                 # Singleplayer
                 if self.play_mode == 0:
-                    player_control(list_players[0], dt, True, True)
-                    check_screen_bounds(self.screen, list_players[0])
+                    player_control(tuple_players[0], dt, True, True)
+                    check_screen_bounds(self.screen, tuple_players[0])
                 # Multiplayer
                 elif self.play_mode == 1:
-                    player_control(list_players[0], dt, True, False)
-                    player_control(list_players[1], dt, False, True)
-                    check_screen_bounds(self.screen, list_players[0])
-                    check_screen_bounds(self.screen, list_players[1])
-                    check_player_collision(list_players[0], list_players[1])
+                    player_control(tuple_players[0], dt, False, True)
+                    player_control(tuple_players[1], dt, True, False)
+                    check_screen_bounds(self.screen, tuple_players[0])
+                    check_screen_bounds(self.screen, tuple_players[1])
+                    check_player_collision(tuple_players[0], tuple_players[1])
                     
             # -------------------------------------------------------------------------------------------- 
             # PAUSE screen
             else:
                 # screen and player
                 self.screen.blit(self.background_image, (0, 0))
-                for player in list_players: player.draw(dt)
+                for player in tuple_players: player.draw(dt)
 
                 # Game paused text
-                paused_text = text_big.render('Game Paused', True, WHITE)
+                paused_text = font_big.render('Game Paused', True, WHITE)
                 paused_text_rect = paused_text.get_rect(center=(self.screen.get_width() / 2, self.screen.get_height() / 2 - 30))
                 self.screen.blit(paused_text, paused_text_rect)
 
                 # Press 'P' text
-                press_text = text.render("Press 'P' to unpause", True, WHITE)
+                press_text = font.render("Press 'P' to unpause", True, WHITE)
                 press_text_rect = press_text.get_rect(center=(self.screen.get_width() / 2, self.screen.get_height() / 2 + 30))
                 self.screen.blit(press_text, press_text_rect)
                 pygame.display.flip()
@@ -504,32 +465,32 @@ class CircleNom():
         if self.play_mode == 0:
 
             # Draw dead player
-            list_players[0].draw_dead()
+            tuple_players[0].draw_dead()
 
             # Game over text
-            game_over = text_big.render('Game Over!', True, WHITE)
+            game_over = font_big.render('Game Over!', True, WHITE)
             game_over_rect = game_over.get_rect(center=(self.screen.get_width() / 2, self.screen.get_height() / 2 - 30))
             self.screen.blit(game_over, game_over_rect)
 
             # Points text
-            points_final = text.render(f'Points: {list_players[0].points}', True, WHITE)
+            points_final = font.render(f'Points: {tuple_players[0].points}', True, WHITE)
             points_final_rect = points_final.get_rect(center=(self.screen.get_width() / 2, self.screen.get_height() / 2 + 30))
             self.screen.blit(points_final, points_final_rect)
 
         # Multiplayer
         elif self.play_mode == 1:
         
-            if list_players[0].size <= list_players[0].MIN_SIZE:
-                list_players[0].draw_dead()
-                list_players[1].draw(dt)
-                game_over = text_big.render('Player 1 Lost!', True, WHITE)
+            if tuple_players[0].size <= tuple_players[0].MIN_SIZE:
+                tuple_players[0].draw_dead()
+                tuple_players[1].draw(dt)
+                game_over = font_big.render('Player 1 Lost!', True, WHITE)
                 game_over_rect = game_over.get_rect(center=(self.screen.get_width() / 2, self.screen.get_height() / 2 - 30))
                 self.screen.blit(game_over, game_over_rect)
 
-            elif list_players[1].size <= list_players[1].MIN_SIZE:
-                list_players[0].draw(dt)
-                list_players[1].draw_dead()
-                game_over = text_big.render('Player 2 Lost!', True, WHITE)
+            elif tuple_players[1].size <= tuple_players[1].MIN_SIZE:
+                tuple_players[0].draw(dt)
+                tuple_players[1].draw_dead()
+                game_over = font_big.render('Player 2 Lost!', True, WHITE)
                 game_over_rect = game_over.get_rect(center=(self.screen.get_width() / 2, self.screen.get_height() / 2 - 30))
                 self.screen.blit(game_over, game_over_rect)
 

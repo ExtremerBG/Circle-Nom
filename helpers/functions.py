@@ -1,4 +1,4 @@
-
+from typing import Callable
 from random import uniform
 from math import isclose
 import pygame
@@ -206,14 +206,17 @@ def player_control(player, dt: float, arrows: bool, wasd: bool):
     # Apply current player movement rate
     if direction.length() > 0:
         player.position += direction.normalize() * MOVEMENT_RATE
-def draw_fps(screen:pygame.Surface, clock) -> None:
+def draw_fps(screen:pygame.Surface, clock:pygame.Clock, text:pygame.Font) -> None:
     """
     Draw rounded FPS onto screen from the pygame Clock.
+    
+    Args:
+        screen (pygame.Surface): The game screen.
+        clock (pygame.Clock): The game clock.
+        text (pygame.Font): The font to draw the fps text with.
     """
     fps = round(clock.get_fps())
     coords = 1215, 695
-    font_size = 15
-    text = pygame.font.SysFont('Comic Sans MS', font_size)
     if fps >= 29:
         fps_display = text.render(f'FPS: {fps}', True, (255, 255, 255))
         screen.blit(fps_display, coords)
@@ -345,3 +348,35 @@ def dagger_debug(daggers:list, dagger_n:int, screen:pygame.Surface, enable:bool)
         
         # Dagger position dot
         pygame.draw.circle(screen, "red", dagger.coords, 10)
+        
+def declare_objects(count: int, func: Callable[..., any], *args: any) -> tuple:
+    """
+    Declares a given count of objects and returns a tuple.
+            
+    Usage:
+        objects = declare_objects(2, Dagger, dagger_images, screen)
+            
+    Args:
+        count (int): The number of objects to declare.
+        func (Callable): The given function, method or Class to invoke.
+        *args (Any): The arguments for the func.
+                
+    Returns:
+        tuple: A tuple containing the declared objects.
+    """
+    return tuple(func(*args) for _ in range(count))
+
+def draw_rects(screen:pygame.Surface, rects:tuple[pygame.Rect], enable:bool) -> None:
+    """
+    Function for drawing semi transparent rects onto the screen.
+    
+    Args:
+        screen (pygame.Surface): The game screen.
+        rects tuple[pygame.Rect]: The rectangles to draw.
+        enable (bool): Whether to enable the drawing.
+    """
+    if enable:
+        for rect in rects:
+            transparent_surface = pygame.Surface((rect[2], rect[3]), pygame.SRCALPHA)
+            transparent_surface.fill((0, 255, 0, 64))
+            screen.blit(transparent_surface, (rect[0], rect[1]))

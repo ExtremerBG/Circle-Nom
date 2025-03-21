@@ -1,7 +1,7 @@
-from helpers.functions import rot_center, draw_fps
-from helpers.file_loader import *
+from helpers.functions import rot_center, draw_fps, draw_rects
 from models.circle_nom import CircleNom
 from random import choice, randint
+from helpers.file_loader import *
 import pygame
 import sys
 
@@ -21,7 +21,7 @@ class Menu:
     
     # Screen dimentions and modes
     WIDTH, HEIGHT = 1280, 720
-    SCREEN_MODES = ["Windowed", "Fullscreen"]
+    SCREEN_MODES = "Windowed", "Fullscreen"
     
     # Colors
     WHITE = (255, 255, 255)
@@ -36,13 +36,16 @@ class Menu:
     FONT_BIG = pygame.font.SysFont('Comic Sans MS', 60)
     
     # Main Menu items
-    MAIN_MENU_ITEMS = ["Play", "Options", "Quit"]
+    MAIN_MENU_ITEMS = "Play", "Options", "Quit"
     
     # Option items
-    DIFF_MODES = ["Easy", "Medium", "Hard"]
-    PLAY_MODES = ["Singleplayer", "Multiplayer"]
-    VOL_LEVELS = ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]
-    FPS_CAPS = ["30", "60", "120", "240", "None"]    
+    DIFF_MODES = "Easy", "Medium", "Hard"
+    PLAY_MODES = "Singleplayer", "Multiplayer"
+    VOL_LEVELS = "0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"
+    FPS_CAPS = "30", "60", "120", "240", "None"
+    
+    # DIRTY RECTS - Used to update the screen
+    DIRTY_RECTS = (445, 0, 390, 600), (1210, 696, 70, 20)
     
     def __init__(self) -> None:  
         
@@ -66,12 +69,19 @@ class Menu:
         self.selected_menu_item = 0
         self.selected_options_item = 0
         
-        # Angle for player aura rotation
-        self.player_aura_angle = 0
-        
         # Random background image and player image index
         self.background_image = choice(background_images)
         self.player_image_index = randint(0, len(player_images) - 1)
+        
+        # Refresh background for init
+        self._refresh_screen(self.background_image)
+        
+        # Player aura method var and consts
+        self.player_aura_angle = 0
+        self.PLAYER_POS = pygame.Vector2(640, 140)
+        self.PLAYER_SCALE = (180, 180)
+        self.PLAYER_IMG = pygame.transform.smoothscale(player_images[self.player_image_index], self.PLAYER_SCALE)
+        self.PLAYER_BLIT_POS = self.PLAYER_POS - pygame.Vector2(self.PLAYER_IMG.get_width() / 2, self.PLAYER_IMG.get_height()/2)
         
         # End event for music autoplay
         pygame.mixer.music.set_endevent(pygame.USEREVENT)
@@ -82,12 +92,22 @@ class Menu:
         Cap the pygame's FPS with the given value.
         
         Args:
-            value (str): The fps value. Takes string and converts to int. If it fails, value = inf.
+            value (str): The fps value. Takes string and converts to int. If it fails, value = 0 (no limit).
         """
         try:
             cls.FPS = int(value)
         except ValueError:
-            cls.FPS = 999999
+            cls.FPS = 0
+            
+    def _refresh_screen(self, image:pygame.Surface):
+        """
+        Refreshes the whole screen with the image provided.
+        
+        Args:
+            image (pygame.Surface): The image to refresh with.
+        """
+        self.screen.blit(image, (0, 0))
+        pygame.display.flip()
         
     def _set_sound_vol(self, volume:int|float, max_volume:int|float) -> None:
         """
@@ -119,23 +139,22 @@ class Menu:
         else: # Windowed
             self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
             
+        # Refresh background for screen toggle
+        self._refresh_screen(self.background_image)
+            
     def _draw_player_and_aura(self) -> None:
         """
         Draw the player and its aura on the screen.
         """
-        player_pos = pygame.Vector2(640, 140)
-        player_scale = (180, 180)
-        
         # Rotate and draw aura
-        aura = rot_center(player_aura, self.player_aura_angle, player_pos)
+        aura = rot_center(player_aura, self.player_aura_angle, self.PLAYER_POS)
         self.screen.blit(aura[0], aura[1])
         
         # Increment aura for rotation
         self.player_aura_angle = (self.player_aura_angle % 360) - 24 * self.DT
         
         # Draw player on top of aura
-        player = pygame.transform.smoothscale(player_images[self.player_image_index], player_scale)
-        self.screen.blit(player, player_pos - pygame.Vector2(player.get_width()/2, player.get_height()/2))
+        self.screen.blit(self.PLAYER_IMG, self.PLAYER_BLIT_POS)
         
     def _launch_options(self) -> None:
         """
@@ -264,13 +283,13 @@ class Menu:
         """
         Display the options menu on the screen.
         """
-        # Draw background, player, title and FPS
+        # Player, title and FPS
         self.screen.blit(self.background_image, (0, 0))
         self._draw_player_and_aura()
         title = self.FONT_BIG.render("Options", True, self.WHITE)
         self.screen.blit(title, (self.WIDTH // 2 - title.get_width() // 2, self.HEIGHT // 2 - title.get_height() // 2 - 76))
-        draw_fps(self.screen, self.CLOCK)
-        
+        draw_fps(self.screen, self.CLOCK, self.FONT_SMALL)
+
         # Update options items
         self.options_items[0] = f"Volume: {self.VOL_LEVELS[self.current_volume]}"
         self.options_items[1] = f"Limit FPS: {self.FPS_CAPS[self.current_fps_cap]}"
@@ -333,8 +352,11 @@ class Menu:
                 mode_x = self.WIDTH // 2 - text.get_width() // 2 + self.FONT.size("Display: ")[0]
                 self.screen.blit(mode_text, (mode_x, self.HEIGHT // 2 - text.get_height() // 2 + index * 42))
                  
+        # Debug for rects - Set True to enable
+        draw_rects(self.screen, self.DIRTY_RECTS, False)
+        
         # Update display
-        pygame.display.flip()
+        pygame.display.update(self.DIRTY_RECTS)
         
         # Limit FPS to 60. Set delta time.
         self.DT = self.CLOCK.tick(self.FPS) / 1000
@@ -346,7 +368,7 @@ class Menu:
         # Draw background player and FPS
         self.screen.blit(self.background_image, (0, 0))
         self._draw_player_and_aura()
-        draw_fps(self.screen, self.CLOCK)
+        draw_fps(self.screen, self.CLOCK, self.FONT_SMALL)
         
         # Set colours for menu items
         for index, item in enumerate(self.MAIN_MENU_ITEMS):
@@ -374,9 +396,12 @@ class Menu:
         # Draw title
         title = self.FONT_BIG.render("Circle Nom", True, self.WHITE)
         self.screen.blit(title, (self.WIDTH // 2 - title.get_width() // 2, self.HEIGHT // 2 - title.get_height() // 2 - 76))
+        
+        # Debug for rects - Set True to enable
+        draw_rects(self.screen, self.DIRTY_RECTS, False)
 
         # Update display
-        pygame.display.flip()
+        pygame.display.update(self.DIRTY_RECTS)
         
         # Limit FPS to 60. Set delta time.
         self.DT = self.CLOCK.tick(self.FPS) / 1000
@@ -403,6 +428,9 @@ class Menu:
         # New random player images index and background image
         self.player_image_index = randint(0, len(player_images) - 1)
         self.background_image = choice(background_images)
+        
+        # Refresh background for new image
+        self._refresh_screen(self.background_image)
     
     def launch(self) -> None:
         """

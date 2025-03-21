@@ -14,9 +14,10 @@ directories = [
     resource_path('sound/effects/nom/nom_4.mp3'),
     resource_path('sound/effects/nom/nom_5.mp3')
 ]
-eat_sounds: list[pygame.mixer.Sound] = []
+temp: list[pygame.mixer.Sound] = []
 for path in directories:
-    eat_sounds.append(pygame.mixer.Sound(path))
+    temp.append(pygame.mixer.Sound(path))
+eat_sounds = tuple(temp)
 
 ################################################################################
 
@@ -47,18 +48,20 @@ directories = [
     resource_path('image/player_alive/player_image_2.png'),
     resource_path('image/player_alive/player_image_3.png')
 ]
-player_images: list[pygame.Surface] = []
+temp: list[pygame.Surface] = []
 for path in directories:
-    player_images.append(pygame.image.load(path))
+    temp.append(pygame.image.load(path))
+player_images = tuple(temp)
 
 directories = [
     resource_path('image/player_dead/player_image_1_dead.png'),
     resource_path('image/player_dead/player_image_2_dead.png'),
     resource_path('image/player_dead/player_image_3_dead.png')
 ]
-player_images_dead: list[pygame.Surface] = []
+temp: list[pygame.Surface] = []
 for path in directories:
-    player_images_dead.append(pygame.image.load(path))
+    temp.append(pygame.image.load(path))
+player_images_dead = tuple(temp)
 
 # Error message if lengths of player lists are different
 if len(player_images) != len(player_images_dead):
@@ -80,9 +83,10 @@ directories = [
     resource_path('image/prey/prey_image_10.png'),
     resource_path('image/prey/prey_image_11.png')
 ]
-prey_images = []
+temp: list[pygame.Surface] = []
 for path in directories:
-    prey_images.append(pygame.image.load(path))
+    temp.append(pygame.image.load(path))
+prey_images = tuple(temp)
 
 ################################################################################
 
@@ -97,9 +101,10 @@ directories = [
     resource_path('image/backgrounds/background_image_2.jpg'),
     resource_path('image/backgrounds/background_image_3.jpg')
 ]
-background_images: list[pygame.Surface] = []
+temp: list[pygame.Surface] = []
 for path in directories:
-    background_images.append(pygame.image.load(path))
+    temp.append(pygame.image.load(path))
+background_images = tuple(temp)
 
 ################################################################################
 
@@ -108,23 +113,25 @@ directories = [
     resource_path('image/bar/hunger_bar_inner.png'),
     resource_path('image/bar/hunger_bar_outer.png')
 ]
-health_bar: list[pygame.Surface] = []
+temp: list[pygame.Surface] = []
 for path in directories:
-    health_bar.append(pygame.image.load(path))
+    temp.append(pygame.image.load(path))
+health_bar = tuple(temp)
 
 ################################################################################
 
 # DAGGER
 directories = [
-    resource_path('image/dagger/flame_dagger_right.gif'), # GIF PYGAME FILE!
-    resource_path('image/dagger/flame_dagger_left.gif'), # GIF PYGAME FILE!
-    resource_path('image/dagger/flame_dagger_up.gif'), # GIF PYGAME FILE!
-    resource_path('image/dagger/flame_dagger_down.gif'), # GIF PYGAME FILE!
-    resource_path('image/dagger/dagger_image_1.png')
-]
-dagger_images: list[pygame.Surface] = [pygame.image.load(directories.pop())]
+    resource_path('image/dagger/flame_dagger_right.gif'), # GIF-PYGAME FILE!
+    resource_path('image/dagger/flame_dagger_left.gif'), # GIF-PYGAME FILE!
+    resource_path('image/dagger/flame_dagger_up.gif'), # GIF-PYGAME FILE!
+    resource_path('image/dagger/flame_dagger_down.gif'), # GIF-PYGAME FILE!
+    resource_path('image/dagger/dagger_image_1.png') # PYGAME FILE
+]                                                    # pop the only pygame file from end
+temp: list[pygame.Surface|gif_pygame.GIFPygame] = [pygame.image.load(directories.pop())]
 for path in directories:
-    dagger_images.append(gif_pygame.load(path))
+    temp.append(gif_pygame.load(path))
+dagger_images = tuple(temp)
 
 ################################################################################
 
@@ -136,13 +143,14 @@ directories = [
     resource_path('sound/effects/dagger/fly/whoosh_4.mp3'),
     resource_path('sound/effects/dagger/fly/whoosh_5.mp3')
 ]
-dagger_sounds: list[pygame.mixer.Sound] = []
+temp: list[pygame.mixer.Sound] = []
 for path in directories:
-    dagger_sounds.append(pygame.mixer.Sound(path))
+    temp.append(pygame.mixer.Sound(path))
+dagger_sounds = tuple(temp)
 
 ################################################################################
 
-# DAGGER HIT SOUNDS
+# PLAYER-DAGGER HIT SOUNDS
 directories = [
     resource_path('sound/effects/dagger/hit/dagger_ouch_1.mp3'),
     resource_path('sound/effects/dagger/hit/dagger_ouch_2.mp3'),
@@ -150,13 +158,14 @@ directories = [
     resource_path('sound/effects/dagger/hit/dagger_ouch_4.mp3'),
     resource_path('sound/effects/dagger/hit/dagger_ouch_5.mp3')
 ]
-hit_sounds: list[pygame.mixer.Sound] = []
+temp: list[pygame.mixer.Sound] = []
 for path in directories:
-    hit_sounds.append(pygame.mixer.Sound(path))
+    temp.append(pygame.mixer.Sound(path))
+hit_sounds = tuple(temp)
 
 ################################################################################
 
-# PLAYER AURA IMAGE - USED IN MENU
+# PLAYER AURA
 player_aura = pygame.image.load(resource_path('image/menu/aura.png'))
 
 ################################################################################
@@ -173,11 +182,12 @@ main_menu_themes = [
 directories = [
     resource_path('sound/menu/menu_click_up_down.mp3'),
     resource_path('sound/menu/menu_click_left_right.mp3'),
-    resource_path('sound/menu/menu_click_unknown.mp3'),
+    resource_path('sound/menu/menu_click_unknown.mp3')
 ]
-main_menu_clicks: list[pygame.mixer.Sound] = []
+temp: list[pygame.mixer.Sound] = []
 for path in directories:
-    main_menu_clicks.append(pygame.mixer.Sound(path))
+    temp.append(pygame.mixer.Sound(path))
+main_menu_clicks = tuple(temp)
 
 ################################################################################
 
@@ -186,9 +196,10 @@ directories = [
     resource_path('image/dash/dash_unavailable.png'),
     resource_path('image/dash/dash_available.png')
 ]
-dash_images: list[pygame.Surface] = []
+temp: list[pygame.Surface] = []
 for path in directories:
-    dash_images.append(pygame.image.load(path))
+    temp.append(pygame.image.load(path))
+dash_images = tuple(temp)
 
 ################################################################################
 
@@ -199,8 +210,9 @@ directories = [
     resource_path('sound/effects/dash/whoosh_3.mp3'),
     resource_path('sound/effects/dash/whoosh_4.mp3')
 ]
-dash_sounds: list[pygame.mixer.Sound] = []
+temp: list[pygame.mixer.Sound] = []
 for path in directories:
-    dash_sounds.append(pygame.mixer.Sound(path))
+    temp.append(pygame.mixer.Sound(path))
+dash_sounds = tuple(temp)
     
 ################################################################################

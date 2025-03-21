@@ -31,11 +31,14 @@ class Player():
             easter_mode (bool): Flag for easter mode.
             screen (pygame.Surface): The game screen.
         """
+        self._easter = easter_mode
         self._image = image
         self._image_og = self._image
+        self._image_hit = self._modify_hit()
+        self._image_hit_og = self._image_hit
+        self._draw_hit = False
         self._image_dead = image_dead
         self._screen = screen
-        self._easter = easter_mode
         self._size = 60
         self._scale = [self._size * 3, self._size * 3]
         self._position = pygame.Vector2(640, 140)
@@ -44,7 +47,7 @@ class Player():
         self._dash_on = False
         self._dash_cd = Player.DASH_CD
         self._dash_dur = Player.DASH_DUR
-        self._text = pygame.font.SysFont('Comic Sans MS', 30)
+        self._font = pygame.font.SysFont('Comic Sans MS', 30)
         self.nom_txt_counter = 0
         self.ow_txt_counter = 0
         self._txt_nom = choice(Player.TEXTS_NOM)
@@ -213,6 +216,16 @@ class Player():
         """
         return self._points
     
+    @property
+    def draw_hit(self) -> bool:
+        """
+        Returns the player's draw_hit boolean.
+        
+        Returns:
+            bool: The draw_hit boolean.
+        """
+        return self._draw_hit
+    
     @size.setter
     def size(self, value:float):
         """
@@ -325,6 +338,18 @@ class Player():
 
         self._points = value
         
+    @draw_hit.setter
+    def draw_hit(self, value:bool):
+        """
+        Set the player's draw hit boolean. If True, draw() method will use \n
+        reddish image instead of the normal one.
+        
+        Args:
+            value (bool): The state boolean.
+        """
+        if type(value) != bool:
+            raise ValueError("draw_hit accepts bool only!")
+        self._draw_hit = value
         
     @classmethod
     def dash_cd(cls, value:int):
@@ -338,6 +363,43 @@ class Player():
             raise ValueError("dash_cd accepts int only!")
         cls.DASH_CD = value
         
+    def _modify_hit(self):
+        """
+        Modifies the player's image to be more reddish. Used in draw_hit() method.
+        """
+        # Method 1 for easter mode. Fills every pixel with red.
+        if self._easter:
+            # Create a copy of the original image
+            reddish_image = self._image.copy()
+
+            # Fill the image with a red color, using the BLEND_RGBA_ADD flag to add the red component
+            reddish_image.fill((200, 0, 0, 0), special_flags=pygame.BLEND_RGBA_ADD)
+
+        # Method 2 for non-easter mode. Modifies yellow pixels to red.
+        else:
+            # Create a copy of the original image
+            reddish_image = self._image.copy()
+
+            # Convert the surface to a NumPy array
+            pixel_array = pygame.surfarray.pixels3d(reddish_image)
+
+            # Define the range for yellow color
+            yellow_min = np.array([200, 200, 0])
+            yellow_max = np.array([255, 255, 100])
+
+            # Create a mask for yellow pixels
+            mask = np.all((pixel_array >= yellow_min) & (pixel_array <= yellow_max), axis=-1)
+
+            # Increase the red component and decrease the green and blue components for yellow pixels
+            pixel_array[..., 0][mask] = np.minimum(255, pixel_array[..., 0][mask] + 240) # R
+            pixel_array[..., 1][mask] = np.maximum(0, pixel_array[..., 1][mask] + 60)   # G
+            pixel_array[..., 2][mask] = np.maximum(0, pixel_array[..., 2][mask] - 0)   # B
+
+            # Unlock the surface
+            del pixel_array
+
+        return reddish_image
+        
     def _draw_text(self, text:str):
         """
         Draws the specified text on the screen.
@@ -345,7 +407,7 @@ class Player():
         Args:
             text (str): The text to draw.
         """
-        text = self._text.render(f"{text}", True, (255, 255, 255))
+        text = self._font.render(f"{text}", True, (255, 255, 255))
         nom_text_rect = text.get_rect(center=(self._position.x, self._position.y - self._image.get_height() / 2 - self._size * 0.4))
         self._screen.blit(text, nom_text_rect)
 
@@ -378,9 +440,16 @@ class Player():
         Args:
             dt (float): Delta time, used for frame-independent drawing.
         """
-        # Player resize and draw
-        self._image = pygame.transform.smoothscale(self._image_og, self._scale)
-        self._screen.blit(self._image, self._position - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
+        
+        # Normal draw
+        if not self._draw_hit:
+            # Player resize and draw
+            self._image = pygame.transform.smoothscale(self._image_og, self._scale)
+            self._screen.blit(self._image, self._position - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
+        # Hit draw
+        else:
+            self._image_hit = pygame.transform.smoothscale(self._image_hit_og, self._scale)
+            self._screen.blit(self._image_hit, self._position - pygame.Vector2(self._image_hit.get_width() / 2, self._image_hit.get_height() / 2))
         
         # Dash cooldown and duration updates
         self._dash_cd = max(0, self._dash_cd - 60 * dt)
@@ -417,7 +486,7 @@ class Player():
         
         # Debug
         # print(f"dash_cd: {self.dash_cd:.2f} | dash_dur: {self._dash_dur:.2f} | dash_on: {self.dash_on}")
-
+        
     def draw_dead(self):
         """
         Draws the dead player on the screen.
@@ -427,43 +496,3 @@ class Player():
         self._image_dead = pygame.transform.smoothscale(self._image_dead, self._scale)
         self._screen.blit(self._image_dead, self._position - pygame.Vector2(self._image_dead.get_width() / 2, self._image_dead.get_height() / 2))
         
-    def draw_hit(self):
-        """
-        Temporarily modifies the player's image to be more reddish.
-        """
-        # Method 1 for easter mode.
-        if self._easter:
-            # Create a copy of the original image
-            reddish_image = self._image.copy()
-
-            # Fill the image with a red color, using the BLEND_RGBA_ADD flag to add the red component
-            reddish_image.fill((200, 0, 0, 0), special_flags=pygame.BLEND_RGBA_ADD)
-
-            # Blit the reddish image onto the screen
-            self._screen.blit(reddish_image, self._position - pygame.Vector2(reddish_image.get_width() / 2, reddish_image.get_height() / 2))
-
-        # Method 2 for non-easter mode.
-        else:
-            # Create a copy of the original image
-            reddish_image = self._image.copy()
-
-            # Convert the surface to a NumPy array
-            pixel_array = pygame.surfarray.pixels3d(reddish_image)
-
-            # Define the range for yellow color
-            yellow_min = np.array([200, 200, 0])
-            yellow_max = np.array([255, 255, 100])
-
-            # Create a mask for yellow pixels
-            mask = np.all((pixel_array >= yellow_min) & (pixel_array <= yellow_max), axis=-1)
-
-            # Increase the red component and decrease the green and blue components for yellow pixels
-            pixel_array[..., 0][mask] = np.minimum(255, pixel_array[..., 0][mask] + 240) # R
-            pixel_array[..., 1][mask] = np.maximum(0, pixel_array[..., 1][mask] + 60)   # G
-            pixel_array[..., 2][mask] = np.maximum(0, pixel_array[..., 2][mask] - 0)   # B
-
-            # Unlock the surface
-            del pixel_array
-
-            # Blit the reddish image onto the screen
-            self._screen.blit(reddish_image, self._position - pygame.Vector2(reddish_image.get_width() / 2, reddish_image.get_height() / 2))
