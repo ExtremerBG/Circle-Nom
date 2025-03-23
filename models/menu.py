@@ -1,4 +1,4 @@
-from helpers.functions import rot_center, draw_fps, draw_rects
+from helpers.functions import rot_center, draw_fps, draw_rects, resource_path
 from models.circle_nom import CircleNom
 from random import choice, randint
 from helpers.file_loader import *

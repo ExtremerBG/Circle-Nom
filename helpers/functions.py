@@ -1,9 +1,12 @@
 from typing import Callable
 from random import uniform
 from math import isclose
+import gif_pygame
 import pygame
 import sys
 import os
+
+pygame.mixer.init()
 
 def resource_path(relative_path) -> str:
     """
@@ -380,3 +383,49 @@ def draw_rects(screen:pygame.Surface, rects:tuple[pygame.Rect], enable:bool) -> 
             transparent_surface = pygame.Surface((rect[2], rect[3]), pygame.SRCALPHA)
             transparent_surface.fill((0, 255, 0, 64))
             screen.blit(transparent_surface, (rect[0], rect[1]))
+            
+def safe_load_image(path: str) -> pygame.Surface | gif_pygame.GIFPygame:
+    """
+    Safely try to load an image with pygame or gif_pygame.
+    """
+    MISSING_IMAGE_PATH = 'image/error/missing_image.png'
+    try:
+        if path.endswith(('.gif', '.apng')):
+            return gif_pygame.load(resource_path(path))
+        else:
+            return pygame.image.load(resource_path(path))
+    except FileNotFoundError as e:
+        print(f"Error loading image: {path} - {e}")
+        if path.endswith(('.gif', '.apng')):
+            return gif_pygame.load(resource_path(MISSING_IMAGE_PATH))
+        else:
+            return pygame.image.load(resource_path(MISSING_IMAGE_PATH))
+    
+def safe_load_sound(path: str) -> pygame.mixer.Sound:
+    """
+    Safely try to load a sound with pygame.
+    """
+    MISSING_SOUND_PATH = 'sound/error/missing_sound.mp3'
+    try:
+        return pygame.mixer.Sound(resource_path(path))
+    except FileNotFoundError as e:
+        print(f"Error loading image: {path} - {e}")
+        return pygame.mixer.Sound(resource_path(MISSING_SOUND_PATH))
+            
+def load_images(paths: list[str]) -> tuple[pygame.Surface|gif_pygame.GIFPygame]:
+    """
+    Load pygame images from list of paths. Returns tuple with loaded images.
+    
+    Args:
+        paths (list[str]): The file paths list.
+    """
+    return tuple(safe_load_image(resource_path(path)) for path in paths)
+
+def load_sounds(paths: list[str]) -> tuple[pygame.mixer.Sound]:
+    """
+    Load pygame sounds from list of paths. Returns tuple with loaded sounds.
+    
+    Args:
+        paths (list[str]): The file paths list.
+    """
+    return tuple(safe_load_sound(resource_path(path)) for path in paths)
