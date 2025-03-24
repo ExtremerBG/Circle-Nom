@@ -1,4 +1,4 @@
-from helpers.functions import load_images, load_sounds, resource_path
+from helpers.functions import load_images, load_sounds, resource_path, safe_load_image
 import pygame
 
 pygame.mixer.init()
@@ -78,7 +78,7 @@ prey_images = load_images(paths)
 ################################################################################
 
 # PREY AURA
-prey_aura = pygame.image.load(resource_path('image/prey/prey_aura_image.png'))
+prey_aura = safe_load_image(resource_path('image/prey/prey_aura_image.png'))
 
 ################################################################################
 
@@ -86,7 +86,14 @@ prey_aura = pygame.image.load(resource_path('image/prey/prey_aura_image.png'))
 paths = (
     'image/backgrounds/background_image_1.jpg',
     'image/backgrounds/background_image_2.jpg',
-    'image/backgrounds/background_image_3.jpg'
+    'image/backgrounds/background_image_3.jpg',
+    'image/backgrounds/background_image_4.jpg',
+    'image/backgrounds/background_image_5.jpg',
+    'image/backgrounds/background_image_6.jpg',
+    'image/backgrounds/background_image_7.jpg',
+    'image/backgrounds/background_image_8.jpg',
+    'image/backgrounds/background_image_9.jpg',
+    'image/backgrounds/background_image_10.jpg',
 )
 background_images = load_images(paths)
 
@@ -109,7 +116,7 @@ paths = (
     'image/dagger/flame_dagger_up.gif',
     'image/dagger/flame_dagger_down.gif'
 )                                                    
-dagger_images = tuple(load_images(paths))
+dagger_images = load_images(paths)
 
 ################################################################################
 
@@ -138,7 +145,7 @@ hit_sounds = load_sounds(paths)
 ################################################################################
 
 # PLAYER AURA
-player_aura = pygame.image.load(resource_path('image/menu/player_aura_image.png'))
+player_aura = safe_load_image(resource_path('image/player/aura/player_aura_image.png'))
 
 ################################################################################
 
@@ -162,8 +169,8 @@ main_menu_clicks = load_sounds(paths)
 
 # DASH IMAGES
 paths = (
-    'image/dash/dash_unavailable_image.png',
-    'image/dash/dash_available_image.png'
+    'image/player/dash/dash_unavailable_image.png',
+    'image/player/dash/dash_available_image.png'
 )
 dash_images = load_images(paths)
 

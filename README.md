@@ -81,9 +81,16 @@ Food images:
 - [Sandwich icons by Freepik - Flaticon](https://www.flaticon.com/free-icons/sandwich)
 
 Background images:
-- [Wood Texture Background Pro Vector by barudakvisual - Vecteezy](https://www.vecteezy.com/vector-art/2173386-wood-texture-background)
-- [Wood Texture Background Pro Vector by dankudraw - Vecteezy](https://www.vecteezy.com/vector-art/3343397-wood-texture-background)
-- [Wood Texture Background Pro Vector by sarance - Vecteezy](https://www.vecteezy.com/vector-art/3157015-wood-texture-background)
+- [Wood Texture by barudakvisual - Vecteezy](https://www.vecteezy.com/vector-art/2173386-wood-texture-background)
+- [Wood Texture by dankudraw - Vecteezy](https://www.vecteezy.com/vector-art/3343397-wood-texture-background)
+- [Wood Texture by sarance - Vecteezy](https://www.vecteezy.com/vector-art/3157015-wood-texture-background)
+- [Stone Texture by aurigae - Vecteezy](https://www.vecteezy.com/vector-art/10826187-stone-texture-background-best-for-building-material)
+- [Stone Texture by graphicsrf - Vecteezy](https://www.vecteezy.com/vector-art/447228-a-wall-made-of-stone)
+- [Stone Tiles Texture by graphicsrf - Vecteezy](https://www.vecteezy.com/vector-art/3678912-stone-tiles-texture-in-cartoon-style)
+- [Rock Pattern Texture by emiltimplaru - Vecteezy](https://www.vecteezy.com/vector-art/1838118-rock-seamless-pattern-vector-design-illustration)
+- [Wood Texture by graphicsrf - Vecteezy](https://www.vecteezy.com/vector-art/360422-texture)
+- [Wood Texture by dankudraw - Vecteezy](https://www.vecteezy.com/vector-art/2193057-wood-texture-background)
+- [Wood Texture by aksamata - Vecteezy](https://www.vecteezy.com/vector-art/3380195-old-wood-plank-background)
 
 ## License
 

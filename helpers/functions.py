@@ -8,7 +8,7 @@ import os
 
 pygame.mixer.init()
 
-def resource_path(relative_path) -> str:
+def resource_path(relative_path: str) -> str:
     """
     Get the absolute path to a resource, works for PyInstaller.
 
@@ -292,6 +292,7 @@ def player_debug(players:list, player_n:int, screen:pygame.Surface, enable: bool
         # Player dots
         pygame.draw.circle(screen, "green", player.hit_pos, player.hit_tol) # Player hit range dot
         pygame.draw.circle(screen, "red", player.eat_pos, player.eat_tol) # Player eat range dot
+        pygame.draw.circle(screen, "blue", player.position, 8) # Player position dot
 
 def prey_debug(preys:list, prey_n:int, screen:pygame.Surface, enable: bool) -> None:
     """
@@ -394,8 +395,8 @@ def safe_load_image(path: str) -> pygame.Surface | gif_pygame.GIFPygame:
             return gif_pygame.load(resource_path(path))
         else:
             return pygame.image.load(resource_path(path))
-    except FileNotFoundError as e:
-        print(f"Error loading image: {path} - {e}")
+    except FileNotFoundError:
+        print(f"[ERROR]: image at '{path}' not found!")
         if path.endswith(('.gif', '.apng')):
             return gif_pygame.load(resource_path(MISSING_IMAGE_PATH))
         else:
@@ -408,9 +409,20 @@ def safe_load_sound(path: str) -> pygame.mixer.Sound:
     MISSING_SOUND_PATH = 'sound/error/missing_sound.mp3'
     try:
         return pygame.mixer.Sound(resource_path(path))
-    except FileNotFoundError as e:
-        print(f"Error loading image: {path} - {e}")
+    except FileNotFoundError:
+        print(f"[ERROR]: sound at '{path}' not found!")
         return pygame.mixer.Sound(resource_path(MISSING_SOUND_PATH))
+    
+def safe_load_music(path: str) -> pygame.mixer.music:
+    """
+    Safely try to load a music with pygame.
+    """
+    MISSING_SOUND_PATH = 'sound/error/missing_sound.mp3'
+    try:
+        return pygame.mixer.music.load(resource_path(path))
+    except FileNotFoundError as e:
+        print(f"[ERROR]: music at '{path}' not found!")
+        return pygame.mixer.music.load((resource_path(MISSING_SOUND_PATH)))
             
 def load_images(paths: list[str]) -> tuple[pygame.Surface|gif_pygame.GIFPygame]:
     """

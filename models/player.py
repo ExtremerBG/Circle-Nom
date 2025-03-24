@@ -66,7 +66,7 @@ class Player():
         self._hit_tol = self._size * 1.25
         
     @property
-    def eat_pos(self):
+    def eat_pos(self) -> pygame.Vector2:
         """
         Returns the player's eat position.
         
@@ -137,7 +137,7 @@ class Player():
         return self._speed
     
     @property
-    def last_speed(self) -> int|float:
+    def last_speed(self) -> float:
         """
         Returns the player's last speed before dash.
         
@@ -483,9 +483,6 @@ class Player():
         self._hit_pos = self._position
         self._hit_tol = self._size * 1.25
         self._collision_tol = self._size * 1.5
-        
-        # Debug
-        # print(f"dash_cd: {self.dash_cd:.2f} | dash_dur: {self._dash_dur:.2f} | dash_on: {self.dash_on}")
         
     def draw_dead(self):
         """

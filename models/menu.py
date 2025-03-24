@@ -1,4 +1,4 @@
-from helpers.functions import rot_center, draw_fps, draw_rects, resource_path
+from helpers.functions import rot_center, draw_fps, draw_rects, resource_path, safe_load_music
 from models.circle_nom import CircleNom
 from random import choice, randint
 from helpers.file_loader import *
@@ -52,7 +52,7 @@ class Menu:
         # Init screen
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("Circle Nom")
-        pygame.display.set_icon(pygame.image.load(resource_path('image/others/icon.ico')))
+        pygame.display.set_icon(safe_load_image(resource_path('image/others/icon.ico')))
         
         # Init setting values
         self.current_screen_mode = 0
@@ -273,7 +273,7 @@ class Menu:
                             
                 # Music replay
                 elif event.type == pygame.USEREVENT:
-                    pygame.mixer.music.load(choice(main_menu_themes))
+                    safe_load_music(choice(main_menu_themes))
                     pygame.mixer.music.play()
                         
             # Draw options
@@ -440,7 +440,7 @@ class Menu:
         MAIN_MENU_FUNCTIONS = [self._start_game, self._launch_options, sys.exit]
         
         # Play menu theme
-        pygame.mixer.music.load(choice(main_menu_themes))
+        safe_load_music(choice(main_menu_themes))
         pygame.mixer.music.play()
         
         # Main loop for main menu
@@ -488,7 +488,7 @@ class Menu:
 
                 # Music replay
                 if event.type == pygame.USEREVENT:
-                    pygame.mixer.music.load(choice(main_menu_themes))
+                    safe_load_music(choice(main_menu_themes))
                     pygame.mixer.music.play()
                     
             # Draw main menu

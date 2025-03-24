@@ -94,8 +94,8 @@ class CircleNom():
         
         # Play random theme song from list
         song_index = randint(0, len(self.theme_songs) - 1)
-        pygame.mixer_music.load(self.theme_songs[song_index % len(self.theme_songs)])
-        pygame.mixer_music.play()
+        safe_load_music(self.theme_songs[song_index % len(self.theme_songs)])
+        pygame.mixer.music.play()
 
         # Set end event for autoplaying
         pygame.mixer_music.set_endevent(pygame.USEREVENT)
@@ -114,7 +114,7 @@ class CircleNom():
                 raise ValueError("Index must be integer!")
             
             pygame.mixer.music.unload()
-            pygame.mixer.music.load(self.theme_songs[index % len(self.theme_songs)])
+            safe_load_music(self.theme_songs[index % len(self.theme_songs)])
             pygame.mixer.music.play()
 
         def eat_prey(player:Player, prey:Prey, easter:bool):

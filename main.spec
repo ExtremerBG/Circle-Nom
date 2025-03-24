@@ -1,82 +1,62 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-
 a = Analysis(  # type: ignore
     ['main.py'],
     pathex=[],
     binaries=[],
     datas=[
+        
+        # PyGame Icon
         ('image/others/icon.ico', 'image/others'),
-        ('sound/effects/player/eat/player_eat_1.mp3', 'sound/effects/player/eat'),
-        ('sound/effects/player/eat/player_eat_2.mp3', 'sound/effects/player/eat'),
-        ('sound/effects/player/eat/player_eat_3.mp3', 'sound/effects/player/eat'),
-        ('sound/effects/player/eat/player_eat_4.mp3', 'sound/effects/player/eat'),
-        ('sound/effects/player/eat/player_eat_5.mp3', 'sound/effects/player/eat'),
-        ('sound/themes/in_game/in_game_theme_1.mp3', 'sound/themes/in_game'),
-        ('sound/themes/in_game/in_game_theme_2.mp3', 'sound/themes/in_game'),
-        ('sound/themes/in_game/in_game_theme_3.mp3', 'sound/themes/in_game'),
-        ('sound/themes/in_game/in_game_theme_4.mp3', 'sound/themes/in_game'),
-        ('sound/themes/in_game/in_game_theme_5.mp3', 'sound/themes/in_game'),
-        ('sound/themes/in_game/in_game_theme_6.mp3', 'sound/themes/in_game'),
-        ('sound/themes/in_game/in_game_theme_7.mp3', 'sound/themes/in_game'),
-        ('sound/themes/in_game/in_game_theme_8.mp3', 'sound/themes/in_game'),
-        ('sound/themes/in_game/in_game_theme_9.mp3', 'sound/themes/in_game'),
-        ('sound/themes/in_game/in_game_theme_10.mp3', 'sound/themes/in_game'),
-        ('sound/themes/in_game/in_game_theme_11.mp3', 'sound/themes/in_game'),
-        ('sound/themes/in_game/in_game_theme_12.mp3', 'sound/themes/in_game'),
-        ('sound/themes/in_game/in_game_theme_13.mp3', 'sound/themes/in_game'),
-        ('sound/themes/in_game/in_game_theme_14.mp3', 'sound/themes/in_game'),
-        ('sound/themes/in_game/in_game_theme_15.mp3', 'sound/themes/in_game'),
-        ('image/player/alive/player_alive_image_1.png', 'image/player/alive'),
-        ('image/player/alive/player_alive_image_2.png', 'image/player/alive'),
-        ('image/player/alive/player_alive_image_3.png', 'image/player/alive'),
-        ('image/player/dead/player_dead_image_1.png', 'image/player/dead'),
-        ('image/player/dead/player_dead_image_2.png', 'image/player/dead'),
-        ('image/player/dead/player_dead_image_3.png', 'image/player/dead'),
-        ('image/prey/prey_image_1.png', 'image/prey'),
-        ('image/prey/prey_image_2.png', 'image/prey'),
-        ('image/prey/prey_image_3.png', 'image/prey'),
-        ('image/prey/prey_image_4.png', 'image/prey'),
-        ('image/prey/prey_image_5.png', 'image/prey'),
-        ('image/prey/prey_image_6.png', 'image/prey'),
-        ('image/prey/prey_image_7.png', 'image/prey'),
-        ('image/prey/prey_image_8.png', 'image/prey'),
-        ('image/prey/prey_image_9.png', 'image/prey'),
-        ('image/prey/prey_image_10.png', 'image/prey'),
-        ('image/prey/prey_image_11.png', 'image/prey'),
-        ('image/prey/prey_aura_image.png', 'image/prey'),
-        ('image/backgrounds/background_image_1.jpg', 'image/backgrounds'),
-        ('image/backgrounds/background_image_2.jpg', 'image/backgrounds'),
-        ('image/backgrounds/background_image_3.jpg', 'image/backgrounds'),
-        ('image/bar/bar_inner_image.png', 'image/bar'),
-        ('image/bar/bar_outer_image.png', 'image/bar'),
-        ('image/dagger/dagger_image_1.png', 'image/dagger'),
-        ('image/dagger/flame_dagger_right.gif', 'image/dagger'),
-        ('image/dagger/flame_dagger_left.gif', 'image/dagger'),
-        ('image/dagger/flame_dagger_up.gif', 'image/dagger'),
-        ('image/dagger/flame_dagger_down.gif', 'image/dagger'),
-        ('sound/effects/dagger/fly/dagger_fly_1.mp3', 'sound/effects/dagger/fly'),
-        ('sound/effects/dagger/fly/dagger_fly_2.mp3', 'sound/effects/dagger/fly'),
-        ('sound/effects/dagger/fly/dagger_fly_3.mp3', 'sound/effects/dagger/fly'),
-        ('sound/effects/dagger/fly/dagger_fly_4.mp3', 'sound/effects/dagger/fly'),
-        ('sound/effects/dagger/fly/dagger_fly_5.mp3', 'sound/effects/dagger/fly'),
-        ('sound/effects/player/hit/player_hit_1.mp3', 'sound/effects/player/hit'),
-        ('sound/effects/player/hit/player_hit_2.mp3', 'sound/effects/player/hit'),
-        ('sound/effects/player/hit/player_hit_3.mp3', 'sound/effects/player/hit'),
-        ('sound/effects/player/hit/player_hit_4.mp3', 'sound/effects/player/hit'),
-        ('sound/effects/player/hit/player_hit_5.mp3', 'sound/effects/player/hit'),
-        ('image/menu/player_aura_image.png', 'image/menu'),
-        ('sound/themes/menu/menu_theme_1.mp3', 'sound/themes/menu'),
-        ('sound/themes/menu/menu_theme_2.mp3', 'sound/themes/menu'),
-        ('sound/effects/menu/menu_click_up_down.mp3', 'sound/effects/menu'),
-        ('sound/effects/menu/menu_click_left_right.mp3', 'sound/effects/menu'),
-        ('sound/effects/menu/menu_click_unknown.mp3', 'sound/effects/menu'),
-        ('image/dash/dash_unavailable_image.png', 'image/dash'),
-        ('image/dash/dash_available_image.png', 'image/dash'),
-        ('sound/effects/player/dash/player_dash_1.mp3', 'sound/effects/player/dash'),
-        ('sound/effects/player/dash/player_dash_2.mp3', 'sound/effects/player/dash'),
-        ('sound/effects/player/dash/player_dash_3.mp3', 'sound/effects/player/dash'),
-        ('sound/effects/player/dash/player_dash_4.mp3', 'sound/effects/player/dash')
+        
+        # Background images
+        ('image/backgrounds/', 'image/backgrounds'),
+        
+        # Player alive images
+        ('image/player/alive/', 'image/player/alive'),
+        
+        # Player dead images
+        ('image/player/dead/', 'image/player/dead'),
+        
+        # Player aura image
+        ('image/player/aura/', 'image/player/aura'),
+        
+        # Player dash images
+        ('image/player/dash/', 'image/player/dash'),
+        
+        # Player eat SFX
+        ('sound/effects/player/eat/', 'sound/effects/player/eat'),
+        
+        # Player hit SFX
+        ('sound/effects/player/hit/', 'sound/effects/player/hit'),
+        
+        # Player dash SFX
+        ('sound/effects/player/dash/', 'sound/effects/player/dash'),
+        
+        # Prey images
+        ('image/prey/', 'image/prey'),
+        
+        # Dagger images
+        ('image/dagger/', 'image/dagger'),
+        
+        # Dagger SFX
+        ('sound/effects/dagger/fly/', 'sound/effects/dagger/fly'),
+        
+        # Bar images
+        ('image/bar/', 'image/bar'),
+        
+        # In-game themes
+        ('sound/themes/in_game/', 'sound/themes/in_game'),
+        
+        # Menu themes
+        ('sound/themes/menu/', 'sound/themes/menu'),
+        
+        # Menu click SFX
+        ('sound/effects/menu/', 'sound/effects/menu'),
+        
+        # Missing Image/Sound
+        ('image/error/', 'image/error'),
+        
     ],
     hiddenimports=[],
     hookspath=[],
