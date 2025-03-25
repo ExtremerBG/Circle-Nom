@@ -5,7 +5,7 @@ from random import randint, uniform, choice
 
 class Dagger():
     
-    def __init__(self, list_daggers:list[pygame.Surface], screen:pygame.Surface):
+    def __init__(self, dict_daggers:list[pygame.Surface], screen:pygame.Surface):
         """
         Initialize a Dagger object with direction and other attributes.
 
@@ -15,7 +15,7 @@ class Dagger():
         """
         self._screen = screen
 
-        self._list_daggers = list_daggers
+        self._dict_daggers = dict_daggers
         self._direction = None
         self._angle = None
         self._played_sound = None
@@ -129,17 +129,17 @@ class Dagger():
         self._speed_multiplier = uniform(1, 2)
         if self._speed_multiplier < 1.6:
             self._flame = False
-            self._image:pygame.Surface = pygame.transform.rotate(self._list_daggers[0], self._angle)
+            self._image:pygame.Surface = pygame.transform.rotate(self._dict_daggers["NORM"], self._angle)
         else:
             self._flame = True
             if self._direction == "RIGHT":
-                self._image:gif_pygame.GIFPygame = self._list_daggers[1] # flame dagger blade faces RIGHT
+                self._image:gif_pygame.GIFPygame = self._dict_daggers[self._direction] # flame dagger blade faces RIGHT
             elif self._direction == "LEFT":
-                self._image:gif_pygame.GIFPygame = self._list_daggers[2] # flame dagger blade faces LEFT
+                self._image:gif_pygame.GIFPygame = self._dict_daggers[self._direction] # flame dagger blade faces LEFT
             elif self._direction == "UP":
-                self._image:gif_pygame.GIFPygame = self._list_daggers[3] # flame dagger blade faces UP
+                self._image:gif_pygame.GIFPygame = self._dict_daggers[self._direction] # flame dagger blade faces UP
             elif self._direction == "DOWN":
-                self._image:gif_pygame.GIFPygame = self._list_daggers[4] # flame dagger blade faces DOWN
+                self._image:gif_pygame.GIFPygame = self._dict_daggers[self._direction] # flame dagger blade faces DOWN
             else:
                 raise ValueError(f"'{self._direction}' is not a valid direction!")
         

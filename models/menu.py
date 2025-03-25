@@ -1,4 +1,4 @@
-from helpers.functions import rot_center, draw_fps, draw_rects, resource_path, safe_load_music
+from helpers.functions import *
 from models.circle_nom import CircleNom
 from random import choice, randint
 from helpers.file_loader import *
@@ -52,7 +52,7 @@ class Menu:
         # Init screen
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("Circle Nom")
-        pygame.display.set_icon(safe_load_image(resource_path('image/others/icon.ico')))
+        pygame.display.set_icon(load_image(resource_path('image/others/icon.ico')))
         
         # Init setting values
         self.current_screen_mode = 0
@@ -122,7 +122,7 @@ class Menu:
         
         # Set volumes
         pygame.mixer.music.set_volume(volume)
-        for sound in main_menu_clicks: sound.set_volume(volume)
+        for sound in main_menu_clicks.values(): sound.set_volume(volume)
         for sound in eat_sounds: sound.set_volume(volume)
         for sound in dagger_sounds: sound.set_volume(volume)
         for sound in hit_sounds: sound.set_volume(volume)
@@ -132,7 +132,7 @@ class Menu:
         """
         Toggle between windowed and fullscreen modes.
         """
-        main_menu_clicks[1].play()
+        main_menu_clicks["LEFTRIGHT"].play()
         self.current_screen_mode = (self.current_screen_mode + 1) % len(self.SCREEN_MODES)
         if self.current_screen_mode == 1: # Fullscreen
             self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT), pygame.FULLSCREEN)
@@ -177,27 +177,27 @@ class Menu:
                     # Enter
                     if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
                         if self.options_items[self.selected_options_item] == "Back":
-                            main_menu_clicks[0].play()
+                            main_menu_clicks["UPDOWN"].play()
                             return # Exit options menu
                         
                     # Backspace
                     elif event.key == pygame.K_BACKSPACE:
-                        main_menu_clicks[0].play()
+                        main_menu_clicks["UPDOWN"].play()
                         return # Exit options menu
                     
                     # Escape
                     elif event.key == pygame.K_ESCAPE:
-                        main_menu_clicks[0].play()
+                        main_menu_clicks["UPDOWN"].play()
                         return # Exit options menu
                         
                     # Movement up - W, ↑
                     elif event.key == pygame.K_w or event.key == pygame.K_UP:
-                        main_menu_clicks[0].play()
+                        main_menu_clicks["UPDOWN"].play()
                         self.selected_options_item = (self.selected_options_item - 1) % len(self.options_items)
                         
                     # Movement down - S, ↓
                     elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
-                        main_menu_clicks[0].play()
+                        main_menu_clicks["UPDOWN"].play()
                         self.selected_options_item = (self.selected_options_item + 1) % len(self.options_items)
                         
                     # Movement right - D, →
@@ -205,29 +205,29 @@ class Menu:
                         
                         # Volume
                         if self.selected_options_item == 0:
-                            main_menu_clicks[1].play()
+                            main_menu_clicks["LEFTRIGHT"].play()
                             self.current_volume = (self.current_volume + 1) % len(self.VOL_LEVELS)
                             self._set_sound_vol(self.current_volume, len(self.VOL_LEVELS) - 1)
                             
                         # FPS Cap
                         elif self.selected_options_item == 1:
-                            main_menu_clicks[1].play()
+                            main_menu_clicks["LEFTRIGHT"].play()
                             self.current_fps_cap = (self.current_fps_cap + 1) % len(self.FPS_CAPS)
                             self._fps_cap(self.FPS_CAPS[self.current_fps_cap])
                             
                         # Difficulty
                         elif self.selected_options_item == 2:
-                            main_menu_clicks[1].play()
+                            main_menu_clicks["LEFTRIGHT"].play()
                             self.current_difficulty = (self.current_difficulty + 1) % len(self.DIFF_MODES)
                             
                         # Play mode
                         elif self.selected_options_item == 3:
-                            main_menu_clicks[1].play()
+                            main_menu_clicks["LEFTRIGHT"].play()
                             self.current_play_mode = (self.current_play_mode + 1) % len(self.PLAY_MODES)
                             
                         # Screen mode
                         elif self.selected_options_item == 4:
-                            main_menu_clicks[1].play()
+                            main_menu_clicks["LEFTRIGHT"].play()
                             self._toggle_screen_mode()
                             
                     # Movement left - A, ←
@@ -235,45 +235,45 @@ class Menu:
 
                         # Volume
                         if self.selected_options_item == 0:
-                            main_menu_clicks[1].play()
+                            main_menu_clicks["LEFTRIGHT"].play()
                             self.current_volume = (self.current_volume - 1) % len(self.VOL_LEVELS)
                             self._set_sound_vol(self.current_volume, len(self.VOL_LEVELS) - 1)
                             
                         # FPS Cap
                         elif self.selected_options_item == 1:
-                            main_menu_clicks[1].play()
+                            main_menu_clicks["LEFTRIGHT"].play()
                             self.current_fps_cap = (self.current_fps_cap - 1) % len(self.FPS_CAPS)
                             self._fps_cap(self.FPS_CAPS[self.current_fps_cap])
                             
                         # Difficulty
                         elif self.selected_options_item == 2:
-                            main_menu_clicks[1].play()
+                            main_menu_clicks["LEFTRIGHT"].play()
                             self.current_difficulty = (self.current_difficulty - 1) % len(self.DIFF_MODES)
                             
                         # Play mode
                         elif self.selected_options_item == 3:
-                            main_menu_clicks[1].play()
+                            main_menu_clicks["LEFTRIGHT"].play()
                             self.current_play_mode = (self.current_play_mode - 1) % len(self.PLAY_MODES)
                             
                         # Screen mode
                         elif self.selected_options_item == 4:
-                            main_menu_clicks[1].play()
+                            main_menu_clicks["LEFTRIGHT"].play()
                             self._toggle_screen_mode()
                             
                     # Invalid key presses - these checks are stupid
                     # Special case if selected option is 0, 1, 2, 3 - play invalid key press sounds for all keys except W, S, A, D, ↑, ↓, ←, →
                     if self.selected_options_item in [0, 1, 2, 3, 4] and event.key not in\
                         [pygame.K_w, pygame.K_UP, pygame.K_a, pygame.K_LEFT, pygame.K_d, pygame.K_RIGHT, pygame.K_s, pygame.K_DOWN]:
-                        main_menu_clicks[2].play()
+                        main_menu_clicks["UNKNOWN"].play()
                             
                     # Special case if selected option is 5 - play invalid key press sound for all keys except Enter, Backspace and Escape
                     elif self.selected_options_item == 5 and event.key not in\
                         [pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_BACKSPACE, pygame.K_ESCAPE, pygame.K_DOWN, pygame.K_UP, pygame.K_w, pygame.K_s]:
-                        main_menu_clicks[2].play()
+                        main_menu_clicks["UNKNOWN"].play()
                             
                 # Music replay
                 elif event.type == pygame.USEREVENT:
-                    safe_load_music(choice(main_menu_themes))
+                    load_music(choice(main_menu_themes))
                     pygame.mixer.music.play()
                         
             # Draw options
@@ -440,7 +440,7 @@ class Menu:
         MAIN_MENU_FUNCTIONS = [self._start_game, self._launch_options, sys.exit]
         
         # Play menu theme
-        safe_load_music(choice(main_menu_themes))
+        load_music(choice(main_menu_themes))
         pygame.mixer.music.play()
         
         # Main loop for main menu
@@ -459,36 +459,36 @@ class Menu:
                     
                     # Enter
                     if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                        main_menu_clicks[0].play()
+                        main_menu_clicks["UPDOWN"].play()
                         MAIN_MENU_FUNCTIONS[self.selected_menu_item]()
                     
                     # Backspace
                     elif event.key == pygame.K_BACKSPACE:
-                        main_menu_clicks[0].play()
+                        main_menu_clicks["UPDOWN"].play()
                         return # Exit options menu
                     
                     # Escape
                     elif event.key == pygame.K_ESCAPE:
-                        main_menu_clicks[0].play()
+                        main_menu_clicks["UPDOWN"].play()
                         return # Exit options menu
                     
                     # Movement up - W, ↑ 
                     elif event.key == pygame.K_UP or event.key == pygame.K_w:
-                        main_menu_clicks[0].play()
+                        main_menu_clicks["UPDOWN"].play()
                         self.selected_menu_item = (self.selected_menu_item - 1) % len(self.MAIN_MENU_ITEMS)
                         
                     # Movement down - S, ↓ 
                     elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                        main_menu_clicks[0].play()
+                        main_menu_clicks["UPDOWN"].play()
                         self.selected_menu_item = (self.selected_menu_item + 1) % len(self.MAIN_MENU_ITEMS)
                     
                     # Play sound for invalid key press
                     else:
-                        main_menu_clicks[2].play()
+                        main_menu_clicks["UNKNOWN"].play()
 
                 # Music replay
                 if event.type == pygame.USEREVENT:
-                    safe_load_music(choice(main_menu_themes))
+                    load_music(choice(main_menu_themes))
                     pygame.mixer.music.play()
                     
             # Draw main menu

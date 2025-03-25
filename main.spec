@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+
 a = Analysis(  # type: ignore
     ['main.py'],
     pathex=[],
@@ -19,7 +20,7 @@ a = Analysis(  # type: ignore
         ('image/player/dead/', 'image/player/dead'),
         
         # Player aura image
-        ('image/player/aura/', 'image/player/aura'),
+        ('image/player/aura/player_aura_image.png', 'image/player/aura'),
         
         # Player dash images
         ('image/player/dash/', 'image/player/dash'),
@@ -55,7 +56,8 @@ a = Analysis(  # type: ignore
         ('sound/effects/menu/', 'sound/effects/menu'),
         
         # Missing Image/Sound
-        ('image/error/', 'image/error'),
+        ('image/error/missing_image.png', 'image/error'),
+        ('sound/error/missing_sound.mp3', 'sound/error')
         
     ],
     hiddenimports=[],

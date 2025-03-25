@@ -5,8 +5,15 @@ import gif_pygame
 import pygame
 import sys
 import os
+import re
 
 pygame.mixer.init()
+
+# Used for placeholders
+MISSING_RESOURCE = {
+    "IMAGE": 'image/error/missing_image.png',
+    "SOUND": 'sound/error/missing_sound.mp3'
+}
 
 def resource_path(relative_path: str) -> str:
     """
@@ -21,7 +28,7 @@ def resource_path(relative_path: str) -> str:
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
-    except Exception:
+    except AttributeError as e:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
@@ -385,9 +392,12 @@ def draw_rects(screen:pygame.Surface, rects:tuple[pygame.Rect], enable:bool) -> 
             transparent_surface.fill((0, 255, 0, 64))
             screen.blit(transparent_surface, (rect[0], rect[1]))
             
-def safe_load_image(path: str) -> pygame.Surface | gif_pygame.GIFPygame:
+def load_image(path: str) -> pygame.Surface | gif_pygame.GIFPygame:
     """
     Safely try to load an image with pygame or gif_pygame.
+    
+    Args:
+        path (str): The path to the image.
     """
     MISSING_IMAGE_PATH = 'image/error/missing_image.png'
     try:
@@ -395,49 +405,127 @@ def safe_load_image(path: str) -> pygame.Surface | gif_pygame.GIFPygame:
             return gif_pygame.load(resource_path(path))
         else:
             return pygame.image.load(resource_path(path))
+        
     except FileNotFoundError:
-        print(f"[ERROR]: image at '{path}' not found!")
+        print(f"[ERROR] Image at '{path}' not found!")
         if path.endswith(('.gif', '.apng')):
             return gif_pygame.load(resource_path(MISSING_IMAGE_PATH))
         else:
             return pygame.image.load(resource_path(MISSING_IMAGE_PATH))
     
-def safe_load_sound(path: str) -> pygame.mixer.Sound:
+def load_sound(path: str) -> pygame.mixer.Sound:
     """
     Safely try to load a sound with pygame.
+    
+    Args:
+        path (str): The path to the sound.
     """
-    MISSING_SOUND_PATH = 'sound/error/missing_sound.mp3'
     try:
         return pygame.mixer.Sound(resource_path(path))
-    except FileNotFoundError:
-        print(f"[ERROR]: sound at '{path}' not found!")
-        return pygame.mixer.Sound(resource_path(MISSING_SOUND_PATH))
     
-def safe_load_music(path: str) -> pygame.mixer.music:
+    except FileNotFoundError:
+        print(f"[ERROR] Sound at '{path}' not found!")
+        return pygame.mixer.Sound(resource_path(MISSING_RESOURCE["SOUND"]))
+    
+def load_music(path: str) -> None:
     """
     Safely try to load a music with pygame.
+    
+    Args:
+        path (str): The path to the music.
     """
-    MISSING_SOUND_PATH = 'sound/error/missing_sound.mp3'
     try:
-        return pygame.mixer.music.load(resource_path(path))
-    except FileNotFoundError as e:
-        print(f"[ERROR]: music at '{path}' not found!")
-        return pygame.mixer.music.load((resource_path(MISSING_SOUND_PATH)))
+        pygame.mixer.music.load(resource_path(path))
+        
+    except FileNotFoundError:
+        print(f"[ERROR] Music at '{path}' not found!")
+        pygame.mixer.music.load((resource_path(MISSING_RESOURCE["SOUND"])))
             
-def load_images(paths: list[str]) -> tuple[pygame.Surface|gif_pygame.GIFPygame]:
+def load_images(paths: list[str], count: int = None) -> tuple[pygame.Surface | gif_pygame.GIFPygame]:
     """
-    Load pygame images from list of paths. Returns tuple with loaded images.
+    Load pygame images from a list of paths. Optionally ensures a specific count of images.
     
     Args:
-        paths (list[str]): The file paths list.
+        paths (list[str]): The image file paths list.
+        count (int): Optional expected image count. If actual count is lower, appends placeholder/s.
     """
-    return tuple(safe_load_image(resource_path(path)) for path in paths)
+    def add_placeholders(num: int):
+        """Add placeholder images."""
+        return [load_image(resource_path(MISSING_RESOURCE["IMAGE"])) for _ in range(num)]
+    
+    temp = []
+    actual_count = len(paths)
+    
+    # Load actual images
+    temp.extend(load_image(resource_path(path)) for path in paths)
+    
+    # Add placeholders if needed
+    if count:
+        if count > actual_count:
+            print(f"[WARN] Image files count lower than expected! Adding {count - actual_count} placeholder/s.")
+            temp.extend(add_placeholders(count - actual_count))
+        elif count < actual_count:
+            print(f"[WARN] Image files count higher than expected: {actual_count} / {count}!")
+    
+    return tuple(temp)
+def load_sounds(paths: list[str], count: int = None) -> tuple[pygame.mixer.Sound]:
+    """
+    Load pygame sounds from a list of paths. Optionally ensures a specific count of sounds.
+    
+    Args:
+        paths (list[str]): The sound file paths list.
+        count (int): Optional expected sounds count. If actual count is lower, appends placeholder/s.
+    """
+    def add_placeholders(num: int):
+        """Add placeholder sounds."""
+        return [load_sound(resource_path(MISSING_RESOURCE["SOUND"])) for _ in range(num)]
+    
+    temp = []
+    actual_count = len(paths)
+    
+    # Load actual sounds
+    temp.extend(load_sound(resource_path(path)) for path in paths)
+    
+    # Add placeholders if needed
+    if count:
+        if count > actual_count:
+            print(f"[WARN] Sound files count lower than expected! Adding {count - actual_count} placeholder/s.")
+            temp.extend(add_placeholders(count - actual_count))
+        elif count < actual_count:
+            print(f"[WARN] Sound files count higher than expected: {actual_count} / {count}!")
+    
+    return tuple(temp)
 
-def load_sounds(paths: list[str]) -> tuple[pygame.mixer.Sound]:
+def traverse_folder(path: str) -> tuple:
     """
-    Load pygame sounds from list of paths. Returns tuple with loaded sounds.
+    Traverse through the given path to a folder. Returns a tuple in natural order with paths to all files. \n
+    NOTE: Will return an empty tuple if no files are found!
     
     Args:
-        paths (list[str]): The file paths list.
+        path (str): The given folder's path.
     """
-    return tuple(safe_load_sound(resource_path(path)) for path in paths)
+    def natural_sort_key(s: str) -> list:
+        """Helper function to sort strings naturally (e.g., file_2 before file_10)."""
+        return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
+    
+    temp = []
+    resolved_path = resource_path(path)
+    
+    if not os.path.exists(resolved_path):
+        print(f"[ERROR] Path '{path}' does not exist!")
+        return tuple()
+    
+    for root, dirs, files in os.walk(resolved_path):
+        
+        if len(dirs) > 0:
+            print(f"[WARN] Path '{root}' has {len(dirs)} embedded folder/s!")
+            
+        if len(files) == 0:
+            print(f"[WARN] Path '{root}' has no files!")
+            return tuple()
+            
+        for file in files:
+            temp.append(os.path.join(root, file))
+            
+    return tuple(sorted(temp, key=natural_sort_key))
+        

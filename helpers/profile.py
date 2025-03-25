@@ -27,7 +27,7 @@ def profile(enable:bool, func, *args, **kwargs):
         profiler.disable()
         
         # Dump to file
-        with open(file_path, 'w') as file:
+        with open(file_path, 'x') as file:
             stats = pstats.Stats(profiler, stream=file)
             stats.sort_stats('time').print_stats()
     else:
