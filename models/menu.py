@@ -419,7 +419,7 @@ class Menu:
             self.screen, self.FPS, self.current_difficulty, self.current_play_mode,
             eat_sounds, theme_songs, player_image, player_image_dead,
             prey_images, prey_aura, self.background_image, health_bar,
-            dagger_images, dagger_sounds, hit_sounds, dash_images
+            dagger_images, dagger_sounds, flame_sequence, hit_sounds, dash_images
         )
         
         # Start Circle Nom

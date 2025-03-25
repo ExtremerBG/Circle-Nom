@@ -42,13 +42,7 @@ health_bar = load_images(traverse_folder('image/bar/'), 2)
 ################################################################################
 
 # DAGGER                                            
-dagger_images = {
-    "NORM": load_image('image/dagger/dagger_image_1.png'),
-    "UP": load_image('image/dagger/flame_dagger_up.gif'),
-    "DOWN": load_image('image/dagger/flame_dagger_down.gif'),
-    "LEFT": load_image('image/dagger/flame_dagger_left.gif'),
-    "RIGHT": load_image('image/dagger/flame_dagger_right.gif')
-}
+dagger_images = load_images(traverse_folder('image/dagger/'))
 
 ################################################################################
 
@@ -89,4 +83,9 @@ dash_images = load_images(traverse_folder('image/player/dash/'), 2)
 # DASH SOUNDS
 dash_sounds = load_sounds(traverse_folder('sound/effects/player/dash/'), 4)
     
+################################################################################
+
+# FLAME SEQUENCE
+flame_sequence = load_images(traverse_folder('image/flame_sequence'))
+
 ################################################################################

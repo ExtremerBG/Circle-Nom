@@ -1,11 +1,9 @@
-import pygame
-import gif_pygame
-from helpers.file_loader import dagger_sounds
 from random import randint, uniform, choice
+import pygame
 
 class Dagger():
     
-    def __init__(self, dict_daggers:list[pygame.Surface], screen:pygame.Surface):
+    def __init__(self, dagger_images: list[pygame.Surface], dagger_sounds: list[pygame.Sound], flame_sequence: list[pygame.Surface],  screen: pygame.Surface):
         """
         Initialize a Dagger object with direction and other attributes.
 
@@ -15,31 +13,22 @@ class Dagger():
         """
         self._screen = screen
 
-        self._dict_daggers = dict_daggers
-        self._direction = None
+        self._dagger_images = dagger_images
+        self._flame_sequence = flame_sequence
+        self._dagger_sounds = dagger_sounds
         self._angle = None
         self._played_sound = None
         self.reset_dagger()
-
-    @property
-    def get_dir(self) -> str:
-        """
-        Returns the direction of the dagger.
-
-        Returns:
-            str: The direction of the dagger ('RIGHT', 'LEFT', 'UP', or 'DOWN').
-        """
-        return self._direction
     
     @property
-    def coords(self) -> pygame.Vector2:
+    def position(self) -> pygame.Vector2:
         """
-        Returns the coordinates of the dagger.
+        Returns the position coordinates of the dagger.
 
         Returns:
             Vector2: Vector2 type with the dagger's coordinates.
         """
-        return self._coords
+        return self._position
     
     @property
     def flame(self) -> bool:
@@ -91,57 +80,52 @@ class Dagger():
         """
         return self._spawn, self._despawn
         
+    def _get_blit_pos(self, coords:pygame.Vector2, image: pygame.Surface):
+        """
+        Internal helper for getting the center position for blit.
+        """
+        return coords - pygame.Vector2(image.get_width() / 2, image.get_height() / 2)
+        
     def reset_dagger(self):
         """
         Resets the dagger's position, direction, and image.
         """
-        self._coords = pygame.Vector2(float('inf'), float('inf'))
+        self._position = pygame.Vector2(float('inf'), float('inf'))
         self._created = True
 
-        self._rand_dir = randint(0, 3)
-        if self._rand_dir == 0:
-            self._direction = "RIGHT"
-            self._angle = 270
-            self._coords.x = -100 # margin
-            self._coords.y = uniform(100, 620)
+        # Dagger direction
+        direction = randint(0, 3)
 
-        elif self._rand_dir == 1:
-            self._direction = "LEFT"
-            self._angle = 90
-            self._coords.x = self._screen.get_width() + 100 # margin
-            self._coords.y = uniform(100, 620)
-
-        elif self._rand_dir == 2:
-            self._direction = "UP"
+        # Up
+        if direction == 0:
             self._angle = 0
-            self._coords.x = uniform(100, 1180)
-            self._coords.y = self._screen.get_height() + 100 # margin
-
-        elif self._rand_dir == 3:
-            self._direction = "DOWN"
+            self._position.x = uniform(100, 1180)
+            self._position.y = self._screen.get_height() + 100 # margin
+            
+        # Down
+        elif direction == 1:
             self._angle = 180
-            self._coords.x = uniform(100, 1180)
-            self._coords.y = -100 # margin
-        else:
-            raise ValueError(f"rand_dir ({self._rand_dir}) is invalid!")
+            self._position.x = uniform(100, 1180)
+            self._position.y = -100 # margin
+            
+        # Left
+        elif direction == 2:
+            self._angle = 90
+            self._position.x = self._screen.get_width() + 100 # margin
+            self._position.y = uniform(100, 620)
+            
+        # Right
+        elif direction == 3:
+            self._angle = 270
+            self._position.x = -100 # margin
+            self._position.y = uniform(100, 620)
 
-        # Dagger image declaration based on speed
+        # Speed multiplier and flame based on it
         self._speed_multiplier = uniform(1, 2)
-        if self._speed_multiplier < 1.6:
-            self._flame = False
-            self._image:pygame.Surface = pygame.transform.rotate(self._dict_daggers["NORM"], self._angle)
-        else:
-            self._flame = True
-            if self._direction == "RIGHT":
-                self._image:gif_pygame.GIFPygame = self._dict_daggers[self._direction] # flame dagger blade faces RIGHT
-            elif self._direction == "LEFT":
-                self._image:gif_pygame.GIFPygame = self._dict_daggers[self._direction] # flame dagger blade faces LEFT
-            elif self._direction == "UP":
-                self._image:gif_pygame.GIFPygame = self._dict_daggers[self._direction] # flame dagger blade faces UP
-            elif self._direction == "DOWN":
-                self._image:gif_pygame.GIFPygame = self._dict_daggers[self._direction] # flame dagger blade faces DOWN
-            else:
-                raise ValueError(f"'{self._direction}' is not a valid direction!")
+        self._flame = self._speed_multiplier >= 1.6
+        
+        # Choose dagger image from list and rotate
+        self._image:pygame.Surface = pygame.transform.rotate(choice(self._dagger_images), self._angle)
         
         # Spawn time
         self._spawn = randint(20, 40)
@@ -155,17 +139,14 @@ class Dagger():
         # Played sound flag
         self._played_sound = False  
         
-    def grace_spawn(self, value):
+    def grace_spawn(self, value: int|float):
         """
         Set grace spawn time for the next dagger.
 
         Args:
             value (int | float): The value to add to the spawn time.
-
-        Raises:
-            ValueError: If the value is not an int or float.
         """
-        if type(value) == int or type(value) == float:
+        if isinstance(value, (int, float)):
             self._spawn += value
             self._despawn = (240 + self._spawn) / self._speed_multiplier # update despawn
         else:
@@ -178,28 +159,36 @@ class Dagger():
         Args:
             dt (float): Delta time, used for frame independent drawing.
         """
+        # Increment position
         if self._timer > self._spawn:
-            if self._direction == "RIGHT":
-                self._coords.x += 600 * self._speed_multiplier * dt
-            elif self._direction == "LEFT":
-                self._coords.x -= 600 * self._speed_multiplier * dt
-            elif self._direction == "UP":
-                self._coords.y -= 600 * self._speed_multiplier * dt
-            elif self._direction == "DOWN":
-                self._coords.y += 600 * self._speed_multiplier * dt
+            
+            # Calculate delta movement
+            delta_movement: dict[float, float] = {
+                0: (0, -600 * self._speed_multiplier * dt), # angle 0: up (x, y-)
+                180: (0, +600 * self._speed_multiplier * dt), # angle 180: down (x, y+)
+                90: (-600 * self._speed_multiplier * dt, 0), # angle 90: left (x-, y)
+                270: (+600 * self._speed_multiplier * dt, 0) # angle 270: right (x+, y)
+            }
+            
+            # Update position based on angle
+            self._position.xy += delta_movement.get(self._angle)
 
         # Reset dagger and cancel next frame draw
         if self._timer > self._despawn:
             self.reset_dagger()
             return
 
-        # Pygame draw
-        if self._flame == False and self._timer > self._spawn:
-            self._screen.blit(self._image, (self._coords.x, self._coords.y) - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
-
-        # Gif pygame draw
-        if self._flame == True and self._timer > self._spawn:
-            self._image.render(self._screen, (self._coords.x, self._coords.y) - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
+        # Draw
+        if self._timer > self._spawn:
+            
+            # Draw flame
+            if self._flame:
+                # Select from flame_sequence and rotate
+                flame_image = pygame.transform.rotate(self._flame_sequence[int(self._timer / 6 % len(self._flame_sequence))], self._angle)
+                self._screen.blit(flame_image, self._get_blit_pos(self._position, flame_image))
+            
+            # Draw dagger
+            self._screen.blit(self._image, self._get_blit_pos(self._position, self._image))
 
         # Increment timer
         self._timer += 60 * dt
@@ -209,5 +198,5 @@ class Dagger():
         Play a random dagger sound if it hasn't been played yet.
         """
         if self._played_sound == False:
-            choice(dagger_sounds).play()
+            choice(self._dagger_sounds).play()
             self._played_sound = True

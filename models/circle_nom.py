@@ -23,8 +23,8 @@ class CircleNom():
                  player_image_dead:pygame.Surface, prey_images:list[pygame.Surface],
                  prey_aura:pygame.Surface, background_image:pygame.Surface,
                  health_bar:list[pygame.Surface], dagger_images:list[pygame.Surface],
-                 dagger_sounds:list[pygame.mixer.Sound], hit_sounds:list[pygame.mixer.Sound],
-                 dash_images:list[pygame.Surface]
+                 dagger_sounds:list[pygame.mixer.Sound], flame_sequence:list[pygame.Surface],
+                 hit_sounds:list[pygame.mixer.Sound], dash_images:list[pygame.Surface]
                  ):
         """
         Initializes the CircleNom game with various assets and settings.
@@ -44,6 +44,7 @@ class CircleNom():
             health_bar (list[pygame.Surface]): List of health bar images.
             dagger_images (list[pygame.Surface]): List of dagger images.
             dagger_sounds (list[pygame.mixer.Sound]): List of sounds to play when a dagger is used.
+            flame_sequence (list[pygame.Surface]): List of flame images.
             hit_sounds (list[pygame.mixer.Sound]): List of sounds to play when the player is hit.
             dash_images (list[pygame.Surface]): List of dash icon images.
         """
@@ -64,6 +65,7 @@ class CircleNom():
         self.health_bar = health_bar
         self.dagger_images = dagger_images
         self.dagger_sounds = dagger_sounds
+        self.flame_sequence = flame_sequence
         self.hit_sounds = hit_sounds
         self.dash_images = dash_images
 
@@ -177,8 +179,8 @@ class CircleNom():
                 dagger (class Dagger): The dagger to check with.
             """
 
-            if isclose(player.hit_pos.x, dagger.coords.x, abs_tol=player.hit_tol) and \
-                isclose(player.hit_pos.y, dagger.coords.y, abs_tol=player.hit_tol):
+            if isclose(player.hit_pos.x, dagger.position.x, abs_tol=player.hit_tol) and \
+                isclose(player.hit_pos.y, dagger.position.y, abs_tol=player.hit_tol):
 
                 # Bigger penalty if its a flaming dagger
                 if dagger.flame == True:
@@ -256,7 +258,7 @@ class CircleNom():
         tuple_preys:tuple[Prey] = declare_objects(self.prey_count, Prey, self.prey_images, self.prey_aura, self.screen)
 
         # Dagger/s declaration
-        tuple_daggers:tuple[Dagger] = declare_objects(self.dagger_count, Dagger, self.dagger_images, self.screen)
+        tuple_daggers:tuple[Dagger] = declare_objects(self.dagger_count, Dagger, self.dagger_images, self.dagger_sounds, self.flame_sequence, self.screen)
         
         # Dagger initial grace period
         for dagger in tuple_daggers:
@@ -321,8 +323,8 @@ class CircleNom():
                 for dagger in tuple_daggers:
                     
                     # Play dagger sound if its on screen
-                    if 0 <= dagger.coords.x <= self.screen.get_width() and \
-                        0 <= dagger.coords.y <= self.screen.get_height():
+                    if 0 <= dagger.position.x <= self.screen.get_width() and \
+                        0 <= dagger.position.y <= self.screen.get_height():
                         dagger.play_sound()
                     
                     # Draw dagger

@@ -1,7 +1,6 @@
 from typing import Callable
 from random import uniform
 from math import isclose
-import gif_pygame
 import pygame
 import sys
 import os
@@ -345,8 +344,8 @@ def dagger_debug(daggers:list, dagger_n:int, screen:pygame.Surface, enable:bool)
         dagger = daggers[dagger_n]
         debug_string = (
             f"[DAGGER № {dagger_n} DEBUG] "
-            f"X: {dagger.coords.x:.2f} | "
-            f"Y: {dagger.coords.y:.2f} | "
+            f"X: {dagger.position.x:.2f} | "
+            f"Y: {dagger.position.y:.2f} | "
             f"timer: {dagger.timer:.2f} | "
             f"spawn: {dagger.spawn_despawn[0]:.2f} | "
             f"despawn {dagger.spawn_despawn[1]:.2f} | "
@@ -358,7 +357,7 @@ def dagger_debug(daggers:list, dagger_n:int, screen:pygame.Surface, enable:bool)
         print(debug_string)
         
         # Dagger position dot
-        pygame.draw.circle(screen, "red", dagger.coords, 10)
+        pygame.draw.circle(screen, "red", dagger.position, 10)
         
 def declare_objects(count: int, func: Callable[..., any], *args: any) -> tuple:
     """
@@ -392,26 +391,20 @@ def draw_rects(screen:pygame.Surface, rects:tuple[pygame.Rect], enable:bool) -> 
             transparent_surface.fill((0, 255, 0, 64))
             screen.blit(transparent_surface, (rect[0], rect[1]))
             
-def load_image(path: str) -> pygame.Surface | gif_pygame.GIFPygame:
+def load_image(path: str) -> pygame.Surface:
     """
-    Safely try to load an image with pygame or gif_pygame.
+    Safely try to load an image with pygame.
     
     Args:
         path (str): The path to the image.
     """
     MISSING_IMAGE_PATH = 'image/error/missing_image.png'
     try:
-        if path.endswith(('.gif', '.apng')):
-            return gif_pygame.load(resource_path(path))
-        else:
-            return pygame.image.load(resource_path(path))
-        
+        return pygame.image.load(resource_path(path))
+    
     except FileNotFoundError:
         print(f"[ERROR] Image at '{path}' not found!")
-        if path.endswith(('.gif', '.apng')):
-            return gif_pygame.load(resource_path(MISSING_IMAGE_PATH))
-        else:
-            return pygame.image.load(resource_path(MISSING_IMAGE_PATH))
+        return pygame.image.load(resource_path(MISSING_IMAGE_PATH))
     
 def load_sound(path: str) -> pygame.mixer.Sound:
     """
@@ -441,7 +434,7 @@ def load_music(path: str) -> None:
         print(f"[ERROR] Music at '{path}' not found!")
         pygame.mixer.music.load((resource_path(MISSING_RESOURCE["SOUND"])))
             
-def load_images(paths: list[str], count: int = None) -> tuple[pygame.Surface | gif_pygame.GIFPygame]:
+def load_images(paths: list[str], count: int = None) -> tuple[pygame.Surface]:
     """
     Load pygame images from a list of paths. Optionally ensures a specific count of images.
     

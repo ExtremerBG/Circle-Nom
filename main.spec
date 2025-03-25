@@ -40,6 +40,9 @@ a = Analysis(  # type: ignore
         # Dagger images
         ('image/dagger/', 'image/dagger'),
         
+        # Flame sequence images
+        ('image/flame_sequence', 'image/flame_sequence'),
+        
         # Dagger SFX
         ('sound/effects/dagger/fly/', 'sound/effects/dagger/fly'),
         
