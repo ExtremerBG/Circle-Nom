@@ -46,14 +46,14 @@ class Prey():
         return self._aura_flag
     
     @property
-    def coords(self):
+    def position(self):
         """
-        Returns the coordinates of the prey. If none returns Vector2('inf', 'inf').
+        Returns the position coordinates of the prey. If none returns Vector2('inf', 'inf').
 
         Returns:
             Vector2: The x and y coordinates.
         """
-        return self._coords if self._coords else pygame.Vector2(float('inf'), float('inf'))
+        return self._position if self._position else pygame.Vector2(float('inf'), float('inf'))
 
     
     @property
@@ -124,13 +124,13 @@ class Prey():
         if self._aura_flag:
             aura_scale = int(190 * scale_vect)  # Scale the aura based on scale_vect
             aura = pygame.transform.smoothscale(self._aura_image, (aura_scale, aura_scale))
-            rotated_aura = rot_center(aura, self._aura_angle, self._coords)
+            rotated_aura = rot_center(aura, self._aura_angle, self._position)
             self._screen.blit(rotated_aura[0], rotated_aura[1])
             self._aura_angle = (self._aura_angle % 360) - 60 * dt
 
         # Transform the prey image
         prey = pygame.transform.smoothscale(self._image, (self._scale, self._scale))
-        rotated_prey = rot_center(prey, self._prey_angle, self._coords)
+        rotated_prey = rot_center(prey, self._prey_angle, self._position)
         self._screen.blit(rotated_prey[0], rotated_prey[1])
             
     def draw(self, dt: float):
@@ -151,8 +151,8 @@ class Prey():
             return
 
         # Set valid coordinates when spawn animation starts
-        if self._coords is None:
-            self._coords = rand_screen_pos()
+        if self._position is None:
+            self._position = rand_screen_pos()
 
         # Spawn Animation
         if Prey.SPAWN - Prey.ANIM_DUR <= self._counter < Prey.SPAWN:
@@ -170,12 +170,12 @@ class Prey():
             # Check if prey is aura-d
             if self._aura_flag:
                 # Rotate aura constantly and display
-                rotated_aura = rot_center(self._aura_image, self._aura_angle, self._coords)
+                rotated_aura = rot_center(self._aura_image, self._aura_angle, self._position)
                 self._screen.blit(rotated_aura[0], rotated_aura[1])
                 self._aura_angle = (self._aura_angle % 360) - 60 * dt
 
             # Rotate prey once and display
-            rotated_prey = rot_center(self._image, self._prey_angle, self._coords)
+            rotated_prey = rot_center(self._image, self._prey_angle, self._position)
             self._screen.blit(rotated_prey[0], rotated_prey[1])
 
         # Increment counter
@@ -202,7 +202,7 @@ class Prey():
         self._counter = 0
 
         # Set invalid coordinates to prevent premature drawing
-        self._coords = None
+        self._position = None
         self._eatable = False
 
         # Reset scale to 0 to prevent flashing

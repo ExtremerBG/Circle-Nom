@@ -1,4 +1,4 @@
-![Game Image](image/others/readme_image_1.png)
+![Game Image](others/readme_image_1.png)
 
 ## Table of Contents
 

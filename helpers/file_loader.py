@@ -1,7 +1,9 @@
 from helpers.functions import *
-import pygame
 
-pygame.mixer.init()
+################################################################################
+
+# PYGAME WINDOW ICON
+icon = load_image(resource_path('image/icon/icon.ico'))
 
 ################################################################################
 
@@ -10,8 +12,8 @@ eat_sounds = load_sounds(traverse_folder('sound/effects/player/eat/'), 5)
 
 ################################################################################
 
-# THEME SONGS
-theme_songs = traverse_folder('sound/themes/in_game/')
+# GAME THEME SONGS
+game_themes = load_playlist(traverse_folder('sound/themes/in_game/'), 15)
 
 ################################################################################
 
@@ -42,7 +44,7 @@ health_bar = load_images(traverse_folder('image/bar/'), 2)
 ################################################################################
 
 # DAGGER                                            
-dagger_images = load_images(traverse_folder('image/dagger/'))
+dagger_images = load_images(traverse_folder('image/dagger/'), 7)
 
 ################################################################################
 
@@ -61,13 +63,13 @@ player_aura = load_image(resource_path('image/player/aura/player_aura_image.png'
 
 ################################################################################
 
-# MAIN MENU THEMES
-main_menu_themes = traverse_folder('sound/themes/menu/')
+# MENU THEME SONGS
+menu_themes = load_playlist(traverse_folder('sound/themes/menu/'), 2)
 
 ################################################################################
 
 # MAIN MENU CLICKS
-main_menu_clicks = {
+menu_clicks = {
     "UPDOWN": load_sound('sound/effects/menu/menu_click_up_down.mp3'),
     "LEFTRIGHT": load_sound('sound/effects/menu/menu_click_left_right.mp3'),
     "UNKNOWN": load_sound('sound/effects/menu/menu_click_unknown.mp3'),
@@ -86,6 +88,6 @@ dash_sounds = load_sounds(traverse_folder('sound/effects/player/dash/'), 4)
 ################################################################################
 
 # FLAME SEQUENCE
-flame_sequence = load_images(traverse_folder('image/flame_sequence'))
+flame_sequence = load_images(traverse_folder('image/flame_sequence'), 6)
 
 ################################################################################

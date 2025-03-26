@@ -1,18 +1,11 @@
 from typing import Callable
 from random import uniform
 from math import isclose
+import inspect
 import pygame
 import sys
 import os
 import re
-
-pygame.mixer.init()
-
-# Used for placeholders
-MISSING_RESOURCE = {
-    "IMAGE": 'image/error/missing_image.png',
-    "SOUND": 'sound/error/missing_sound.mp3'
-}
 
 def resource_path(relative_path: str) -> str:
     """
@@ -24,16 +17,51 @@ def resource_path(relative_path: str) -> str:
     Returns:
         str: The absolute path to the resource.
     """
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except AttributeError as e:
-        base_path = os.path.abspath(".")
+    base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
     return os.path.join(base_path, relative_path)
+
+def func_message(level: str) -> str:
+    """
+    Generate a formatted message with the current function name.
+    
+    Args:
+        level (str): The log level (e.g. 'WARN', 'ERROR').
+    """
+    frame = inspect.currentframe().f_back # get caller's name
+    func_name = frame.f_code.co_name
+    return f'[{level}] func {func_name} says: '
+
+def add_placeholders(num: int, key: str) -> list[str]:
+    """
+    Return a list with paths to placeholder image/s or sound/s. Note that the returned paths are \n
+    already resolved with resource_path(), so there is no need to use the function again.
+    
+    Args:
+        num (int): The number of placeholders.
+        key (str): The placeholder type. Can be "IMAGE" or "SOUND".
+    """
+    key = key.upper()
+    
+    MISSING_RESOURCES = {
+    "IMAGE": 'image/error/missing_image.png',
+    "SOUND": 'sound/error/missing_sound.mp3'
+    }
+    
+    if key not in MISSING_RESOURCES.keys():
+        raise ValueError(func_message('ERROR') + f"Invalid key '{key}'! Must be 'IMAGE' or 'SOUND'.")
+    if num < 0:
+        raise ValueError(func_message('ERROR' + "Invalid number of placeholders."))
+    
+    resolved_path = resource_path(MISSING_RESOURCES[key])
+    
+    if not os.path.exists(resolved_path):
+        raise ValueError(func_message('ERROR') + f"Path '{resolved_path}' not found!")
+    
+    return [resolved_path for _ in range(num)]
 
 def rand_screen_pos() -> pygame.Vector2:
     """
-    Generate a random position on the screen with a bias towards certain areas.
+    Generate a random position on the screen with a bias towards screen edges.
 
     Returns:
         Vector2: A pygame.Vector2 obj containing the x and y coordinates of the random position.
@@ -76,38 +104,6 @@ def rot_center(image: pygame.Surface, angle: int | float, xy) -> tuple[pygame.Su
     new_rect = rotated_image.get_rect(center=image.get_rect(center=xy).center)
     return rotated_image, new_rect
 
-def get_song_name(index: int, theme_songs: list) -> str:
-    """
-    Get the song name from the list of theme songs using the given index.
-
-    Args:
-        index (int): The current index in theme_songs.
-        theme_songs (list): List of theme songs.
-
-    Returns:
-        str: The name of the song.
-    """
-    list_names = [
-        "Cowboy Bebop - Tank", #1
-        "Smash Ultimate - Chemical Plant Zone", #2
-        "Hideki Naganuma - Sneakman", #3
-        "Persona 5 - Last Surprise ", #4
-        "Persona 5 - Wake Up, Get up, Get Out There", #5
-        "Samba de Amigo - Samba de Janeiro", #6
-        "Sonic Mania - Theme of the Hard-Boiled Heavies", #7
-        "Mario Kart DS - Waluigi Pinball & Wario Stadium", #8
-        "Mortal Kombat - Techno Syndrome", #9
-        "Undertale - Hopes and Dreams", #10
-        "Persona 4 - Specialist", #11
-        "Mario Paint - Creative Exercise", #12
-        "Mt.dede - Kirby Superstar Theme", #13
-        "Yakuza - Friday Night", #14
-        "Skeleton Boomerang - Disco Necropolis" #15
-    ]
-    if len(list_names) != len(theme_songs):
-        raise ValueError(f"Length list_names: {len(list_names)} != Length theme_songs: {len(theme_songs)}")
-    return list_names[index % len(list_names)]
-
 def check_screen_bounds(screen: pygame.Surface, player) -> None:
     """
     Check if the player is outside the screen bounds and adjust position if necessary.
@@ -128,53 +124,23 @@ def check_screen_bounds(screen: pygame.Surface, player) -> None:
     if player.position.y <= 0:
         player.position.y = 1
 
-def check_player_collision(player_1, player_2) -> None:
+def check_player_collision(player_1, player_2, dt: float) -> None:
     """
     Check if player_1 collides with player_2 and adjust positions if necessary.
 
     Args:
         player_1: The first player object with position and collision tolerance attributes.
         player_2: The second player object with position and collision tolerance attributes.
+        dt (float): Delta time for frame-independent calculation.
     """
-    # Check if player_1 is close enough to player_2
-    if isclose(player_1.position.x, player_2.position.x, abs_tol=player_1.collision_tol) \
-        and isclose(player_1.position.y, player_2.position.y, abs_tol=player_1.collision_tol):
-        
-        # If player_1 is to the right of player_2, move them apart horizontally
-        if player_1.position.x > player_2.position.x:
-            player_1.position.x += 1
-            player_2.position.x -= 1
-        else:
-            player_1.position.x -= 1
-            player_2.position.x += 1
-
-        # If player_1 is below player_2, move them apart vertically
-        if player_1.position.y > player_2.position.y:
-            player_1.position.y += 1
-            player_2.position.y -= 1
-        else:
-            player_1.position.y -= 1
-            player_2.position.y += 1
-
-    # Check if player_2 is close enough to player_1
-    if isclose(player_2.position.x, player_1.position.x, abs_tol=player_2.collision_tol) \
-        and isclose(player_2.position.y, player_1.position.y, abs_tol=player_2.collision_tol):
-
-        # If player_2 is to the right of player_1, move them apart horizontally
-        if player_2.position.x > player_1.position.x:
-            player_2.position.x += 1
-            player_1.position.x -= 1
-        else:
-            player_2.position.x -= 1
-            player_1.position.x += 1
-
-        # If player_2 is below player_1, move them apart vertically
-        if player_2.position.y > player_1.position.y:
-            player_2.position.y += 1
-            player_1.position.y -= 1
-        else:
-            player_2.position.y -= 1
-            player_1.position.y += 1
+    if isclose(player_1.position.x, player_2.position.x, abs_tol=player_1.collision_tol) and \
+    isclose(player_1.position.y, player_2.position.y, abs_tol=player_1.collision_tol):
+        dx = 120 if player_1.position.x > player_2.position.x else -120
+        dy = 120 if player_1.position.y > player_2.position.y else -120
+        player_1.position.x += dx * dt
+        player_2.position.x -= dx * dt
+        player_1.position.y += dy * dt
+        player_2.position.y -= dy * dt
             
 def player_control(player, dt: float, arrows: bool, wasd: bool):
     """
@@ -225,7 +191,7 @@ def draw_fps(screen:pygame.Surface, clock:pygame.Clock, text:pygame.Font) -> Non
         text (pygame.Font): The font to draw the fps text with.
     """
     fps = round(clock.get_fps())
-    coords = 1215, 695
+    coords = 1205, 695
     if fps >= 29:
         fps_display = text.render(f'FPS: {fps}', True, (255, 255, 255))
         screen.blit(fps_display, coords)
@@ -278,9 +244,11 @@ def player_debug(players:list, player_n:int, screen:pygame.Surface, enable: bool
         enable (bool): Flag to enable or disable debugging.
     """
     if enable:
+        
         if not _check_obj_exists(players, player_n):
             raise ValueError(f"player_n {player_n} does not exist in players!")
         player = players[player_n]
+        
         debug_string = (
             f"[PLAYER № {player_n} DEBUG] " 
             f"X: {player.position.x:.2f} "
@@ -311,13 +279,14 @@ def prey_debug(preys:list, prey_n:int, screen:pygame.Surface, enable: bool) -> N
         enable (bool): Flag to enable or disable debugging.
     """
     if enable:
+        
         if not _check_obj_exists(preys, prey_n):
             raise ValueError(f"prey_n {prey_n} does not exist in preys!")
-        # Select prey from list
         prey = preys[prey_n]
+        
         debug_string = (f"[PREY № {prey_n} DEBUG] "
-                        f"X: {prey.coords.x:.2f} "
-                        f"Y: {prey.coords.y:.2f} | " 
+                        f"X: {prey.position.x:.2f} "
+                        f"Y: {prey.position.y:.2f} | " 
                         f"aura: {prey.aura} | "
                         f"eatable: {prey.eatable} | " 
                         f"counter: {prey.counter:.2f}"
@@ -325,7 +294,7 @@ def prey_debug(preys:list, prey_n:int, screen:pygame.Surface, enable: bool) -> N
         print(debug_string)
 
         # Prey position dot
-        pygame.draw.circle(screen, "blue", prey.coords, 5)
+        pygame.draw.circle(screen, "blue", prey.position, 5)
         
 def dagger_debug(daggers:list, dagger_n:int, screen:pygame.Surface, enable:bool) -> None:
     """
@@ -338,10 +307,11 @@ def dagger_debug(daggers:list, dagger_n:int, screen:pygame.Surface, enable:bool)
         enable (bool): Flag to enable or disable debugging.
     """
     if enable:
+        
         if not _check_obj_exists(daggers, dagger_n):
             raise ValueError(f"dagger_n {dagger_n} does not exist in daggers!")
-        # Select dagger from list
         dagger = daggers[dagger_n]
+        
         debug_string = (
             f"[DAGGER № {dagger_n} DEBUG] "
             f"X: {dagger.position.x:.2f} | "
@@ -349,7 +319,7 @@ def dagger_debug(daggers:list, dagger_n:int, screen:pygame.Surface, enable:bool)
             f"timer: {dagger.timer:.2f} | "
             f"spawn: {dagger.spawn_despawn[0]:.2f} | "
             f"despawn {dagger.spawn_despawn[1]:.2f} | "
-            f"direction: {dagger.get_dir} | "
+            f"angle: {dagger.angle} | "
             f"speed_multiplier: {dagger.speed_multiplier:.2f} | "
             f"flame: {dagger.flame} | "
             f"played_sound: {dagger.played_sound}"
@@ -375,21 +345,6 @@ def declare_objects(count: int, func: Callable[..., any], *args: any) -> tuple:
         tuple: A tuple containing the declared objects.
     """
     return tuple(func(*args) for _ in range(count))
-
-def draw_rects(screen:pygame.Surface, rects:tuple[pygame.Rect], enable:bool) -> None:
-    """
-    Function for drawing semi transparent rects onto the screen.
-    
-    Args:
-        screen (pygame.Surface): The game screen.
-        rects tuple[pygame.Rect]: The rectangles to draw.
-        enable (bool): Whether to enable the drawing.
-    """
-    if enable:
-        for rect in rects:
-            transparent_surface = pygame.Surface((rect[2], rect[3]), pygame.SRCALPHA)
-            transparent_surface.fill((0, 255, 0, 64))
-            screen.blit(transparent_surface, (rect[0], rect[1]))
             
 def load_image(path: str) -> pygame.Surface:
     """
@@ -398,13 +353,13 @@ def load_image(path: str) -> pygame.Surface:
     Args:
         path (str): The path to the image.
     """
-    MISSING_IMAGE_PATH = 'image/error/missing_image.png'
+
     try:
-        return pygame.image.load(resource_path(path))
+        return pygame.image.load(resource_path(path)).convert_alpha()
     
     except FileNotFoundError:
-        print(f"[ERROR] Image at '{path}' not found!")
-        return pygame.image.load(resource_path(MISSING_IMAGE_PATH))
+        print(func_message("ERROR") + f"Image at '{path}' not found! Loading a placeholder.")
+        return pygame.image.load(resource_path(add_placeholders(1, 'IMAGE')[0])).convert_alpha()
     
 def load_sound(path: str) -> pygame.mixer.Sound:
     """
@@ -417,8 +372,8 @@ def load_sound(path: str) -> pygame.mixer.Sound:
         return pygame.mixer.Sound(resource_path(path))
     
     except FileNotFoundError:
-        print(f"[ERROR] Sound at '{path}' not found!")
-        return pygame.mixer.Sound(resource_path(MISSING_RESOURCE["SOUND"]))
+        print(func_message("ERROR") + f"Sound at '{path}' not found! Loading a placeholder.")
+        return pygame.mixer.Sound(resource_path(add_placeholders(1, 'SOUND')[0]))
     
 def load_music(path: str) -> None:
     """
@@ -431,10 +386,10 @@ def load_music(path: str) -> None:
         pygame.mixer.music.load(resource_path(path))
         
     except FileNotFoundError:
-        print(f"[ERROR] Music at '{path}' not found!")
-        pygame.mixer.music.load((resource_path(MISSING_RESOURCE["SOUND"])))
+        print(func_message("ERROR") + f"Music at '{path}' not found! Loading a placeholder.")
+        pygame.mixer.music.load((add_placeholders(1, 'SOUND')[0]))
             
-def load_images(paths: list[str], count: int = None) -> tuple[pygame.Surface]:
+def load_images(paths: tuple[str], count: int = None) -> tuple[pygame.Surface]:
     """
     Load pygame images from a list of paths. Optionally ensures a specific count of images.
     
@@ -442,26 +397,25 @@ def load_images(paths: list[str], count: int = None) -> tuple[pygame.Surface]:
         paths (list[str]): The image file paths list.
         count (int): Optional expected image count. If actual count is lower, appends placeholder/s.
     """
-    def add_placeholders(num: int):
-        """Add placeholder images."""
-        return [load_image(resource_path(MISSING_RESOURCE["IMAGE"])) for _ in range(num)]
-    
-    temp = []
+    images = []
     actual_count = len(paths)
     
     # Load actual images
-    temp.extend(load_image(resource_path(path)) for path in paths)
+    images.extend(load_image(resource_path(path)) for path in paths)
     
     # Add placeholders if needed
     if count:
+        
         if count > actual_count:
-            print(f"[WARN] Image files count lower than expected! Adding {count - actual_count} placeholder/s.")
-            temp.extend(add_placeholders(count - actual_count))
+            print(func_message("WARN") + f"Image files count lower than expected! Adding {count - actual_count} placeholder/s.")
+            # images.extend(load_image(path) for path in add_placeholders(count - actual_count, 'IMAGE')) # non recursive variant
+            images.extend(load_images(add_placeholders(count - actual_count, 'IMAGE')))
+            
         elif count < actual_count:
-            print(f"[WARN] Image files count higher than expected: {actual_count} / {count}!")
+            print(func_message("WARN") + f"Image files count higher than expected: {actual_count} / {count}!")
     
-    return tuple(temp)
-def load_sounds(paths: list[str], count: int = None) -> tuple[pygame.mixer.Sound]:
+    return tuple(images)
+def load_sounds(paths: tuple[str], count: int = None) -> tuple[pygame.mixer.Sound]:
     """
     Load pygame sounds from a list of paths. Optionally ensures a specific count of sounds.
     
@@ -469,25 +423,24 @@ def load_sounds(paths: list[str], count: int = None) -> tuple[pygame.mixer.Sound
         paths (list[str]): The sound file paths list.
         count (int): Optional expected sounds count. If actual count is lower, appends placeholder/s.
     """
-    def add_placeholders(num: int):
-        """Add placeholder sounds."""
-        return [load_sound(resource_path(MISSING_RESOURCE["SOUND"])) for _ in range(num)]
-    
-    temp = []
+    sounds = []
     actual_count = len(paths)
     
     # Load actual sounds
-    temp.extend(load_sound(resource_path(path)) for path in paths)
+    sounds.extend(load_sound(resource_path(path)) for path in paths)
     
     # Add placeholders if needed
     if count:
+        
         if count > actual_count:
-            print(f"[WARN] Sound files count lower than expected! Adding {count - actual_count} placeholder/s.")
-            temp.extend(add_placeholders(count - actual_count))
+            print(func_message("WARN") + f"Sound files count lower than expected! Adding {count - actual_count} placeholder/s.")
+            # sounds.extend(load_sound(path) for path in add_placeholders(count - actual_count, 'SOUND')) # non recursive variant
+            sounds.extend(load_sounds(add_placeholders(count - actual_count, 'SOUND')))
+            
         elif count < actual_count:
-            print(f"[WARN] Sound files count higher than expected: {actual_count} / {count}!")
+            print(func_message("WARN") + f"Sound files count higher than expected: {actual_count} / {count}!")
     
-    return tuple(temp)
+    return tuple(sounds)
 
 def traverse_folder(path: str) -> tuple:
     """
@@ -501,24 +454,57 @@ def traverse_folder(path: str) -> tuple:
         """Helper function to sort strings naturally (e.g., file_2 before file_10)."""
         return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
     
-    temp = []
+    file_paths = []
     resolved_path = resource_path(path)
     
     if not os.path.exists(resolved_path):
-        print(f"[ERROR] Path '{path}' does not exist!")
+        print(func_message("ERROR") + f"Path '{path}' does not exist!")
         return tuple()
     
     for root, dirs, files in os.walk(resolved_path):
         
         if len(dirs) > 0:
-            print(f"[WARN] Path '{root}' has {len(dirs)} embedded folder/s!")
+            print(func_message("WARN") + f"Path '{root}' has {len(dirs)} embedded folder/s!")
             
         if len(files) == 0:
-            print(f"[WARN] Path '{root}' has no files!")
-            return tuple()
+            print(func_message("WARN") + f"Path '{root}' has no files!")
             
         for file in files:
-            temp.append(os.path.join(root, file))
+            file_paths.append(os.path.join(root, file))
             
-    return tuple(sorted(temp, key=natural_sort_key))
+    return tuple(sorted(file_paths, key=natural_sort_key))
         
+def load_playlist(paths: tuple[str], count: int = None) -> tuple[tuple[str, str]]:
+    """
+    Loads in a all files from the given paths argument and creates a tuple with tuples (name, file path). \n
+    Optionally ensures a specific count of sounds.
+        
+    Args:
+        paths (tuple[str]): The file paths.
+        count (int): Optional expected sounds count. If actual count is lower, appends placeholder/s.
+    """
+    actual_count = len(paths)
+    if actual_count == 0:
+        print(func_message("ERROR") + f"The given paths argument is empty!")
+    
+    # Load playlist
+    playlist = []
+    for file_path in paths:
+        pair = os.path.splitext(os.path.basename(file_path))[0], file_path
+        playlist.append(pair)
+        
+    # Add placeholders if needed
+    if count:
+        if count > actual_count:
+            print(func_message("WARN") + f"Sound files count lower than expected! Adding {count - actual_count} placeholder/s.")
+            
+            for _ in range(count - actual_count):
+                placeholder_path = add_placeholders(1, 'SOUND')[0]  # Get the first placeholder path
+                placeholder_name = os.path.splitext(os.path.basename(placeholder_path))[0]
+                playlist.append((placeholder_name, placeholder_path))  # Append as a tuple (name, path)
+        
+        elif count < actual_count:
+            print(func_message("WARN") + f"Sound files count higher than expected: {actual_count} / {count}!")
+        
+    return tuple(playlist)
+    

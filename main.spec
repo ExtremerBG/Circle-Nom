@@ -7,60 +7,11 @@ a = Analysis(  # type: ignore
     binaries=[],
     datas=[
         
-        # PyGame Icon
-        ('image/others/icon.ico', 'image/others'),
+        # Image files
+        ('image/', 'image'),
         
-        # Background images
-        ('image/backgrounds/', 'image/backgrounds'),
-        
-        # Player alive images
-        ('image/player/alive/', 'image/player/alive'),
-        
-        # Player dead images
-        ('image/player/dead/', 'image/player/dead'),
-        
-        # Player aura image
-        ('image/player/aura/player_aura_image.png', 'image/player/aura'),
-        
-        # Player dash images
-        ('image/player/dash/', 'image/player/dash'),
-        
-        # Player eat SFX
-        ('sound/effects/player/eat/', 'sound/effects/player/eat'),
-        
-        # Player hit SFX
-        ('sound/effects/player/hit/', 'sound/effects/player/hit'),
-        
-        # Player dash SFX
-        ('sound/effects/player/dash/', 'sound/effects/player/dash'),
-        
-        # Prey images
-        ('image/prey/', 'image/prey'),
-        
-        # Dagger images
-        ('image/dagger/', 'image/dagger'),
-        
-        # Flame sequence images
-        ('image/flame_sequence', 'image/flame_sequence'),
-        
-        # Dagger SFX
-        ('sound/effects/dagger/fly/', 'sound/effects/dagger/fly'),
-        
-        # Bar images
-        ('image/bar/', 'image/bar'),
-        
-        # In-game themes
-        ('sound/themes/in_game/', 'sound/themes/in_game'),
-        
-        # Menu themes
-        ('sound/themes/menu/', 'sound/themes/menu'),
-        
-        # Menu click SFX
-        ('sound/effects/menu/', 'sound/effects/menu'),
-        
-        # Missing Image/Sound
-        ('image/error/missing_image.png', 'image/error'),
-        ('sound/error/missing_sound.mp3', 'sound/error')
+        # Sound files
+        ('sound/', 'sound')
         
     ],
     hiddenimports=[],
@@ -92,5 +43,5 @@ exe = EXE(  # type: ignore
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['image/others/icon.ico'],
+    icon=['image/icon/icon.ico'],
 )

@@ -79,6 +79,16 @@ class Dagger():
             tuple: spawn, despawn.
         """
         return self._spawn, self._despawn
+    
+    @property
+    def angle(self) -> int:
+        """
+        Return the dagger's angle.
+        
+        Returns:
+            int: angle in degrees.
+        """
+        return self._angle
         
     def _get_blit_pos(self, coords:pygame.Vector2, image: pygame.Surface):
         """

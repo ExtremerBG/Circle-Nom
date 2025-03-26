@@ -1,34 +1,21 @@
-from helpers.functions import *
 from models.circle_nom import CircleNom
 from random import choice, randint
 from helpers.file_loader import *
+from helpers.functions import *
 import pygame
 import sys
 
 class Menu: 
     
-    # Init pygame
-    pygame.init()
-    
-    # Pygame clock for framerate
-    CLOCK = pygame.time.Clock()
-    
-    # Delta time
-    DT = 0
-    
-    # FPS limiter
-    FPS = 60
-    
-    # Screen dimentions and modes
-    WIDTH, HEIGHT = 1280, 720
+    # Screen modes
     SCREEN_MODES = "Windowed", "Fullscreen"
     
     # Colors
-    WHITE = (255, 255, 255)
-    GREEN = (0, 255, 0)
-    RED = (255, 0, 0)
-    YELLOW = (255, 255, 0)
-    LIGHT_BLUE = (0, 125, 255)
+    WHITE = 255, 255, 255
+    GREEN = 0, 255, 0
+    RED = 255, 0, 0
+    YELLOW = 255, 255, 0
+    LIGHT_BLUE = 0, 125, 255
     
     # Fonts
     FONT_SMALL = pygame.font.SysFont('Comic Sans MS', 15)
@@ -42,17 +29,24 @@ class Menu:
     DIFF_MODES = "Easy", "Medium", "Hard"
     PLAY_MODES = "Singleplayer", "Multiplayer"
     VOL_LEVELS = "0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"
-    FPS_CAPS = "30", "60", "120", "240", "None"
+    FPS_CAPS = "30", "60", "75", "120", "144", "240", "None"
     
-    # DIRTY RECTS - Used to update the screen
-    DIRTY_RECTS = (445, 0, 390, 600), (1210, 696, 70, 20)
-    
-    def __init__(self) -> None:  
+    def __init__(self, screen: pygame.Surface) -> None:  
         
-        # Init screen
-        self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        # Pygame clock for framerate
+        self.clock = pygame.time.Clock()
+            
+        # Delta time
+        self.dt = 0
+            
+        # FPS limiter
+        self._fps_cap = 60
+        
+        # Setup pygame screen
+        self.screen = screen
+        pygame.display.set_icon(icon)
         pygame.display.set_caption("Circle Nom")
-        pygame.display.set_icon(load_image(resource_path('image/others/icon.ico')))
+        self.WIDTH, self.HEIGHT = pygame.display.get_window_size()
         
         # Init setting values
         self.current_screen_mode = 0
@@ -73,21 +67,29 @@ class Menu:
         self.background_image = choice(background_images)
         self.player_image_index = randint(0, len(player_images) - 1)
         
-        # Refresh background for init
-        self._refresh_screen(self.background_image)
-        
         # Player aura method var and consts
         self.player_aura_angle = 0
-        self.PLAYER_POS = pygame.Vector2(640, 140)
+        self.PLAYER_POS = pygame.Vector2(self.WIDTH / 2, self.HEIGHT / 5.14)
         self.PLAYER_SCALE = (180, 180)
         self.PLAYER_IMG = pygame.transform.smoothscale(player_images[self.player_image_index], self.PLAYER_SCALE)
-        self.PLAYER_BLIT_POS = self.PLAYER_POS - pygame.Vector2(self.PLAYER_IMG.get_width() / 2, self.PLAYER_IMG.get_height()/2)
+        self.PLAYER_BLIT_POS = self.PLAYER_POS - pygame.Vector2(self.PLAYER_IMG.get_width() / 2, self.PLAYER_IMG.get_height() / 2)
+        
+        # Load random menu theme song
+        self.song_name, self.song_path = choice(menu_themes)
+        load_music(self.song_path)
         
         # End event for music autoplay
         pygame.mixer.music.set_endevent(pygame.USEREVENT)
         
-    @classmethod
-    def _fps_cap(cls, value:str) -> None:
+    @property
+    def fps_cap(self):
+        """
+        Get the fps cap.
+        """
+        return self._fps_cap
+    
+    @fps_cap.setter
+    def fps_cap(self, value):
         """
         Cap the pygame's FPS with the given value.
         
@@ -95,19 +97,9 @@ class Menu:
             value (str): The fps value. Takes string and converts to int. If it fails, value = 0 (no limit).
         """
         try:
-            cls.FPS = int(value)
+            self._fps_cap = int(value)
         except ValueError:
-            cls.FPS = 0
-            
-    def _refresh_screen(self, image:pygame.Surface):
-        """
-        Refreshes the whole screen with the image provided.
-        
-        Args:
-            image (pygame.Surface): The image to refresh with.
-        """
-        self.screen.blit(image, (0, 0))
-        pygame.display.flip()
+            self._fps_cap = 0
         
     def _set_sound_vol(self, volume:int|float, max_volume:int|float) -> None:
         """
@@ -122,7 +114,7 @@ class Menu:
         
         # Set volumes
         pygame.mixer.music.set_volume(volume)
-        for sound in main_menu_clicks.values(): sound.set_volume(volume)
+        for sound in menu_clicks.values(): sound.set_volume(volume)
         for sound in eat_sounds: sound.set_volume(volume)
         for sound in dagger_sounds: sound.set_volume(volume)
         for sound in hit_sounds: sound.set_volume(volume)
@@ -132,15 +124,12 @@ class Menu:
         """
         Toggle between windowed and fullscreen modes.
         """
-        main_menu_clicks["LEFTRIGHT"].play()
+        menu_clicks["LEFTRIGHT"].play()
         self.current_screen_mode = (self.current_screen_mode + 1) % len(self.SCREEN_MODES)
         if self.current_screen_mode == 1: # Fullscreen
             self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT), pygame.FULLSCREEN)
         else: # Windowed
             self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
-            
-        # Refresh background for screen toggle
-        self._refresh_screen(self.background_image)
             
     def _draw_player_and_aura(self) -> None:
         """
@@ -151,7 +140,7 @@ class Menu:
         self.screen.blit(aura[0], aura[1])
         
         # Increment aura for rotation
-        self.player_aura_angle = (self.player_aura_angle % 360) - 24 * self.DT
+        self.player_aura_angle = (self.player_aura_angle % 360) - 24 * self.dt
         
         # Draw player on top of aura
         self.screen.blit(self.PLAYER_IMG, self.PLAYER_BLIT_POS)
@@ -177,27 +166,27 @@ class Menu:
                     # Enter
                     if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
                         if self.options_items[self.selected_options_item] == "Back":
-                            main_menu_clicks["UPDOWN"].play()
+                            menu_clicks["UPDOWN"].play()
                             return # Exit options menu
                         
                     # Backspace
                     elif event.key == pygame.K_BACKSPACE:
-                        main_menu_clicks["UPDOWN"].play()
+                        menu_clicks["UPDOWN"].play()
                         return # Exit options menu
                     
                     # Escape
                     elif event.key == pygame.K_ESCAPE:
-                        main_menu_clicks["UPDOWN"].play()
+                        menu_clicks["UPDOWN"].play()
                         return # Exit options menu
                         
                     # Movement up - W, ↑
                     elif event.key == pygame.K_w or event.key == pygame.K_UP:
-                        main_menu_clicks["UPDOWN"].play()
+                        menu_clicks["UPDOWN"].play()
                         self.selected_options_item = (self.selected_options_item - 1) % len(self.options_items)
                         
                     # Movement down - S, ↓
                     elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
-                        main_menu_clicks["UPDOWN"].play()
+                        menu_clicks["UPDOWN"].play()
                         self.selected_options_item = (self.selected_options_item + 1) % len(self.options_items)
                         
                     # Movement right - D, →
@@ -205,29 +194,29 @@ class Menu:
                         
                         # Volume
                         if self.selected_options_item == 0:
-                            main_menu_clicks["LEFTRIGHT"].play()
+                            menu_clicks["LEFTRIGHT"].play()
                             self.current_volume = (self.current_volume + 1) % len(self.VOL_LEVELS)
                             self._set_sound_vol(self.current_volume, len(self.VOL_LEVELS) - 1)
                             
                         # FPS Cap
                         elif self.selected_options_item == 1:
-                            main_menu_clicks["LEFTRIGHT"].play()
+                            menu_clicks["LEFTRIGHT"].play()
                             self.current_fps_cap = (self.current_fps_cap + 1) % len(self.FPS_CAPS)
-                            self._fps_cap(self.FPS_CAPS[self.current_fps_cap])
+                            self.fps_cap = self.FPS_CAPS[self.current_fps_cap]
                             
                         # Difficulty
                         elif self.selected_options_item == 2:
-                            main_menu_clicks["LEFTRIGHT"].play()
+                            menu_clicks["LEFTRIGHT"].play()
                             self.current_difficulty = (self.current_difficulty + 1) % len(self.DIFF_MODES)
                             
                         # Play mode
                         elif self.selected_options_item == 3:
-                            main_menu_clicks["LEFTRIGHT"].play()
+                            menu_clicks["LEFTRIGHT"].play()
                             self.current_play_mode = (self.current_play_mode + 1) % len(self.PLAY_MODES)
                             
                         # Screen mode
                         elif self.selected_options_item == 4:
-                            main_menu_clicks["LEFTRIGHT"].play()
+                            menu_clicks["LEFTRIGHT"].play()
                             self._toggle_screen_mode()
                             
                     # Movement left - A, ←
@@ -235,45 +224,46 @@ class Menu:
 
                         # Volume
                         if self.selected_options_item == 0:
-                            main_menu_clicks["LEFTRIGHT"].play()
+                            menu_clicks["LEFTRIGHT"].play()
                             self.current_volume = (self.current_volume - 1) % len(self.VOL_LEVELS)
                             self._set_sound_vol(self.current_volume, len(self.VOL_LEVELS) - 1)
                             
                         # FPS Cap
                         elif self.selected_options_item == 1:
-                            main_menu_clicks["LEFTRIGHT"].play()
+                            menu_clicks["LEFTRIGHT"].play()
                             self.current_fps_cap = (self.current_fps_cap - 1) % len(self.FPS_CAPS)
-                            self._fps_cap(self.FPS_CAPS[self.current_fps_cap])
+                            self.fps_cap = self.FPS_CAPS[self.current_fps_cap]
                             
                         # Difficulty
                         elif self.selected_options_item == 2:
-                            main_menu_clicks["LEFTRIGHT"].play()
+                            menu_clicks["LEFTRIGHT"].play()
                             self.current_difficulty = (self.current_difficulty - 1) % len(self.DIFF_MODES)
                             
                         # Play mode
                         elif self.selected_options_item == 3:
-                            main_menu_clicks["LEFTRIGHT"].play()
+                            menu_clicks["LEFTRIGHT"].play()
                             self.current_play_mode = (self.current_play_mode - 1) % len(self.PLAY_MODES)
                             
                         # Screen mode
                         elif self.selected_options_item == 4:
-                            main_menu_clicks["LEFTRIGHT"].play()
+                            menu_clicks["LEFTRIGHT"].play()
                             self._toggle_screen_mode()
                             
                     # Invalid key presses - these checks are stupid
                     # Special case if selected option is 0, 1, 2, 3 - play invalid key press sounds for all keys except W, S, A, D, ↑, ↓, ←, →
                     if self.selected_options_item in [0, 1, 2, 3, 4] and event.key not in\
                         [pygame.K_w, pygame.K_UP, pygame.K_a, pygame.K_LEFT, pygame.K_d, pygame.K_RIGHT, pygame.K_s, pygame.K_DOWN]:
-                        main_menu_clicks["UNKNOWN"].play()
+                        menu_clicks["UNKNOWN"].play()
                             
                     # Special case if selected option is 5 - play invalid key press sound for all keys except Enter, Backspace and Escape
                     elif self.selected_options_item == 5 and event.key not in\
                         [pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_BACKSPACE, pygame.K_ESCAPE, pygame.K_DOWN, pygame.K_UP, pygame.K_w, pygame.K_s]:
-                        main_menu_clicks["UNKNOWN"].play()
+                        menu_clicks["UNKNOWN"].play()
                             
                 # Music replay
-                elif event.type == pygame.USEREVENT:
-                    load_music(choice(main_menu_themes))
+                if event.type == pygame.USEREVENT:
+                    self.song_name, self.song_path = choice(menu_themes)
+                    load_music(self.song_path)
                     pygame.mixer.music.play()
                         
             # Draw options
@@ -288,7 +278,7 @@ class Menu:
         self._draw_player_and_aura()
         title = self.FONT_BIG.render("Options", True, self.WHITE)
         self.screen.blit(title, (self.WIDTH // 2 - title.get_width() // 2, self.HEIGHT // 2 - title.get_height() // 2 - 76))
-        draw_fps(self.screen, self.CLOCK, self.FONT_SMALL)
+        draw_fps(self.screen, self.clock, self.FONT_SMALL)
 
         # Update options items
         self.options_items[0] = f"Volume: {self.VOL_LEVELS[self.current_volume]}"
@@ -351,15 +341,15 @@ class Menu:
                 mode_text = self.FONT.render(self.SCREEN_MODES[self.current_screen_mode], True, self.WHITE)
                 mode_x = self.WIDTH // 2 - text.get_width() // 2 + self.FONT.size("Display: ")[0]
                 self.screen.blit(mode_text, (mode_x, self.HEIGHT // 2 - text.get_height() // 2 + index * 42))
-                 
-        # Debug for rects - Set True to enable
-        draw_rects(self.screen, self.DIRTY_RECTS, False)
+                
+        # Draw song name
+        self.screen.blit(self.FONT_SMALL.render(self.song_name, True, self.WHITE), (10, 695))
         
         # Update display
-        pygame.display.update(self.DIRTY_RECTS)
+        pygame.display.flip()
         
         # Limit FPS to 60. Set delta time.
-        self.DT = self.CLOCK.tick(self.FPS) / 1000
+        self.dt = self.clock.tick(self.fps_cap) / 1000
         
     def _draw_main_menu(self) -> None:
         """
@@ -368,7 +358,7 @@ class Menu:
         # Draw background player and FPS
         self.screen.blit(self.background_image, (0, 0))
         self._draw_player_and_aura()
-        draw_fps(self.screen, self.CLOCK, self.FONT_SMALL)
+        draw_fps(self.screen, self.clock, self.FONT_SMALL)
         
         # Set colours for menu items
         for index, item in enumerate(self.MAIN_MENU_ITEMS):
@@ -397,14 +387,14 @@ class Menu:
         title = self.FONT_BIG.render("Circle Nom", True, self.WHITE)
         self.screen.blit(title, (self.WIDTH // 2 - title.get_width() // 2, self.HEIGHT // 2 - title.get_height() // 2 - 76))
         
-        # Debug for rects - Set True to enable
-        draw_rects(self.screen, self.DIRTY_RECTS, False)
+        # Draw song name
+        self.screen.blit(self.FONT_SMALL.render(self.song_name, True, self.WHITE), (10, 695))
 
         # Update display
-        pygame.display.update(self.DIRTY_RECTS)
+        pygame.display.flip()
         
         # Limit FPS to 60. Set delta time.
-        self.DT = self.CLOCK.tick(self.FPS) / 1000
+        self.dt = self.clock.tick(self.fps_cap) / 1000
     
     def _start_game(self) -> None:
         """
@@ -416,8 +406,8 @@ class Menu:
         
         # Define Circle Nom
         game = CircleNom(
-            self.screen, self.FPS, self.current_difficulty, self.current_play_mode,
-            eat_sounds, theme_songs, player_image, player_image_dead,
+            self.screen, self.fps_cap, self.current_difficulty, self.current_play_mode,
+            eat_sounds, game_themes, player_image, player_image_dead,
             prey_images, prey_aura, self.background_image, health_bar,
             dagger_images, dagger_sounds, flame_sequence, hit_sounds, dash_images
         )
@@ -428,11 +418,8 @@ class Menu:
         # New random player images index and background image
         self.player_image_index = randint(0, len(player_images) - 1)
         self.background_image = choice(background_images)
-        
-        # Refresh background for new image
-        self._refresh_screen(self.background_image)
     
-    def launch(self) -> None:
+    def launch_main(self) -> None:
         """
         Launch the main menu.
         """
@@ -440,7 +427,6 @@ class Menu:
         MAIN_MENU_FUNCTIONS = [self._start_game, self._launch_options, sys.exit]
         
         # Play menu theme
-        load_music(choice(main_menu_themes))
         pygame.mixer.music.play()
         
         # Main loop for main menu
@@ -459,36 +445,37 @@ class Menu:
                     
                     # Enter
                     if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                        main_menu_clicks["UPDOWN"].play()
+                        menu_clicks["UPDOWN"].play()
                         MAIN_MENU_FUNCTIONS[self.selected_menu_item]()
                     
                     # Backspace
                     elif event.key == pygame.K_BACKSPACE:
-                        main_menu_clicks["UPDOWN"].play()
+                        menu_clicks["UPDOWN"].play()
                         return # Exit options menu
                     
                     # Escape
                     elif event.key == pygame.K_ESCAPE:
-                        main_menu_clicks["UPDOWN"].play()
+                        menu_clicks["UPDOWN"].play()
                         return # Exit options menu
                     
                     # Movement up - W, ↑ 
                     elif event.key == pygame.K_UP or event.key == pygame.K_w:
-                        main_menu_clicks["UPDOWN"].play()
+                        menu_clicks["UPDOWN"].play()
                         self.selected_menu_item = (self.selected_menu_item - 1) % len(self.MAIN_MENU_ITEMS)
                         
                     # Movement down - S, ↓ 
                     elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                        main_menu_clicks["UPDOWN"].play()
+                        menu_clicks["UPDOWN"].play()
                         self.selected_menu_item = (self.selected_menu_item + 1) % len(self.MAIN_MENU_ITEMS)
                     
                     # Play sound for invalid key press
                     else:
-                        main_menu_clicks["UNKNOWN"].play()
+                        menu_clicks["UNKNOWN"].play()
 
                 # Music replay
                 if event.type == pygame.USEREVENT:
-                    load_music(choice(main_menu_themes))
+                    self.song_name, self.song_path = choice(menu_themes)
+                    load_music(self.song_path)
                     pygame.mixer.music.play()
                     
             # Draw main menu
