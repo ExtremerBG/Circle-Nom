@@ -46,10 +46,14 @@ pyinstaller main.spec
 ## Controls
 
 Menus:
-- Move up and down between options using the `W`, `S` or `↑`, `↓` keys.
-- Switch between options using the `A`, `D` or `←`, `→` keys.
-- Press `Enter` to enter the selected option.
-- Press `Escape` or `Backspace` to go back in the menus or exit Circle Nom.
+- Using keyboard:
+  - Move up and down between options using the `W`, `S` or `↑`, `↓` keys.
+  - Switch between options using the `A`, `D` or `←`, `→` keys.
+  - Press `Enter` to enter the selected option.
+  - Press `Escape` or `Backspace` to go back in the menus or exit Circle Nom.
+- Using mouse:
+  - Hover with your mouse to select an item from the menus.
+  - With `M1` and `M2` being your `left` and `right` mouse buttons, use `M1` to enter normal menu items, or for slider items use `M1` & `M2` to move left and right.
 
 In-game:
 - Singleplayer:

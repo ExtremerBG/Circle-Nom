@@ -2,3 +2,6 @@ __pycache__/
 dist/
 build/
 profile_result.txt
+.idea/
+.venv/
+result.json

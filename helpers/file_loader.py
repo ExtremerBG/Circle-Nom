@@ -91,3 +91,8 @@ dash_sounds = load_sounds(traverse_folder('sound/effects/player/dash/'), 4)
 flame_sequence = load_images(traverse_folder('image/flame_sequence'), 6)
 
 ################################################################################
+
+# Cursor image
+cursor_surface = load_image('image/cursor/cursor_image.png')
+
+################################################################################
