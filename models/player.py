@@ -1,4 +1,4 @@
-from helpers.file_loader import dash_sounds
+from helpers.file_loader import dash_sounds, comic_sans_ms
 from random import choice
 import numpy as np
 import pygame
@@ -47,7 +47,7 @@ class Player():
         self._dash_on = False
         self._dash_cd = Player.DASH_CD
         self._dash_dur = Player.DASH_DUR
-        self._font = pygame.font.SysFont('Comic Sans MS', 30)
+        self._font = pygame.Font(comic_sans_ms, 15)
         self.nom_txt_counter = 0
         self.ow_txt_counter = 0
         self._txt_nom = choice(Player.TEXTS_NOM)

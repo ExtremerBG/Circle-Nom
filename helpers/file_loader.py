@@ -3,7 +3,7 @@ from helpers.functions import *
 ################################################################################
 
 # PYGAME WINDOW ICON
-icon = load_image(resource_path('image/icon/icon.ico'))
+icon = load_image('image/icon/icon.ico')
 
 ################################################################################
 
@@ -29,7 +29,7 @@ prey_images = load_images(traverse_folder('image/prey/alive/'), 11)
 ################################################################################
 
 # PREY AURA
-prey_aura = load_image(resource_path('image/prey/aura/prey_aura_image.png'))
+prey_aura = load_image('image/prey/aura/prey_aura_image.png')
 
 ################################################################################
 
@@ -59,7 +59,7 @@ hit_sounds = load_sounds(traverse_folder('sound/effects/player/hit/'), 5)
 ################################################################################
 
 # PLAYER AURA
-player_aura = load_image(resource_path('image/player/aura/player_aura_image.png'))
+player_aura = load_image('image/player/aura/player_aura_image.png')
 
 ################################################################################
 
@@ -94,5 +94,10 @@ flame_sequence = load_images(traverse_folder('image/flame_sequence'), 6)
 
 # Cursor image
 cursor_surface = load_image('image/cursor/cursor_image.png')
+
+################################################################################
+
+# Comic Sans MS Font
+comic_sans_ms = resource_path("font/comic_sans_ms.ttf")
 
 ################################################################################

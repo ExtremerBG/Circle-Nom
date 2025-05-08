@@ -1,3 +1,4 @@
+from helpers.file_loader import comic_sans_ms
 import pygame
 
 class HealthBar():
@@ -14,7 +15,7 @@ class HealthBar():
         self._bar_inner = hunger_bar[0] # moving (red) bit
         self._bar_outer = hunger_bar[1] # static (white) bit
         self._bar_inner_og = self._bar_inner
-        self._font = pygame.font.SysFont('Comic Sans MS', 30)
+        self._font = pygame.Font(comic_sans_ms, 30)
         self._screen = screen
 
     def draw(self, text: str, size: float, max_size: float, death_size: float, coords: list):

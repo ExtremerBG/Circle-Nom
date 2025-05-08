@@ -20,9 +20,9 @@ class Menu:
     LIGHT_GREY_ALPHA = 110, 110, 110, 96
     
     # Fonts
-    FONT_SMALL = pygame.font.SysFont('Comic Sans MS', 15)
-    FONT = pygame.font.SysFont('Comic Sans MS', 40)
-    FONT_BIG = pygame.font.SysFont('Comic Sans MS', 65)
+    FONT_SMALL = pygame.Font(comic_sans_ms, 15)
+    FONT = pygame.Font(comic_sans_ms, 40)
+    FONT_BIG = pygame.Font(comic_sans_ms, 65)
     
     # Main Menu items - Item and RGB Values
     MAIN_MENU_ITEMS = (("Play", GREEN), ("Options", LIGHT_BLUE), ("Quit", RED))
@@ -51,7 +51,7 @@ class Menu:
         self.dt = 0
             
         # FPS limiter
-        self._fps_cap = 60
+        self._fps_cap = 120
         
         # Setup pygame screen
         self.screen = screen
@@ -109,26 +109,27 @@ class Menu:
         # Title timer - used for smooth colour shift
         self.menu_title_timer = 0
         
+        # Menu click timer - used for setting a cooldown on menu clicks
+        self.menu_click_timer = 0
         
     @property
     def fps_cap(self):
-        """
-        Get the fps cap.
-        """
+        """Get the fps cap."""
         return self._fps_cap
     
     @fps_cap.setter
     def fps_cap(self, value):
         """
-        Cap the pygame's FPS with the given value.
+        Cap pygame's FPS with the given value.
         
         Args:
-            value (str): The fps value. Takes string and converts to int. If it fails, value = 0 (no limit).
+            value (str): The fps value. Tries to convert to int. If it fails, value = 0 (no limit).
         """
         try:
             self._fps_cap = int(value)
-        except ValueError:
+        except Exception as e:
             self._fps_cap = 0
+            console_message("ERROR", f"Setter encoutered exception: {e}.")
         
     def _set_sound_vol(self, volume:int|float, max_volume:int|float) -> None:
         """
@@ -148,20 +149,32 @@ class Menu:
         for sound in dagger_sounds: sound.set_volume(volume)
         for sound in hit_sounds: sound.set_volume(volume)
         for sound in dash_sounds: sound.set_volume(volume)
-    
+        
+    def _play_menu_click(self, type: str) -> None:
+        """
+        Play a menu click sound with a given type.
+        
+        Args:
+            type (str): The given click type. Can be either LEFTRIGHT, UPDOWN or UNKNOWN.
+        """
+        if type not in menu_clicks.keys(): 
+            console_message("WARN", f"Invalid menu click type. Can be one of {menu_clicks.keys()}.")
+            return
+        
+        # Play sound only if timer is <= 0
+        if self.menu_click_timer <= 0:
+            menu_clicks[type].play()
+            self.menu_click_timer = menu_clicks[type].get_length()
+        
     def _toggle_screen_mode(self) -> None:
-        """
-        Toggle between windowed and fullscreen modes.
-        """
+        """Toggle between windowed and fullscreen modes."""
         if self.current_screen_mode == 1: # Fullscreen
             self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT), pygame.FULLSCREEN)
         else: # Windowed
             self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
             
     def _draw_player_and_aura(self) -> None:
-        """
-        Draw the player and its aura on the screen.
-        """
+        """Draw the player and its aura on the screen."""
         # Rotate and draw aura
         aura = rot_center(player_aura, self.player_aura_angle, self.PLAYER_POS)
         self.screen.blit(aura[0], aura[1])
@@ -172,25 +185,13 @@ class Menu:
         # Draw player on top of aura
         self.screen.blit(self.PLAYER_IMG, self.PLAYER_BLIT_POS)
         
-    def _cursor_click_menu_item(self, item_pos: tuple, item_size: tuple) -> bool:
-        """
-        Check if cursor is clicking on a menu item.
-        """
-        mousepos = pygame.mouse.get_pos()
-        rect = pygame.Rect(item_pos, item_size)
-        
-        if rect.collidepoint(mousepos):
-            pygame.draw.rect(self.screen, color=self.GREEN, rect=rect)
-            return True
-        else:
-            pygame.draw.rect(self.screen, color=self.RED, rect=rect)
-            return False
-        
-    def _options_movement_horizontal(self, move_step: int):
+    def _options_movement_horizontal(self, move_step: int) -> None:
         """
         Handle moving horizontally in the options menu.
-        """
         
+        Args:
+            move_step (int): The step to move with. Typically either -1 or 1.
+        """
         # Volume
         if self.selected_options_item == 0:
             self.current_volume = (self.current_volume + move_step) % len(self.VOL_LEVELS)
@@ -213,33 +214,51 @@ class Menu:
         elif self.selected_options_item == 4:
             self.current_screen_mode = (self.current_screen_mode + move_step) % len(self.SCREEN_MODES)
             self._toggle_screen_mode()
-        
-        # Play sounds - options that have horizontal - LEFTRIGHT, others - UNKNOWN  
-        if self.selected_options_item in (0, 1, 2, 3, 4):
-            menu_clicks["LEFTRIGHT"].play()
-        else:
-            menu_clicks["UNKNOWN"].play()
             
+        self._play_menu_click("LEFTRIGHT")
             
     def _calc_menu_item_pos(self, text_width: int, text_height: int, index: int) -> tuple[int, int]:
         """
         Calculate centered X, Y coordinates with its index for Y offset. Used for menu ITEMS only.
+        
+        Args:
+            text_width (int): The text width, usually calculated with text.get_width().
+            text_height (int): The text height, usually calculated with text.get_height().
+            index (int): The text index in the menu items list. Used to calculate the Y offset.
+            
+        Returns:
+            tuple(int, int): A tuple containing the calculated X and Y coordinates.
         """
         return self.WIDTH // 2 - text_width // 2, self.HEIGHT // 2 - text_height // 2 + index * 45
     
     def _calc_menu_title_pos(self, title: pygame.Surface) -> tuple[int, int]:
         """
         Calculate centered X, Y coordinates of the given text Surface. Used for menu TITLES ONLY.
+        
+        Args:
+            title (pygame.Surface): The given rendered title surface.
+            
+        Returns:
+            tuple(int, int): A tuple containing the calculated X and Y coordinates.
         """
         return self.WIDTH // 2 - title.get_width() // 2, self.HEIGHT // 2 - title.get_height() // 2 - 76
     
     def _render_gradient_title(self, title: str, colour1: tuple[int, int, int], 
-                             colour2: tuple[int, int, int]) -> pygame.Surface:
+                             colour2: tuple[int, int, int], step: int) -> pygame.Surface:
         """
-        Draw a title that changes colours from colour1 -> colour2 smoothly.
+        Render a title that changes colours from colour1 to colour2 smoothly.
+        
+        Args:
+            title (str): The title string to render.
+            colour1 tuple: Tuple containing RGB values for colour 1.
+            colour2 tuple: Tuple containing RGB values for colour 2.
+            step (int): The step speed between colours. Higher is faster and vice-versa.
+            
+        Returns:
+            pygame.Surface: The rendered title surface.
         """
         # Update time for smooth transition
-        self.menu_title_timer += 3 * self.dt  # Speed control
+        self.menu_title_timer += step * self.dt  # Speed control
         
         # Smoothly interpolate colors using a sine wave
         fade = (sin(self.menu_title_timer) + 1) / 2  # Oscillates between 0 and 1
@@ -251,54 +270,50 @@ class Menu:
         return self.FONT_BIG.render(title, True, (r, g, b))
     
     def _launch_options(self) -> None:
-        """
-        Launch the options menu.
-        """
-        # Sound timer for limiting click sounds
-        mouse_sound_timer = menu_clicks["UPDOWN"].get_length()
+        """Launch the options menu."""
         while True:
             
             # Rects from draw options menu - used with mousepos
             item_rects = self._draw_options()
             mousepos = pygame.mouse.get_pos()
+            self.menu_click_timer -= 3 * self.dt
             
             # Pygame event checker
             for event in pygame.event.get():
                 
                 # Exit condition if user closes window
                 if event.type == pygame.QUIT:
-                    pygame.quit()
+                    # Using this instead of pygame.exit() since it throws errors
+                    sys.exit()
                     
                 # Mouse motion
                 elif event.type == pygame.MOUSEMOTION:
                     
                     # Highlight item under mouse
                     for idx, rect in enumerate(item_rects):
+                        
+                        # Check if mousepos collides with a different options item
                         if rect.collidepoint(mousepos):
                             if self.selected_options_item != idx:
                                 self.selected_options_item = idx
-                                if mouse_sound_timer <= 0:
-                                    menu_clicks["UPDOWN"].play()
-                                    mouse_sound_timer = menu_clicks["UPDOWN"].get_length()
-                            break
+                                self._play_menu_click("UPDOWN")
+                            
+                            # Break for if the collided item is the same
+                            else: break
                 
                 # Mouse key events
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                         
                     # Left click on Back option
                     if event.button == 1 and self.selected_options_item == 5: # Back is located at index 5
-                        menu_clicks["UPDOWN"].play()
-                        return
+                        self._play_menu_click("UPDOWN")
+                        return # Return to main menu
                     
-                    # Right click on Back option
-                    elif event.button == 3 and self.selected_options_item == 5:
-                        menu_clicks["UNKNOWN"].play()
-                    
-                    # Right click horizontal options
+                    # Right click horizontal options - go right
                     elif event.button == 3 and self.selected_options_item in (0, 1, 2, 3, 4):
                         self._options_movement_horizontal(move_step=1)
                         
-                    # Left click on horizontal options
+                    # Left click on horizontal options - go left
                     elif event.button == 1 and self.selected_options_item in (0, 1, 2, 3, 4):
                         self._options_movement_horizontal(move_step=-1)
                     
@@ -308,22 +323,22 @@ class Menu:
                     # Enter
                     if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
                         if self.selected_options_item == 5: # Back is located at index 5
-                            menu_clicks["UPDOWN"].play()
+                            self._play_menu_click("UPDOWN")
                             return # Exit options menu
                         
                     # Backspace or Escape
                     elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_ESCAPE:
-                        menu_clicks["UPDOWN"].play()
+                        self._play_menu_click("UPDOWN")
                         return # Exit options menu
                         
                     # Movement up - W, ↑
                     elif event.key == pygame.K_w or event.key == pygame.K_UP:
-                        menu_clicks["UPDOWN"].play()
+                        self._play_menu_click("UPDOWN")
                         self.selected_options_item = (self.selected_options_item - 1) % len(self.options_items)
                         
                     # Movement down - S, ↓
                     elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
-                        menu_clicks["UPDOWN"].play()
+                        self._play_menu_click("UPDOWN")
                         self.selected_options_item = (self.selected_options_item + 1) % len(self.options_items)
                         
                     # Movement right - D, →
@@ -339,12 +354,13 @@ class Menu:
                     self.song_name, self.song_path = choice(menu_themes)
                     load_music(self.song_path)
                     pygame.mixer.music.play()
-                        
-            mouse_sound_timer -= 4 * self.dt
     
     def _draw_options(self) -> list[pygame.Rect]:
         """
         Display the options menu on the screen.
+        
+        Returns:
+            list(pygame.Rect): List of pygame Rects representing the options items.
         """
         self.screen.blit(self.background_image, (0, 0))
         self._draw_player_and_aura()
@@ -401,19 +417,22 @@ class Menu:
         self.screen.blit(self.FONT_SMALL.render(self.song_name, True, self.WHITE), (10, 695))
         
         # Draw gradient title
-        title = self._render_gradient_title("Options", self.LIGHT_BLUE, self.LIGHT_PURPLE)
+        title = self._render_gradient_title("Options", self.LIGHT_BLUE, self.LIGHT_PURPLE, 3)
         self.screen.blit(title, self._calc_menu_title_pos(title))
         
         # Update display
         pygame.display.flip()
         
-        # Limit FPS to 60. Set delta time.
+        # Limit fps & set dt
         self.dt = self.clock.tick(self.fps_cap) / 1000
         return option_rects
         
     def _draw_main_menu(self) -> list[pygame.Rect]:
         """
         Display the main menu on the screen.
+        
+        Returns:
+            list(pygame.Rect): List of pygame Rects representing the menu items.
         """
         self.screen.blit(self.background_image, (0, 0))
         self._draw_player_and_aura()
@@ -435,16 +454,12 @@ class Menu:
             item_rect = pygame.Rect(x, y, text.get_width(), text.get_height())
             main_menu_rects.append(item_rect)
             self.screen.blit(text, (x, y))
-                
-        # Draw title
-        title = self.FONT_BIG.render("Circle Nom", True, self.WHITE)
-        self.screen.blit(title, self._calc_menu_title_pos(title))
         
         # Draw song name
         self.screen.blit(self.FONT_SMALL.render(self.song_name, True, self.WHITE), (10, 695))
         
         # Draw gradient title
-        title = self._render_gradient_title("Circle Nom", self.GOLD, self.YELLOW)
+        title = self._render_gradient_title("Circle Nom", self.GOLD, self.YELLOW, 3)
         self.screen.blit(title, self._calc_menu_title_pos(title))
 
         # Update display
@@ -478,86 +493,79 @@ class Menu:
         self.background_image = choice(background_images)
     
     def launch_main(self) -> None:
-        """
-        Launch the main menu.
-        """
+        """Launch the main menu."""
         # Functions list for the main menu
         MAIN_MENU_FUNCTIONS = [self._start_game, self._launch_options, sys.exit]
         
         # Play menu theme
         pygame.mixer.music.play()
         
-        # Sound timer for limiting click sounds
-        mouse_sound_timer = menu_clicks["UPDOWN"].get_length()
         while True:
             
             # Rects from draw options menu - used with mousepos
             item_rects = self._draw_main_menu()
             mousepos = pygame.mouse.get_pos()
+            self.menu_click_timer -= 2 * self.dt
             
             # Pygame event checker
             for event in pygame.event.get():
                 
                 # Exit condition if user closes window
                 if event.type == pygame.QUIT:
-                    pygame.quit()
+                    sys.exit() # pygame.quit() throws errors
                     
                 # Mouse motion
                 elif event.type == pygame.MOUSEMOTION:
                     
                     # Highlight item under mouse
                     for idx, rect in enumerate(item_rects):
+                        
+                        # Check if mousepos collides with a different menu item
                         if rect.collidepoint(mousepos):
                             if self.selected_menu_item != idx:
-                                self.selected_menu_item = idx
-                                if mouse_sound_timer <= 0:
-                                    menu_clicks["UPDOWN"].play()
-                                    mouse_sound_timer = menu_clicks["UPDOWN"].get_length()
-                            break
+                                self.selected_menu_item = idx       
+                                self._play_menu_click("UPDOWN")
+                            
+                            # Break for if the collided item is the same
+                            else: break
                 
                 # Mouse key events
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     # Left click
                     if event.button == 1:
-                        menu_clicks["UPDOWN"].play()
+                        self._play_menu_click("UPDOWN")
                         MAIN_MENU_FUNCTIONS[self.selected_menu_item]()
                     
                 # Key events
-                elif event.type == pygame.KEYDOWN:
+                if event.type == pygame.KEYDOWN:
                     
                     # Enter
                     if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                        menu_clicks["UPDOWN"].play()
+                        self._play_menu_click("UPDOWN")
                         MAIN_MENU_FUNCTIONS[self.selected_menu_item]()
                     
                     # Backspace
                     elif event.key == pygame.K_BACKSPACE:
-                        menu_clicks["UPDOWN"].play()
+                        self._play_menu_click("UPDOWN")
                         return # Exit options menu
                     
                     # Escape
                     elif event.key == pygame.K_ESCAPE:
-                        menu_clicks["UPDOWN"].play()
+                        self._play_menu_click("UPDOWN")
                         return # Exit options menu
                     
                     # Movement up - W, ↑ 
                     elif event.key == pygame.K_UP or event.key == pygame.K_w:
-                        menu_clicks["UPDOWN"].play()
+                        self._play_menu_click("UPDOWN")
                         self.selected_menu_item = (self.selected_menu_item - 1) % len(self.MAIN_MENU_ITEMS)
                         
                     # Movement down - S, ↓ 
                     elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                        menu_clicks["UPDOWN"].play()
+                        self._play_menu_click("UPDOWN")
                         self.selected_menu_item = (self.selected_menu_item + 1) % len(self.MAIN_MENU_ITEMS)
-                    
-                    # Play sound for invalid key press
-                    else:
-                        menu_clicks["UNKNOWN"].play()
 
-                # Music replay
-                if event.type == pygame.USEREVENT:
+                # Music end event - Replay
+                elif event.type == pygame.USEREVENT:
                     self.song_name, self.song_path = choice(menu_themes)
                     load_music(self.song_path)
                     pygame.mixer.music.play()
-                    
-            mouse_sound_timer -= 4 * self.dt

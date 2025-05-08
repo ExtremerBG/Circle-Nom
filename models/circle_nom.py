@@ -3,7 +3,7 @@
 # Circle Nom Game
 
 # Importing modules
-from helpers.file_loader import player_images, player_images_dead # Used for easter mode
+from helpers.file_loader import player_images, player_images_dead, comic_sans_ms
 from random import randint, choice
 from helpers.functions import *
 from models.health_bar import *
@@ -242,9 +242,9 @@ class CircleNom():
         dt = 0
 
         # Fonts
-        font = pygame.font.SysFont('Comic Sans MS', 30)
-        font_big = pygame.font.SysFont('Comic Sans MS', 60)
-        font_small = pygame.font.SysFont('Comic Sans MS', 15)
+        font = pygame.Font(comic_sans_ms, 30)
+        font_big = pygame.Font(comic_sans_ms, 60)
+        font_small = pygame.Font(comic_sans_ms, 15)
         
         # Play random theme song from list
         song_index = randint(0, len(self.game_themes) - 1)

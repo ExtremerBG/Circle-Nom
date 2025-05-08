@@ -11,7 +11,10 @@ a = Analysis(  # type: ignore
         ('image/', 'image'),
         
         # Sound files
-        ('sound/', 'sound')
+        ('sound/', 'sound'),
+        
+        # Font files
+        ('font/', 'font')
         
     ],
     hiddenimports=[],
