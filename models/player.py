@@ -47,7 +47,7 @@ class Player():
         self._dash_on = False
         self._dash_cd = Player.DASH_CD
         self._dash_dur = Player.DASH_DUR
-        self._font = pygame.Font(comic_sans_ms, 15)
+        self._font = pygame.Font(comic_sans_ms, 30)
         self.nom_txt_counter = 0
         self.ow_txt_counter = 0
         self._txt_nom = choice(Player.TEXTS_NOM)

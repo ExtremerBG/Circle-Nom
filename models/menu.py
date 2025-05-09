@@ -1,3 +1,4 @@
+from models.oscillator import Oscillator
 from models.circle_nom import CircleNom
 from random import choice, randint
 from helpers.file_loader import *
@@ -17,7 +18,6 @@ class Menu:
     LIGHT_PURPLE = 118, 127, 248
     LIGHT_BLUE = 0, 125, 255
     BLACK = 0, 0, 0
-    LIGHT_GREY_ALPHA = 110, 110, 110, 96
     
     # Fonts
     FONT_SMALL = pygame.Font(comic_sans_ms, 15)
@@ -40,7 +40,7 @@ class Menu:
         ("144", "#ff2a9a"), ("240", "#ff2db8"), ("360", "#ff22dd"), ("Unlimited", "#f942ff")
     )
     PLAY_MODES = (("Singleplayer", "#94f21c"), ("Multiplayer", "#0acffa"))
-    SCREEN_MODES = (("Windowed", "#fa0a35"), ("Fullscreen", (173, 255, 0)))
+    SCREEN_MODES = (("Windowed", "#fa0a35"), ("Fullscreen", "#adff00"))
     
     def __init__(self, screen: pygame.Surface) -> None:  
         
@@ -90,7 +90,7 @@ class Menu:
         
         # Player aura method var and consts
         self.player_aura_angle = 0
-        self.PLAYER_POS = pygame.Vector2(self.WIDTH / 2, self.HEIGHT / 5.14)
+        self.PLAYER_POS = pygame.Vector2(self.WIDTH / 2, self.HEIGHT / 5)
         self.PLAYER_SCALE = (180, 180)
         self.PLAYER_IMG = pygame.transform.smoothscale(player_images[self.player_image_index], self.PLAYER_SCALE)
         self.PLAYER_BLIT_POS = self.PLAYER_POS - pygame.Vector2(self.PLAYER_IMG.get_width() / 2, self.PLAYER_IMG.get_height() / 2)
@@ -106,11 +106,12 @@ class Menu:
         pg_cursor = pygame.cursors.Cursor((8, 8), cursor_surface)  # Hotspot at (16, 16)
         pygame.mouse.set_cursor(pg_cursor)
         
-        # Title timer - used for smooth colour shift
-        self.menu_title_timer = 0
-        
         # Menu click timer - used for setting a cooldown on menu clicks
-        self.menu_click_timer = 0
+        self.click_timer = 0
+        
+        # Oscillating values, used for colour shifting and selected item movement
+        self.sine_colours_shift = Oscillator(a_min=0, a_max=1, period=1.8, pattern="sine")
+        self.sine_movement_offset = Oscillator(a_min=-3, a_max=3, period=1.2, pattern="triangle")
         
     @property
     def fps_cap(self):
@@ -127,9 +128,8 @@ class Menu:
         """
         try:
             self._fps_cap = int(value)
-        except Exception as e:
+        except ValueError:
             self._fps_cap = 0
-            console_message("ERROR", f"Setter encoutered exception: {e}.")
         
     def _set_sound_vol(self, volume:int|float, max_volume:int|float) -> None:
         """
@@ -162,9 +162,9 @@ class Menu:
             return
         
         # Play sound only if timer is <= 0
-        if self.menu_click_timer <= 0:
+        if self.click_timer <= 0:
             menu_clicks[type].play()
-            self.menu_click_timer = menu_clicks[type].get_length()
+            self.click_timer = menu_clicks[type].get_length()
         
     def _toggle_screen_mode(self) -> None:
         """Toggle between windowed and fullscreen modes."""
@@ -229,7 +229,7 @@ class Menu:
         Returns:
             tuple(int, int): A tuple containing the calculated X and Y coordinates.
         """
-        return self.WIDTH // 2 - text_width // 2, self.HEIGHT // 2 - text_height // 2 + index * 45
+        return self.WIDTH // 2 - text_width // 2, self.HEIGHT // 1.9 - text_height // 2 + index * 45
     
     def _calc_menu_title_pos(self, title: pygame.Surface) -> tuple[int, int]:
         """
@@ -241,10 +241,10 @@ class Menu:
         Returns:
             tuple(int, int): A tuple containing the calculated X and Y coordinates.
         """
-        return self.WIDTH // 2 - title.get_width() // 2, self.HEIGHT // 2 - title.get_height() // 2 - 76
+        return self.WIDTH // 2 - title.get_width() // 2, self.HEIGHT // 2 - title.get_height() // 2 - 60
     
     def _render_gradient_title(self, title: str, colour1: tuple[int, int, int], 
-                             colour2: tuple[int, int, int], step: int) -> pygame.Surface:
+                             colour2: tuple[int, int, int]) -> pygame.Surface:
         """
         Render a title that changes colours from colour1 to colour2 smoothly.
         
@@ -257,11 +257,7 @@ class Menu:
         Returns:
             pygame.Surface: The rendered title surface.
         """
-        # Update time for smooth transition
-        self.menu_title_timer += step * self.dt  # Speed control
-        
-        # Smoothly interpolate colors using a sine wave
-        fade = (sin(self.menu_title_timer) + 1) / 2  # Oscillates between 0 and 1
+        fade = self.sine_colours_shift.update(self.dt)
         r = int(colour1[0] * (1 - fade) + colour2[0] * fade)
         g = int(colour1[1] * (1 - fade) + colour2[1] * fade)
         b = int(colour1[2] * (1 - fade) + colour2[2] * fade)
@@ -276,7 +272,7 @@ class Menu:
             # Rects from draw options menu - used with mousepos
             item_rects = self._draw_options()
             mousepos = pygame.mouse.get_pos()
-            self.menu_click_timer -= 3 * self.dt
+            self.click_timer -= 2 * self.dt
             
             # Pygame event checker
             for event in pygame.event.get():
@@ -379,8 +375,15 @@ class Menu:
         for key, value in self.options_items.items():
             
             # Key colours - LIGHT_BLUE/WHITE <=> selected/deselected
-            key_colour = self.LIGHT_BLUE if index == self.selected_options_item else self.WHITE
-             
+            # Calculate offset if key is the selected one
+            if index == self.selected_options_item:
+                x_offset = self.sine_movement_offset.update(self.dt)
+                key_colour = self.LIGHT_BLUE
+                
+            else:
+                x_offset = 0
+                key_colour = self.WHITE
+                
             # Case for all options with horizontal movement
             if value is not None:
 
@@ -393,31 +396,33 @@ class Menu:
                 total_width = key_text.get_width() + value_text.get_width()
                 total_height = max(key_text.get_height(), value_text.get_height())
                 x, y = self._calc_menu_item_pos(total_width, total_height, index)
+                x += x_offset
                 
                 # Blit both texts & create rect
                 self.screen.blit(key_text, (x, y))
                 self.screen.blit(value_text, (x + key_text.get_width(), y))
-                item_rect = pygame.Rect(x, y, total_width, total_height)
                 
             # Case for Back option (no horizontal movement)
             else:
                 # Render text & calculate position
                 key_text = self.FONT.render(f"{key}", True, key_colour)
+                total_width = key_text.get_width()
+                total_height = key_text.get_height()
                 x, y = self._calc_menu_item_pos(key_text.get_width(), key_text.get_height(), index)
+                x += x_offset
                 
                 # Blit and create rect
                 self.screen.blit(key_text, (x, y))
-                item_rect = pygame.Rect(x, y, total_width, total_height)
             
             # Append created rect from item for returning & increment index
-            option_rects.append(item_rect)
+            option_rects.append(pygame.Rect(x, y, total_width, total_height))
             index += 1
                 
         # Draw song name
         self.screen.blit(self.FONT_SMALL.render(self.song_name, True, self.WHITE), (10, 695))
         
         # Draw gradient title
-        title = self._render_gradient_title("Options", self.LIGHT_BLUE, self.LIGHT_PURPLE, 3)
+        title = self._render_gradient_title("Options", self.LIGHT_BLUE, self.LIGHT_PURPLE)
         self.screen.blit(title, self._calc_menu_title_pos(title))
         
         # Update display
@@ -438,34 +443,36 @@ class Menu:
         self._draw_player_and_aura()
         draw_fps(self.screen, self.clock, self.FONT_SMALL)
         
-        # Set colours for menu items
+        # Set colours for menu items & last selected index for smooth transition
         main_menu_rects = []
         for index, item in enumerate(self.MAIN_MENU_ITEMS):
-                
-            # Draw menu item with its colour if its selected
+            
+            # Draw menu item with its colour if its selected & calculate offset
             if self.selected_menu_item == index:
+                x_offset = self.sine_movement_offset.update(self.dt)
                 text = self.FONT.render(item[0], True, item[1])
+                
             else:
-                # Draw with white colour if not
+                x_offset = 0
                 text = self.FONT.render(item[0], True, self.WHITE)
             
             # Calculate text position, create Rect and display text
             x, y = self._calc_menu_item_pos(text.get_width(), text.get_height(), index)
-            item_rect = pygame.Rect(x, y, text.get_width(), text.get_height())
-            main_menu_rects.append(item_rect)
+            x += x_offset # add x_offset to x, can be ether -4 <-> 4 or 0
+            main_menu_rects.append(pygame.Rect(x, y, text.get_width(), text.get_height()))
             self.screen.blit(text, (x, y))
         
         # Draw song name
         self.screen.blit(self.FONT_SMALL.render(self.song_name, True, self.WHITE), (10, 695))
         
         # Draw gradient title
-        title = self._render_gradient_title("Circle Nom", self.GOLD, self.YELLOW, 3)
+        title = self._render_gradient_title("Circle Nom", self.GOLD, self.YELLOW)
         self.screen.blit(title, self._calc_menu_title_pos(title))
-
+        
         # Update display
         pygame.display.flip()
         
-        # Limit FPS to 60. Set delta time.
+        # Limit fps & set dt
         self.dt = self.clock.tick(self.fps_cap) / 1000
         return main_menu_rects
     
@@ -505,7 +512,7 @@ class Menu:
             # Rects from draw options menu - used with mousepos
             item_rects = self._draw_main_menu()
             mousepos = pygame.mouse.get_pos()
-            self.menu_click_timer -= 2 * self.dt
+            self.click_timer -= 2 * self.dt
             
             # Pygame event checker
             for event in pygame.event.get():
