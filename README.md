@@ -1,4 +1,7 @@
-[![Circle Nom Demos Playlist](others/readme_image_header.png)](https://youtube.com/playlist?list=PLXh2LnVpYeGuL8rJU_m6-dzsuXGt7LOKb)
+[![Circle Nom Demos Playlist](others/readme_header.png)](https://youtube.com/playlist?list=PLXh2LnVpYeGuL8rJU_m6-dzsuXGt7LOKb)
+
+*Circle Nom is a fast-paced arcade game where you control a hungry circle trying to eat various foods while avoiding daggers. Featuring both single and multiplayer modes, customizable difficulty, and a variety of environments.*
+
 
 ## Table of Contents
 
@@ -9,6 +12,8 @@
 - [File structure](#file-structure)
 - [Running](#running)
 - [Controls](#controls)
+- [Screenshots](#screenshots)
+- [Contributing](#contributing)
 - [Credits](#credits)
 - [License](#license)
 
@@ -29,7 +34,7 @@ Multiplayer:
 
 ## Prerequisites
 
-- Python 3.10 or higher.
+- Python version 3.13.2
 - Install required libraries:
 ```bash
 pip install -r requirements.txt
@@ -37,7 +42,35 @@ pip install -r requirements.txt
 
 ## File structure
 - This project uses the following file structure:
-![File structure](others/readme_image_file_structure.png)
+```bash
+Circle-Nom/
+│
+├── assets/           # All static resources (images, sounds, fonts, etc.)
+│   ├── images/
+│   ├── sounds/
+│   ├── fonts/
+│   └── ...
+│
+├── circle_nom/       # Main game package (all Python source code)
+│   ├── core/         # Core Game Loop
+│   ├── models/       # Game entities (Player, Prey, Dagger, etc.)
+│   ├── ui/           # Menus, HUD, overlays (Menu, Health Bar, etc.)
+│   ├── systems/      # Game systems (audio, input, save/load, etc.)
+│   └── helpers/      # Utility modules (functions, asset banks, profiling, etc.)
+│
+├── others/           # Other miscellania (README images, profiling result)
+│
+├── scripts/          # Build, packaging, and deployment scripts
+│
+├── tests/            # Unit, integration, Graph tests
+│
+├── requirements.txt
+├── README.md
+├── LICENSE
+├── .gitignore
+│
+└── main.py           # Entry point
+```
 
 ## Running
 
@@ -74,32 +107,69 @@ In-game:
     - Change the music using the `Q` & `E` keys - previous & next song.
     - Pause Circle Nom with the `P` key.
 
+## Screenshots
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <b>Main Menu</b><br>
+        <img src="others/readme_screenshot_1.png" width="450" alt="Main Menu">
+      </td>
+      <td align="center">
+        <b>Options Menu</b><br>
+        <img src="others/readme_screenshot_2.png" width="450" alt="Singleplayer Mode">
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <b>Singleplayer Mode</b><br>
+        <img src="others/readme_screenshot_3.png" width="450" alt="Multiplayer Mode">
+      </td>
+      <td align="center">
+        <b>Multiplayer Mode</b><br>
+        <img src="others/readme_screenshot_4.png" width="450" alt="Game Over Screen">
+      </td>
+    </tr>
+  </table>
+</div>
+
+## Contributing
+
+Contributions are welcome! If you'd like to help improve Circle Nom:
+
+1. Fork the repository.
+2. Create a feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
 ## Credits
 
-Music used:
-- [Circle Nom Playlist - YouTube](https://youtube.com/playlist?list=PLXh2LnVpYeGshiAfckrBB0CvswgWv08WY&si=fghVy5HBqIqqJyV8)
+- Music used:
+  - [Circle Nom Playlist - YouTube](https://youtube.com/playlist?list=PLXh2LnVpYeGshiAfckrBB0CvswgWv08WY&si=fghVy5HBqIqqJyV8)
 
-Dagger images:
-- [Dagger icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/dagger)
+- Dagger images:
+  - [Dagger icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/dagger)
 
-Dash images:
-- [Dashes icons created by Flowicon - Flaticon](https://www.flaticon.com/free-icons/dashes)
+- Dash images:
+  - [Dashes icons created by Flowicon - Flaticon](https://www.flaticon.com/free-icons/dashes)
 
-Food images:
-- [Kale icons by AomAm - Flaticon](https://www.flaticon.com/free-icons/kale)
-- [Sandwich icons by Freepik - Flaticon](https://www.flaticon.com/free-icons/sandwich)
+- Food images:
+  - [Kale icons by AomAm - Flaticon](https://www.flaticon.com/free-icons/kale)
+  - [Sandwich icons by Freepik - Flaticon](https://www.flaticon.com/free-icons/sandwich)
 
-Background images:
-- [Wood Texture by barudakvisual - Vecteezy](https://www.vecteezy.com/vector-art/2173386-wood-texture-background)
-- [Wood Texture by dankudraw - Vecteezy](https://www.vecteezy.com/vector-art/3343397-wood-texture-background)
-- [Wood Texture by sarance - Vecteezy](https://www.vecteezy.com/vector-art/3157015-wood-texture-background)
-- [Stone Texture by aurigae - Vecteezy](https://www.vecteezy.com/vector-art/10826187-stone-texture-background-best-for-building-material)
-- [Stone Texture by graphicsrf - Vecteezy](https://www.vecteezy.com/vector-art/447228-a-wall-made-of-stone)
-- [Stone Tiles Texture by graphicsrf - Vecteezy](https://www.vecteezy.com/vector-art/3678912-stone-tiles-texture-in-cartoon-style)
-- [Rock Pattern Texture by emiltimplaru - Vecteezy](https://www.vecteezy.com/vector-art/1838118-rock-seamless-pattern-vector-design-illustration)
-- [Wood Texture by graphicsrf - Vecteezy](https://www.vecteezy.com/vector-art/360422-texture)
-- [Wood Texture by dankudraw - Vecteezy](https://www.vecteezy.com/vector-art/2193057-wood-texture-background)
-- [Wood Texture by aksamata - Vecteezy](https://www.vecteezy.com/vector-art/3380195-old-wood-plank-background)
+- Background images:
+  - [Wood Texture by barudakvisual - Vecteezy](https://www.vecteezy.com/vector-art/2173386-wood-texture-background)
+  - [Wood Texture by dankudraw - Vecteezy](https://www.vecteezy.com/vector-art/3343397-wood-texture-background)
+  - [Wood Texture by sarance - Vecteezy](https://www.vecteezy.com/vector-art/3157015-wood-texture-background)
+  - [Stone Texture by aurigae - Vecteezy](https://www.vecteezy.com/vector-art/10826187-stone-texture-background-best-for-building-material)
+  - [Stone Texture by graphicsrf - Vecteezy](https://www.vecteezy.com/vector-art/447228-a-wall-made-of-stone)
+  - [Stone Tiles Texture by graphicsrf - Vecteezy](https://www.vecteezy.com/vector-art/3678912-stone-tiles-texture-in-cartoon-style)
+  - [Rock Pattern Texture by emiltimplaru - Vecteezy](https://www.vecteezy.com/vector-art/1838118-rock-seamless-pattern-vector-design-illustration)
+  - [Wood Texture by graphicsrf - Vecteezy](https://www.vecteezy.com/vector-art/360422-texture)
+  - [Wood Texture by dankudraw - Vecteezy](https://www.vecteezy.com/vector-art/2193057-wood-texture-background)
+  - [Wood Texture by aksamata - Vecteezy](https://www.vecteezy.com/vector-art/3380195-old-wood-plank-background)
 
 ## License
 

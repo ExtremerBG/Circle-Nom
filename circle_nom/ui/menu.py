@@ -9,6 +9,9 @@ import sys
 
 class Menu:
     
+    # Get pygame window size
+    WIDTH, HEIGHT = pygame.display.get_window_size()
+    
     # Colors
     WHITE = 255, 255, 255
     RED = 255, 0, 0
@@ -17,7 +20,6 @@ class Menu:
     GOLD = 255, 169, 0
     LIGHT_PURPLE = 118, 127, 248
     LIGHT_BLUE = 0, 125, 255
-    BLACK = 0, 0, 0
     
     # Fonts
     FONT_SMALL = pygame.Font(comic_sans_ms, 15)
@@ -42,6 +44,10 @@ class Menu:
     PLAY_MODES = (("Singleplayer", "#94f21c"), ("Multiplayer", "#0acffa"))
     SCREEN_MODES = (("Windowed", "#fa0a35"), ("Fullscreen", "#adff00"))
     
+    # Aura and Player in Menu consts
+    AURA_MENU_POS = pygame.Vector2(WIDTH / 2, HEIGHT / 5)
+    PLAYER_MENU_SCALE = (180, 180)
+    
     def __init__(self, screen: pygame.Surface) -> None:  
         
         # Pygame clock for framerate
@@ -49,15 +55,11 @@ class Menu:
             
         # Delta time
         self.dt = 0
-            
-        # FPS limiter
-        self._fps_cap = 120
         
         # Setup pygame screen
         self.screen = screen
         pygame.display.set_icon(icon)
         pygame.display.set_caption("Circle Nom")
-        self.WIDTH, self.HEIGHT = pygame.display.get_window_size()
         
         # Inititial setting values
         self.current_volume = 5
@@ -84,17 +86,12 @@ class Menu:
         self.selected_menu_item = 0
         self.selected_options_item = 5
         
-        # Random background image and player image index
-        self.background_image = choice(background_images)
-        self.player_image_index = randint(0, len(player_images) - 1)
+        # Select random images
+        self._get_new_rand_images()
         
-        # Player aura method var and consts
+        # Aura rotation angle
         self.player_aura_angle = 0
-        self.PLAYER_POS = pygame.Vector2(self.WIDTH / 2, self.HEIGHT / 5)
-        self.PLAYER_SCALE = (180, 180)
-        self.PLAYER_IMG = pygame.transform.smoothscale(player_images[self.player_image_index], self.PLAYER_SCALE)
-        self.PLAYER_BLIT_POS = self.PLAYER_POS - pygame.Vector2(self.PLAYER_IMG.get_width() / 2, self.PLAYER_IMG.get_height() / 2)
-        
+
         # Load random menu theme song
         self.song_name, self.song_path = choice(menu_themes)
         load_music(self.song_path)
@@ -103,7 +100,7 @@ class Menu:
         pygame.mixer.music.set_endevent(pygame.USEREVENT)
 
         # Create a cursor from the image
-        pg_cursor = pygame.cursors.Cursor((8, 8), cursor_surface)  # Hotspot at (16, 16)
+        pg_cursor = pygame.cursors.Cursor((8, 8), cursor_surface)
         pygame.mouse.set_cursor(pg_cursor)
         
         # Menu click timer - used for setting a cooldown on menu clicks
@@ -130,6 +127,13 @@ class Menu:
             self._fps_cap = int(value)
         except ValueError:
             self._fps_cap = 0
+            
+    def _get_new_rand_images(self) -> None:
+        """Select a random background image, player image index and refresh associated vars."""
+        self.background_image = choice(background_images)
+        self.player_image_index = randint(0, len(player_images) - 1)
+        self.player_menu_image = pygame.transform.smoothscale(player_images[self.player_image_index], self.PLAYER_MENU_SCALE)
+        self.player_blit_pos = self.AURA_MENU_POS - pygame.Vector2(self.player_menu_image.get_width() / 2, self.player_menu_image.get_height() / 2)
         
     def _set_sound_vol(self, volume:int|float, max_volume:int|float) -> None:
         """
@@ -176,14 +180,14 @@ class Menu:
     def _draw_player_and_aura(self) -> None:
         """Draw the player and its aura on the screen."""
         # Rotate and draw aura
-        aura = rot_center(player_aura, self.player_aura_angle, self.PLAYER_POS)
+        aura = rot_center(player_aura, self.player_aura_angle, self.AURA_MENU_POS)
         self.screen.blit(aura[0], aura[1])
         
         # Increment aura for rotation
         self.player_aura_angle = (self.player_aura_angle % 360) - 24 * self.dt
         
         # Draw player on top of aura
-        self.screen.blit(self.PLAYER_IMG, self.PLAYER_BLIT_POS)
+        self.screen.blit(self.player_menu_image, self.player_blit_pos)
         
     def _options_movement_horizontal(self, move_step: int) -> None:
         """
@@ -480,14 +484,10 @@ class Menu:
         """
         Start the Circle Nom game.
         """
-        # Select player images from lists
-        player_image = player_images[self.player_image_index]
-        player_image_dead = player_images_dead[self.player_image_index]
-        
         # Define Circle Nom
         game = CircleNom(
             self.screen, self.fps_cap, self.current_difficulty, self.current_play_mode,
-            eat_sounds, game_themes, player_image, player_image_dead,
+            eat_sounds, game_themes, player_images[self.player_image_index], player_images_dead[self.player_image_index],
             prey_images, prey_aura, self.background_image, health_bar,
             dagger_images, dagger_sounds, flame_sequence, hit_sounds, dash_images
         )
@@ -495,9 +495,8 @@ class Menu:
         # Start Circle Nom
         game.start()
         
-        # New random player images index and background image
-        self.player_image_index = randint(0, len(player_images) - 1)
-        self.background_image = choice(background_images)
+        # Get new images for background and player
+        self._get_new_rand_images()
     
     def launch_main(self) -> None:
         """Launch the main menu."""
