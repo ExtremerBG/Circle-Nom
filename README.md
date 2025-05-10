@@ -1,4 +1,4 @@
-[![Circle Nom Demos Playlist](others/readme_image_1.png)](https://youtube.com/playlist?list=PLXh2LnVpYeGuL8rJU_m6-dzsuXGt7LOKb)
+[![Circle Nom Demos Playlist](others/readme_image_header.png)](https://youtube.com/playlist?list=PLXh2LnVpYeGuL8rJU_m6-dzsuXGt7LOKb)
 
 ## Table of Contents
 
@@ -6,6 +6,7 @@
 - [Features](#features)
 - [Goal](#goal)
 - [Prerequisites](#prerequisites)
+- [File structure](#file-structure)
 - [Running](#running)
 - [Controls](#controls)
 - [Credits](#credits)
@@ -34,14 +35,18 @@ Multiplayer:
 pip install -r requirements.txt
 ```
 
+## File structure
+- This project uses the following file structure:
+![File structure](others/readme_image_file_structure.png)
+
 ## Running
 
 - Open the Circle-Nom folder with your preferred IDE and launch the `main.py` file.
-- Launch the `.exe` file from the releases section. You can also make your own executable by running the `main.spec` file with pyinstaller:
+- Download and launch the `Circle_Nom.exe` file from the [releases section](https://github.com/ExtremerBG/Circle-Nom/releases) in the project's [GitHub](https://github.com/ExtremerBG/Circle-Nom) page. You can also make your own executable by running the `main.spec` file with pyinstaller:
 ```bash
-pyinstaller main.spec
+pyinstaller ./scripts/main.spec
 ```
-- Please note that current both executables do **not** have digital signatures, which might result in some antivirus software flagging them as malicious.
+- Please note that both executables do **not** have digital signatures, which might result in some antivirus software flagging them as malicious.
 
 ## Controls
 
@@ -74,10 +79,10 @@ In-game:
 Music used:
 - [Circle Nom Playlist - YouTube](https://youtube.com/playlist?list=PLXh2LnVpYeGshiAfckrBB0CvswgWv08WY&si=fghVy5HBqIqqJyV8)
 
-Dagger image:
+Dagger images:
 - [Dagger icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/dagger)
 
-Dash image:
+Dash images:
 - [Dashes icons created by Flowicon - Flaticon](https://www.flaticon.com/free-icons/dashes)
 
 Food images:

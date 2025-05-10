@@ -1,4 +1,4 @@
-from helpers.functions import rot_center, rand_screen_pos
+from circle_nom.helpers.other_utils import rot_center, rand_screen_pos
 from random import randint
 import pygame
 

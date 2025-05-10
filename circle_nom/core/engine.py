@@ -3,13 +3,16 @@
 # Circle Nom Game
 
 # Importing modules
-from helpers.file_loader import player_images, player_images_dead, comic_sans_ms
+from circle_nom.helpers.asset_bank import player_images, player_images_dead, comic_sans_ms
+from circle_nom.systems.asset_loader import *
+from circle_nom.helpers.player_utils import *
+from circle_nom.helpers.other_utils import *
+from circle_nom.systems.debug import *
+from circle_nom.ui.health_bar import *
+from circle_nom.models.dagger import *
+from circle_nom.models.player import *
+from circle_nom.models.prey import *
 from random import randint, choice
-from helpers.functions import *
-from models.health_bar import *
-from models.dagger import *
-from models.player import *
-from models.prey import *
 from math import isclose
 from time import sleep
 import pygame
@@ -413,14 +416,14 @@ class CircleNom():
                 # Singleplayer
                 if self.play_mode == 0:
                     player_control(tuple_players[0], dt, True, True)
-                    check_screen_bounds(self.screen, tuple_players[0])
+                    player_check_bounds(self.screen, tuple_players[0])
                 # Multiplayer
                 elif self.play_mode == 1:
                     player_control(tuple_players[0], dt, False, True)
                     player_control(tuple_players[1], dt, True, False)
-                    check_screen_bounds(self.screen, tuple_players[0])
-                    check_screen_bounds(self.screen, tuple_players[1])
-                    check_player_collision(tuple_players[0], tuple_players[1], dt)
+                    player_check_bounds(self.screen, tuple_players[0])
+                    player_check_bounds(self.screen, tuple_players[1])
+                    player_check_collision(tuple_players[0], tuple_players[1], dt)
                     
             # -------------------------------------------------------------------------------------------- 
             # PAUSE screen

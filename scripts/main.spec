@@ -2,19 +2,13 @@
 
 
 a = Analysis(  # type: ignore
-    ['main.py'],
+    ['../main.py'],
     pathex=[],
     binaries=[],
     datas=[
         
-        # Image files
-        ('image/', 'image'),
-        
-        # Sound files
-        ('sound/', 'sound'),
-        
-        # Font files
-        ('font/', 'font')
+        # Game assets
+        ('../assets/', 'assets'),
         
     ],
     hiddenimports=[],
@@ -46,5 +40,5 @@ exe = EXE(  # type: ignore
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['image/icon/icon.ico'],
+    icon=['../assets/images/icon/icon.ico'],
 )

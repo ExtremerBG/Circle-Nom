@@ -1,4 +1,4 @@
-from helpers.file_loader import comic_sans_ms
+from circle_nom.helpers.asset_bank import comic_sans_ms
 import pygame
 
 class HealthBar():

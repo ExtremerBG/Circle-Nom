@@ -1,4 +1,4 @@
-from helpers.functions import console_message
+from circle_nom.systems.logging import console_message
 import math
 
 class Oscillator:

@@ -1,8 +1,8 @@
-from .functions import resource_path
+from ..systems.asset_loader import resource_path
 import cProfile
 import pstats
 
-def profile(enable:bool, func, *args, **kwargs):
+def profile(enable:bool, func, *args, **kwargs) -> None:
     """
     Profiles a given function and prints the profiling stats.
 
@@ -14,7 +14,7 @@ def profile(enable:bool, func, *args, **kwargs):
     """
     if enable:
         # Declare file path
-        file_path = resource_path("helpers/profile_result.txt")
+        file_path = resource_path("others/profile_result.txt")
         
         # Declare and start profile
         profiler = cProfile.Profile()

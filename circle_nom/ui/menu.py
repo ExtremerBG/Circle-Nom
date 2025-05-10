@@ -1,9 +1,9 @@
-from models.oscillator import Oscillator
-from models.circle_nom import CircleNom
+from circle_nom.core.engine import CircleNom
+from circle_nom.systems.oscillator import Oscillator
+from circle_nom.systems.asset_loader import *
+from circle_nom.helpers.other_utils import *
+from circle_nom.helpers.asset_bank import *
 from random import choice, randint
-from helpers.file_loader import *
-from helpers.functions import *
-from math import sin
 import pygame
 import sys
 

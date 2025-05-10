@@ -1,4 +1,5 @@
-from helpers.file_loader import dash_sounds, comic_sans_ms
+from circle_nom.helpers.player_utils import player_dash_speed_increase
+from circle_nom.helpers.asset_bank import dash_sounds, comic_sans_ms
 from random import choice
 import numpy as np
 import pygame
@@ -422,15 +423,12 @@ class Player():
         """
         Activates the dash if the cooldown is ready.
         """
-        FACTOR = 100
-        EXPONENT = 1.4
         if self._dash_cd <= 0:
             self._last_speed = self._speed
             self._dash_on = True
             self._dash_dur = Player.DASH_DUR
             self._dash_cd = Player.DASH_CD
-            # check others/dash_rates_bar_chart.py for visualization of this formula
-            self._speed += ((FACTOR / (self._size ** EXPONENT)) * self._size)
+            self._speed += player_dash_speed_increase(self)
             choice(dash_sounds).play()
             
     def draw(self, dt: float):

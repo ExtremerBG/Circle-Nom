@@ -13,8 +13,8 @@ pygame.font.init()
 pygame.mixer.init()
 
 # Import profiler and Menu class after pygame inits
-from helpers.profile import profile
-from models.menu import Menu
+from circle_nom.helpers.profile import profile
+from circle_nom.ui.menu import Menu
 
  # Set True to enable performance profiling
 profile(False, Menu(screen).launch_main)
