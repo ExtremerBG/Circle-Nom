@@ -3,7 +3,7 @@
 # Circle Nom Game
 
 # Importing modules
-from circle_nom.helpers.asset_bank import player_images, player_images_dead, comic_sans_ms
+from circle_nom.helpers.asset_bank import comic_sans_ms
 from circle_nom.systems.asset_loader import *
 from circle_nom.helpers.player_utils import *
 from circle_nom.helpers.other_utils import *
@@ -23,11 +23,12 @@ class CircleNom():
     def __init__(self, screen:pygame.Surface, fps_cap:int, difficulty:int,
                  play_mode:int, eat_sounds:tuple[pygame.mixer.Sound],
                  game_themes:tuple[tuple[str, str]], player_image:pygame.Surface,
-                 player_image_dead:pygame.Surface, prey_images:tuple[pygame.Surface],
-                 prey_aura:pygame.Surface, background_image:pygame.Surface,
-                 health_bar:tuple[pygame.Surface], dagger_images:tuple[pygame.Surface],
-                 dagger_sounds:tuple[pygame.mixer.Sound], flame_sequence:tuple[pygame.Surface],
-                 hit_sounds:tuple[pygame.mixer.Sound], dash_images:tuple[pygame.Surface]
+                 player_image_dead:pygame.Surface, player_accessory: tuple[pygame.Vector2, pygame.Surface],
+                 player_eat_sequence: list[pygame.Surface], prey_images:tuple[pygame.Surface], 
+                 prey_aura:pygame.Surface, background_image:pygame.Surface, 
+                 health_bar:tuple[pygame.Surface], dagger_images:tuple[pygame.Surface], 
+                 dagger_sounds:tuple[pygame.mixer.Sound], flame_sequence:tuple[pygame.Surface], 
+                 hit_sounds:tuple[pygame.mixer.Sound], dash_images:dict[str: pygame.Surface]
                  ):
         """
         Initializes the CircleNom game with various assets and settings.
@@ -41,6 +42,8 @@ class CircleNom():
             game_themes (tuple[tuple[str, str]]): Tuple with tuples consisting of (name, file path).
             player_image (pygame.Surface): The player's image.
             player_image_dead (pygame.Surface): The player's dead image.
+            player_accessory
+            player_eat_sequence list(pygame.Surface): The player's eat sequence animation.
             prey_images (tuple[pygame.Surface]): Tuple of prey images.
             prey_aura (pygame.Surface): The aura image for prey.
             background_image (pygame.Surface): The background image for the game.
@@ -49,7 +52,7 @@ class CircleNom():
             dagger_sounds (tuple[pygame.mixer.Sound]): Tuple of sounds to play when a dagger is used.
             flame_sequence (tuple[pygame.Surface]): Tuple of flame images.
             hit_sounds (tuple[pygame.mixer.Sound]): Tuple of sounds to play when the player is hit.
-            dash_images (tuple[pygame.Surface]): Tuple of dash icon images.
+            dash_images (dict[str: pygame.Surface]): Dictionary of dash icon images.
         """
         self.screen = screen
         self.fps_cap = fps_cap
@@ -62,6 +65,8 @@ class CircleNom():
         self.game_themes = game_themes
         self.player_image = player_image
         self.player_image_dead = player_image_dead
+        self.player_accessory = player_accessory
+        self.player_eat_sequence = player_eat_sequence
         self.prey_images = prey_images
         self.prey_aura = prey_aura
         self.background_image = background_image
@@ -157,7 +162,7 @@ class CircleNom():
                 isclose(player.hit_pos.y, dagger.position.y, abs_tol=player.hit_tol):
 
                 # Bigger penalty if its a flaming dagger
-                if dagger.flame == True:
+                if dagger.flame:
                     player.size -= 15
                     player.speed -= 5
                 else:
@@ -202,25 +207,29 @@ class CircleNom():
         if not easter:
             
             # Player/s declaration
-            tuple_players: tuple[Player] = declare_objects(self.player_count, Player, self.player_image, self.player_image_dead, easter, self.screen)
+            tuple_players: tuple[Player] = declare_objects(
+                self.player_count, Player, self.player_image, self.player_image_dead,
+                self.player_eat_sequence, self.player_accessory, easter, self.screen
+            )
 
         # Easter mode
         else:
     
             # Random prey_images_index for prey image
             prey_images_index = randint(0, len(self.prey_images) - 1)
-            tuple_players: tuple[Player] = declare_objects(self.player_count, Player, self.prey_images[prey_images_index], self.prey_images[prey_images_index], easter, self.screen)
+            tuple_players: tuple[Player] = declare_objects(
+                self.player_count, Player, self.prey_images[prey_images_index], self.prey_images[prey_images_index],
+                None, None, easter, self.screen
+            ) # Dont use player eat sequence and player accessory for easter mode
             
             # Resets prey list
             self.prey_images = []
 
             # Add all player images to prey list instead
-            for image in player_images:
-                prey_image = pygame.transform.smoothscale(image, (64, 64))
-                self.prey_images.append(prey_image)
-            for image in player_images_dead:
-                prey_image = pygame.transform.smoothscale(image, (64, 64))
-                self.prey_images.append(prey_image)
+            prey_image = pygame.transform.smoothscale(self.player_image, (64, 64))
+            self.prey_images.append(prey_image)
+            prey_image = pygame.transform.smoothscale(self.player_image_dead, (64, 64))
+            self.prey_images.append(prey_image)
                 
             # Different dash cooldown in easter mode
             for player in tuple_players: player.dash_cd(30)
@@ -378,21 +387,21 @@ class CircleNom():
                 # Singleplayer
                 if self.play_mode == 0:
                     if tuple_players[0].dash_available:
-                        self.screen.blit(self.dash_images[1], (1234, 18))
+                        self.screen.blit(self.dash_images["AVAIL"], (1234, 18))
                     else:
-                        self.screen.blit(self.dash_images[0], (1234, 18))
+                        self.screen.blit(self.dash_images["UNAVAIL"], (1234, 18))
                 # Multiplayer
                 elif self.play_mode == 1:
                     # Player 1
                     if tuple_players[0].dash_available:
-                        self.screen.blit(self.dash_images[1], (472, 18))
+                        self.screen.blit(self.dash_images["AVAIL"], (472, 18))
                     else:
-                        self.screen.blit(self.dash_images[0], (472, 18))
+                        self.screen.blit(self.dash_images["UNAVAIL"], (472, 18))
                     # Player 2
                     if tuple_players[1].dash_available:
-                        self.screen.blit(self.dash_images[1], (1234, 18))
+                        self.screen.blit(self.dash_images["AVAIL"], (1234, 18))
                     else:
-                        self.screen.blit(self.dash_images[0], (1234, 18))
+                        self.screen.blit(self.dash_images["UNAVAIL"], (1234, 18))
 
                 # Points text display - only for singleplayer
                 if self.play_mode == 0:

@@ -131,8 +131,8 @@ class Menu:
     def _get_new_rand_images(self) -> None:
         """Select a random background image, player image index and refresh associated vars."""
         self.background_image = choice(background_images)
-        self.player_image_index = randint(0, len(player_images) - 1)
-        self.player_menu_image = pygame.transform.smoothscale(player_images[self.player_image_index], self.PLAYER_MENU_SCALE)
+        self.player_accessory = choice(player_accessories)
+        self.player_menu_image = pygame.transform.smoothscale(player_image, self.PLAYER_MENU_SCALE)
         self.player_blit_pos = self.AURA_MENU_POS - pygame.Vector2(self.player_menu_image.get_width() / 2, self.player_menu_image.get_height() / 2)
         
     def _set_sound_vol(self, volume:int|float, max_volume:int|float) -> None:
@@ -188,6 +188,12 @@ class Menu:
         
         # Draw player on top of aura
         self.screen.blit(self.player_menu_image, self.player_blit_pos)
+        
+        # Draw accessory on top of player
+        self.screen.blit(
+            self.player_accessory[1], 
+            self.player_blit_pos + self.player_accessory[0] - pygame.Vector2(self.player_accessory[1].get_width() / 2, self.player_accessory[1].get_height() / 2)
+        )
         
     def _options_movement_horizontal(self, move_step: int) -> None:
         """
@@ -487,8 +493,8 @@ class Menu:
         # Define Circle Nom
         game = CircleNom(
             self.screen, self.fps_cap, self.current_difficulty, self.current_play_mode,
-            eat_sounds, game_themes, player_images[self.player_image_index], player_images_dead[self.player_image_index],
-            prey_images, prey_aura, self.background_image, health_bar,
+            eat_sounds, game_themes, player_image, player_image_dead, self.player_accessory,
+            player_eat_sequence, prey_images, prey_aura, self.background_image, health_bar,
             dagger_images, dagger_sounds, flame_sequence, hit_sounds, dash_images
         )
         

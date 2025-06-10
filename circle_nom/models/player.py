@@ -22,23 +22,27 @@ class Player():
     TEXTS_NOM = "Nom!", "nom", "Nom-Nom!", "nom-nom"
     TEXTS_OW = "Ow!", "ow", "Ouch!", "ouch"
     
-    def __init__(self, image: pygame.Surface, image_dead: pygame.Surface, easter_mode: bool, screen:pygame.Surface):
+    def __init__(self, image_alive: pygame.Surface, image_dead: pygame.Surface, 
+                 eat_sequence: list[pygame.Surface] | None, accessory: tuple[pygame.Vector2, pygame.Surface] | None,
+                 easter_mode: bool, screen:pygame.Surface):
         """
         Initializes the Player object with images, easter mode, and screen.
         
         Args:
-            image (pygame.Surface): The player's image.
+            image_alive (pygame.Surface): The player's alive image.
             image_dead (pygame.Surface): The player's dead image.
+            eat_sequence (list(pygame.Surface)|None): The player's eat sequence animation.
+            accessory:
             easter_mode (bool): Flag for easter mode.
             screen (pygame.Surface): The game screen.
         """
         self._easter = easter_mode
-        self._image = image
-        self._image_og = self._image
+        self._image_alive = image_alive
         self._image_hit = self._modify_hit()
-        self._image_hit_og = self._image_hit
         self._draw_hit = False
         self._image_dead = image_dead
+        self._eat_sequence = eat_sequence
+        self._accessory = accessory
         self._screen = screen
         self._size = 60
         self._scale = [self._size * 3, self._size * 3]
@@ -54,13 +58,14 @@ class Player():
         self._txt_nom = choice(Player.TEXTS_NOM)
         self._txt_ow = choice(Player.TEXTS_OW)
         self._points = 0
+        self._timer = 0
 
        # Different eat pos / eat_tol if easter is on
         if self._easter == True:
             self._eat_pos = self._position
             self._eat_tol = self._size * 1.25
         else:
-            self._eat_pos = pygame.Vector2(self._position.x, self._position.y - self._image.get_height() * - 0.3)
+            self._eat_pos = pygame.Vector2(self._position.x, self._position.y - self._image_alive.get_height() * - 0.3)
             self._eat_tol = self._size * 0.8
         
         self._hit_pos = self._position
@@ -256,8 +261,7 @@ class Player():
         self._speed = value
         if self._speed < Player.MIN_SPEED: self._speed = Player.MIN_SPEED
         if not self._dash_on: # Max speed cap only if dash is not on
-            if self._speed > Player.MAX_SPEED: self._speed = Player.MAX_SPEED
-            
+            if self._speed > Player.MAX_SPEED: self._speed = Player.MAX_SPEED 
             
     @last_speed.setter
     def last_speed(self, value:float):
@@ -366,12 +370,12 @@ class Player():
         
     def _modify_hit(self):
         """
-        Modifies the player's image to be more reddish. Used in draw_hit() method.
+        Modifies the player's image to be more reddish. Used in the init.
         """
         # Method 1 for easter mode. Fills every pixel with red.
         if self._easter:
             # Create a copy of the original image
-            reddish_image = self._image.copy()
+            reddish_image = self._image_alive.copy()
 
             # Fill the image with a red color, using the BLEND_RGBA_ADD flag to add the red component
             reddish_image.fill((200, 0, 0, 0), special_flags=pygame.BLEND_RGBA_ADD)
@@ -379,7 +383,7 @@ class Player():
         # Method 2 for non-easter mode. Modifies yellow pixels to red.
         else:
             # Create a copy of the original image
-            reddish_image = self._image.copy()
+            reddish_image = self._image_alive.copy()
 
             # Convert the surface to a NumPy array
             pixel_array = pygame.surfarray.pixels3d(reddish_image)
@@ -409,7 +413,7 @@ class Player():
             text (str): The text to draw.
         """
         text = self._font.render(f"{text}", True, (255, 255, 255))
-        nom_text_rect = text.get_rect(center=(self._position.x, self._position.y - self._image.get_height() / 2 - self._size * 0.4))
+        nom_text_rect = text.get_rect(center=(self._position.x, self._position.y - self._image_alive.get_height() / 2 - self._size * 0.4))
         self._screen.blit(text, nom_text_rect)
 
     def _new_texts(self):
@@ -418,6 +422,29 @@ class Player():
         """
         self._txt_nom = choice(Player.TEXTS_NOM)
         self._txt_ow = choice(Player.TEXTS_OW)
+        
+    def _draw_accessory(self):
+        """
+        Draw player's accessory if it exists.
+        """
+        if self._accessory:
+            # Calculate scale factor relative to menu player size (180)
+            scale_factor = self._scale[0] / 180
+            # Scale the offset
+            scaled_offset = self._accessory[0] * scale_factor
+            # Scale the accessory image
+            accessory_size = (
+                (self._accessory[1].get_width() * scale_factor),
+                (self._accessory[1].get_height() * scale_factor)
+            )
+            scaled_image = pygame.transform.smoothscale(self._accessory[1], accessory_size)
+            # Calculate the top-left of the player image
+            player_topleft = self._position - pygame.Vector2(self._scale[0] / 2, self._scale[1] / 2)
+            # Blit at the correct position
+            self._screen.blit(
+                scaled_image,
+                player_topleft + scaled_offset - pygame.Vector2(scaled_image.get_width() / 2, scaled_image.get_height() / 2)
+            )
         
     def dash(self):
         """
@@ -438,17 +465,49 @@ class Player():
         Args:
             dt (float): Delta time, used for frame-independent drawing.
         """
-        
-        # Normal draw
-        if not self._draw_hit:
-            # Player resize and draw
-            self._image = pygame.transform.smoothscale(self._image_og, self._scale)
-            self._screen.blit(self._image, self._position - pygame.Vector2(self._image.get_width() / 2, self._image.get_height() / 2))
+        # Eat animation draw
+        if self.nom_txt_counter > 0 and self._eat_sequence:
+            image = self._eat_sequence[int(self._timer / 6 % len(self._eat_sequence))]
+            image = pygame.transform.smoothscale(image, self._scale)
+            self._screen.blit(image, self._position - pygame.Vector2(image.get_width() / 2, image.get_height() / 2))
+            
         # Hit draw
+        elif self.ow_txt_counter > 0:
+            image = pygame.transform.smoothscale(self._image_hit, self._scale)
+            self._screen.blit(image, self._position - pygame.Vector2(image.get_width() / 2, image.get_height() / 2))
+            
+        # Normal draw
         else:
-            self._image_hit = pygame.transform.smoothscale(self._image_hit_og, self._scale)
-            self._screen.blit(self._image_hit, self._position - pygame.Vector2(self._image_hit.get_width() / 2, self._image_hit.get_height() / 2))
+            # Player resize and draw
+            image = pygame.transform.smoothscale(self._image_alive, self._scale)
+            self._screen.blit(image, self._position - pygame.Vector2(image.get_width() / 2, image.get_height() / 2))
+            
+        # Update eat and hit positions
+        if not self._easter:
+            self._eat_pos = pygame.Vector2(self._position.x, self._position.y - image.get_height() * -0.3)
+            self._eat_tol = self._size * 0.8
+        else:
+            self._eat_pos = self._position
+            self._eat_tol = self._size * 1.25
         
+        # Draw player's accessory before text
+        self._draw_accessory()
+        
+        # Text draw
+        # Eat
+        if self.nom_txt_counter > 0:
+            self._draw_text(self._txt_nom)
+            self.nom_txt_counter -= 60 * dt
+            
+        # Hit
+        if self.ow_txt_counter > 0:
+            self._draw_text(self._txt_ow)
+            self.ow_txt_counter -= 60 * dt
+
+        # New texts
+        if (self.nom_txt_counter or self.ow_txt_counter) <= 0:
+            self._new_texts()
+            
         # Dash cooldown and duration updates
         self._dash_cd = max(0, self._dash_cd - 60 * dt)
         if self._dash_on:
@@ -457,30 +516,11 @@ class Player():
                 self._dash_on = False
                 self._speed = self._last_speed
 
-        # Text draw
-        if self.nom_txt_counter > 0:
-            self._draw_text(self._txt_nom)
-            self.nom_txt_counter -= 60 * dt
-        if self.ow_txt_counter > 0:
-            self._draw_text(self._txt_ow)
-            self.ow_txt_counter -= 60 * dt
-
-        # New texts
-        if (self.nom_txt_counter or self.ow_txt_counter) <= 0:
-            self._new_texts()
-
-        # Update eat and hit positions
-        if self._easter:
-            self._eat_pos = self._position
-            self._eat_tol = self._size * 1.25
-        else:
-            self._eat_pos = pygame.Vector2(self._position.x, self._position.y - self._image.get_height() * -0.3)
-            self._eat_tol = self._size * 0.8
-
         # Update the other stuff
         self._hit_pos = self._position
         self._hit_tol = self._size * 1.25
         self._collision_tol = self._size * 1.5
+        self._timer += 40 * dt
         
     def draw_dead(self):
         """
@@ -490,4 +530,4 @@ class Player():
         """
         self._image_dead = pygame.transform.smoothscale(self._image_dead, self._scale)
         self._screen.blit(self._image_dead, self._position - pygame.Vector2(self._image_dead.get_width() / 2, self._image_dead.get_height() / 2))
-        
+        self._draw_accessory()
