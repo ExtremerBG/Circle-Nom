@@ -84,7 +84,6 @@ def load_image(path: str) -> pygame.Surface:
     Args:
         path (str): The path to the image.
     """
-
     try:
         return pygame.image.load(resource_path(path)).convert_alpha()
     

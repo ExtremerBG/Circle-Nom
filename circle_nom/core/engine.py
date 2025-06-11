@@ -3,7 +3,7 @@
 # Circle Nom Game
 
 # Importing modules
-from circle_nom.helpers.asset_bank import comic_sans_ms
+from circle_nom.helpers.asset_bank import COMIC_SANS_MS
 from circle_nom.systems.asset_loader import *
 from circle_nom.helpers.player_utils import *
 from circle_nom.helpers.other_utils import *
@@ -23,15 +23,15 @@ class CircleNom():
     def __init__(self, screen:pygame.Surface, fps_cap:int, difficulty:int,
                  play_mode:int, eat_sounds:tuple[pygame.mixer.Sound],
                  game_themes:tuple[tuple[str, str]], player_image:pygame.Surface,
-                 player_image_dead:pygame.Surface, player_accessory: tuple[pygame.Vector2, pygame.Surface],
+                 player_image_dead:pygame.Surface, player_accessory: tuple[pygame.Vector2, pygame.Surface] | None,
                  player_eat_sequence: list[pygame.Surface], prey_images:tuple[pygame.Surface], 
                  prey_aura:pygame.Surface, background_image:pygame.Surface, 
                  health_bar:tuple[pygame.Surface], dagger_images:tuple[pygame.Surface], 
                  dagger_sounds:tuple[pygame.mixer.Sound], flame_sequence:tuple[pygame.Surface], 
                  hit_sounds:tuple[pygame.mixer.Sound], dash_images:dict[str: pygame.Surface]
-                 ):
+                 ) -> None:
         """
-        Initializes the CircleNom game with various assets and settings.
+        Initializes the Circle Nom game with its various assets and settings.
 
         Args:
             screen (pygame.Surface): The game screen.
@@ -42,8 +42,8 @@ class CircleNom():
             game_themes (tuple[tuple[str, str]]): Tuple with tuples consisting of (name, file path).
             player_image (pygame.Surface): The player's image.
             player_image_dead (pygame.Surface): The player's dead image.
-            player_accessory
-            player_eat_sequence list(pygame.Surface): The player's eat sequence animation.
+            player_accessory (tuple(pygame.Vector2, pygame.Surface)|None): The player's accessory data pair.
+            player_eat_sequence (list(pygame.Surface)): The player's eat sequence animation.
             prey_images (tuple[pygame.Surface]): Tuple of prey images.
             prey_aura (pygame.Surface): The aura image for prey.
             background_image (pygame.Surface): The background image for the game.
@@ -108,8 +108,10 @@ class CircleNom():
                 easter (bool): Bool if easter mode is on.
             """
             if isclose(player.eat_pos.x, prey.position.x, abs_tol=player.eat_tol) and \
-                isclose(player.eat_pos.y, prey.position.y, abs_tol=player.eat_tol) and prey.eatable:
-
+                isclose(player.eat_pos.y, prey.position.y, abs_tol=player.eat_tol) and prey.eatable and player.can_eat:
+                # player.can_eat can also be used here, which is false during the eating animation,
+                # but im not sure if feels good to play with it - more testing might be required.
+                
                 # Normal eating
                 if not easter:
 
@@ -130,12 +132,12 @@ class CircleNom():
 
                     # Bonus points for aura'd food
                     if prey.aura:
-                        player.size += 16
+                        player.size += 12
                         player.speed += 10
                         player.last_speed += 10
                         player.points += 2
                     else:
-                        player.size += 8
+                        player.size += 6
                         player.speed += 5
                         player.last_speed += 5
                         player.points += 1
@@ -254,9 +256,9 @@ class CircleNom():
         dt = 0
 
         # Fonts
-        font = pygame.Font(comic_sans_ms, 30)
-        font_big = pygame.Font(comic_sans_ms, 60)
-        font_small = pygame.Font(comic_sans_ms, 15)
+        font = pygame.Font(COMIC_SANS_MS, 30)
+        font_big = pygame.Font(COMIC_SANS_MS, 60)
+        font_small = pygame.Font(COMIC_SANS_MS, 15)
         
         # Play random theme song from list
         song_index = randint(0, len(self.game_themes) - 1)
@@ -265,7 +267,7 @@ class CircleNom():
         pygame.mixer.music.play()
         
         # Colours
-        WHITE = 255, 255, 255
+        WHITE = (255, 255, 255)
 
         # Pause - Skips over game loop, excluding event checker and pause screen
         paused = False

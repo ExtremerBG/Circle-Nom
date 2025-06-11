@@ -8,7 +8,7 @@ def _check_obj_exists(list_objs:list, obj_idx:int) -> bool:
     Helper for debug functions. Checks if the given obj_idx exists in the list_objs.
     
     Args:
-        list_obj (list): The objects list.
+        list_objs (list): The objects list.
         obj_idx (int): The given object index number.
     """
     return obj_idx >= 0 and obj_idx <= len(list_objs) - 1
@@ -37,9 +37,10 @@ def player_debug(players:list[Player], player_n:int, screen:pygame.Surface, enab
             f"hit_tol: {player.hit_tol:.2f} | "
             f"size: {player.size:.2f} | "
             f"speed: {player.speed:.2f} | "
-            f"last_speed {player.last_speed:.2f} | "
+            f"last_speed: {player.last_speed:.2f} | "
             f"dash_on: {player.dash_on} | "
-            f"dash_available: {player.dash_available}"
+            f"dash_available: {player.dash_available} | "
+            f"can_eat: {player.can_eat}"
         )
         print(debug_string)
         

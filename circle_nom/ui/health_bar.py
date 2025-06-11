@@ -1,21 +1,21 @@
-from circle_nom.helpers.asset_bank import comic_sans_ms
+from circle_nom.helpers.asset_bank import COMIC_SANS_MS
 import pygame
 
 class HealthBar():
 
-    def __init__(self, hunger_bar: list[pygame.Surface], screen: pygame.Surface):
+    def __init__(self, health_bar: list[pygame.Surface], screen: pygame.Surface):
 
         """
         Initializes the HealthBar object with images and screen.
 
         Args:
-            hunger_bar (list[pygame.Surface]): List of images for the hunger bar.
+            health_bar (list[pygame.Surface]): List of images for the health bar.
             screen (pygame.Surface): The game screen.
         """
-        self._bar_inner = hunger_bar[0] # moving (red) bit
-        self._bar_outer = hunger_bar[1] # static (white) bit
+        self._bar_inner = health_bar["INNER"] # moving (red) bit
+        self._bar_outer = health_bar["OUTER"] # static (white) bit
         self._bar_inner_og = self._bar_inner
-        self._font = pygame.Font(comic_sans_ms, 30)
+        self._font = pygame.Font(COMIC_SANS_MS, 30)
         self._screen = screen
 
     def draw(self, text: str, size: float, max_size: float, death_size: float, coords: list):
