@@ -1,5 +1,7 @@
-from circle_nom.systems.logging import console_message
+from circle_nom.systems.logging import get_logger
 import math
+
+logger = get_logger()
 
 class Oscillator:
     
@@ -21,7 +23,7 @@ class Oscillator:
         
         self._pattern = pattern
         if pattern not in self._WAVE_TYPES:
-            console_message("ERROR", f"Oscillator received invalid wave pattern: {pattern}.")
+            logger.error(f"Oscillator received invalid wave pattern: {pattern}.")
             
         self._frequency = 1 / period
         self._time = 0

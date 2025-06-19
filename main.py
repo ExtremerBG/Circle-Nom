@@ -17,4 +17,4 @@ from circle_nom.helpers.profile import profile
 from circle_nom.ui.menu import Menu
 
  # Set True to enable performance profiling
-profile(False, Menu(screen).launch_main)
+profile(enable=False, func=Menu(screen).launch_main)

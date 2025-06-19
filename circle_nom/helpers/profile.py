@@ -14,8 +14,8 @@ def profile(enable:bool, func, *args, **kwargs) -> None:
     """
     if enable:
         # Declare file path
-        file_path = resource_path("others/profile_result.txt")
-        
+        file_path = resource_path("profile_result.txt")
+    
         # Declare and start profile
         profiler = cProfile.Profile()
         profiler.enable()
@@ -27,7 +27,7 @@ def profile(enable:bool, func, *args, **kwargs) -> None:
         profiler.disable()
         
         # Dump to file
-        with open(file_path, 'x') as file:
+        with open(file_path, 'w') as file:
             stats = pstats.Stats(profiler, stream=file)
             stats.sort_stats('time').print_stats()
     else:

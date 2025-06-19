@@ -1,8 +1,10 @@
-from .logging import console_message
+from .logging import get_logger
 import pygame
 import sys
 import os
 import re
+
+logger = get_logger(name=__name__)
 
 def resource_path(relative_path: str) -> str:
     """
@@ -33,20 +35,20 @@ def traverse_folder(path: str) -> tuple:
     resolved_path = resource_path(path)
     
     if not os.path.exists(resolved_path):
-        console_message("ERROR", f"Path '{path}' does not exist!")
+        logger.error(f"Path '{path}' does not exist!")
         return tuple()
     
     for root, dirs, files in os.walk(resolved_path):
         
         if len(dirs) > 0:
-            console_message("WARN", f"Path '{root}' has {len(dirs)} embedded folder/s!")
+            logger.warning(f"Path '{root}' has {len(dirs)} embedded folder/s!")
             
         if len(files) == 0:
-            console_message("WARN", f"Path '{root}' has no files!")
+            logger.warning(f"Path '{root}' has no files!")
             
         for file in files:
             file_paths.append(os.path.join(root, file))
-            
+              
     return tuple(sorted(file_paths, key=natural_sort_key))
 
 def add_placeholders(num: int, key: str) -> list[str]:
@@ -66,14 +68,18 @@ def add_placeholders(num: int, key: str) -> list[str]:
     }
     
     if key not in MISSING_RESOURCES.keys():
-        raise ValueError(console_message('ERROR', f"Invalid key '{key}'! Must be 'IMAGE' or 'SOUND'."))
+        logger.error(f"Invalid key '{key}'! Must be 'IMAGE' or 'SOUND'.")
+        raise ValueError(f"Invalid key '{key}'! Must be 'IMAGE' or 'SOUND'.")
+    
     if num < 0:
-        raise ValueError(console_message('ERROR' , "Invalid number of placeholders."))
+        logger.error("Invalid number of placeholders.")
+        raise ValueError("Invalid number of placeholders.")
     
     resolved_path = resource_path(MISSING_RESOURCES[key])
     
     if not os.path.exists(resolved_path):
-        raise ValueError(console_message('ERROR' , f"Path '{resolved_path}' not found!"))
+        logger.error(f"Path '{resolved_path}' not found!")
+        raise ValueError(f"Path '{resolved_path}' not found!")
     
     return [resolved_path for _ in range(num)]
 
@@ -88,7 +94,7 @@ def load_image(path: str) -> pygame.Surface:
         return pygame.image.load(resource_path(path)).convert_alpha()
     
     except FileNotFoundError:
-        console_message("ERROR" , f"Image at '{path}' not found! Loading a placeholder.")
+        logger.warning(f"Image at '{path}' not found! Loading a placeholder.")
         return pygame.image.load(resource_path(add_placeholders(1, 'IMAGE')[0])).convert_alpha()
     
 def load_sound(path: str) -> pygame.mixer.Sound:
@@ -102,7 +108,7 @@ def load_sound(path: str) -> pygame.mixer.Sound:
         return pygame.mixer.Sound(resource_path(path))
     
     except FileNotFoundError:
-        console_message("ERROR" , f"Sound at '{path}' not found! Loading a placeholder.")
+        logger.warning(f"Sound at '{path}' not found! Loading a placeholder.")
         return pygame.mixer.Sound(resource_path(add_placeholders(1, 'SOUND')[0]))
     
 def load_music(path: str) -> None:
@@ -116,7 +122,7 @@ def load_music(path: str) -> None:
         pygame.mixer.music.load(resource_path(path))
         
     except FileNotFoundError:
-        console_message("ERROR" , f"Music at '{path}' not found! Loading a placeholder.")
+        logger.warning(f"Music at '{path}' not found! Loading a placeholder.")
         pygame.mixer.music.load((add_placeholders(1, 'SOUND')[0]))
         
 def load_images(paths: tuple[str], count: int = None) -> tuple[pygame.Surface]:
@@ -137,12 +143,12 @@ def load_images(paths: tuple[str], count: int = None) -> tuple[pygame.Surface]:
     if count:
         
         if count > actual_count:
-            console_message("WARN",  f"Image files count lower than expected! Adding {count - actual_count} placeholder/s.")
+            logger.warning(f"Image files count lower than expected! Adding {count - actual_count} placeholder/s.")
             # images.extend(load_image(path) for path in add_placeholders(count - actual_count, 'IMAGE')) # non recursive variant
             images.extend(load_images(add_placeholders(count - actual_count, 'IMAGE')))
             
         elif count < actual_count:
-            console_message("WARN", f"Image files count higher than expected: {actual_count} / {count}!")
+            logger.warning(f"Image files count higher than expected: {actual_count} / {count}!")
     
     return tuple(images)
 
@@ -164,12 +170,12 @@ def load_sounds(paths: tuple[str], count: int = None) -> tuple[pygame.mixer.Soun
     if count:
         
         if count > actual_count:
-            console_message("WARN" + f"Sound files count lower than expected! Adding {count - actual_count} placeholder/s.")
+            logger.warning(f"Sound files count lower than expected! Adding {count - actual_count} placeholder/s.")
             # sounds.extend(load_sound(path) for path in add_placeholders(count - actual_count, 'SOUND')) # non recursive variant
             sounds.extend(load_sounds(add_placeholders(count - actual_count, 'SOUND')))
             
         elif count < actual_count:
-            console_message("WARN", f"Sound files count higher than expected: {actual_count} / {count}!")
+            logger.warning(f"Sound files count higher than expected: {actual_count} / {count}!")
     
     return tuple(sounds)
 
@@ -184,7 +190,7 @@ def load_playlist(paths: tuple[str], count: int = None) -> tuple[tuple[str, str]
     """
     actual_count = len(paths)
     if actual_count == 0:
-        console_message("ERROR", f"The given paths argument is empty!")
+        logger.error("The given paths argument is empty!")
     
     # Load playlist
     playlist = []
@@ -195,7 +201,7 @@ def load_playlist(paths: tuple[str], count: int = None) -> tuple[tuple[str, str]
     # Add placeholders if needed
     if count:
         if count > actual_count:
-            console_message("WARN", f"Sound files count lower than expected! Adding {count - actual_count} placeholder/s.")
+            logger.warning(f"Sounds playlist files count lower than expected! Adding {count - actual_count} placeholder/s.")
             
             for _ in range(count - actual_count):
                 placeholder_path = add_placeholders(1, 'SOUND')[0]  # Get the first placeholder path
@@ -203,6 +209,6 @@ def load_playlist(paths: tuple[str], count: int = None) -> tuple[tuple[str, str]
                 playlist.append((placeholder_name, placeholder_path))  # Append as a tuple (name, path)
         
         elif count < actual_count:
-            console_message("WARN", f"Sound files count higher than expected: {actual_count} / {count}!")
+            logger.warning(f"Sound files count higher than expected: {actual_count} / {count}!")
         
     return tuple(playlist)
