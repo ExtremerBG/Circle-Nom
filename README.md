@@ -27,10 +27,10 @@
 ## Goal
 
 Singleplayer:
-- Score as many points as possible.
+- Score as many points as possible, by eating the food.
 
 Multiplayer:
-- Survive longer than the other player.
+- Survive longer than the other player, by eating more food than them.
 
 ## Prerequisites
 

@@ -1,9 +1,9 @@
 __pycache__/
 dist/
 build/
-profile_result.txt
+/profiles
 .idea/
 .venv/
 result.json
 desktop.ini
-cn.log
+/logs

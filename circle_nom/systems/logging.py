@@ -1,6 +1,8 @@
+from datetime import datetime
 import logging
 import inspect
 import sys
+import os
 
 class _ColorFormatter(logging.Formatter):
     COLORS = {
@@ -42,7 +44,7 @@ class _FunctionLogger(logging.Logger):
 
         super()._log(level, msg, args, exc_info, extra, stack_info, stacklevel)
 
-def get_logger(name: str = __name__, logfile: str = "cn.log") -> logging.Logger:
+def get_logger(name: str = __name__) -> logging.Logger:
     """
     Returns a configured logger instance with colorized console output and file logging.
 
@@ -77,8 +79,12 @@ def get_logger(name: str = __name__, logfile: str = "cn.log") -> logging.Logger:
         ch.setFormatter(_ColorFormatter())
         logger.addHandler(ch)
 
-        # File handler
-        fh = logging.FileHandler(logfile)
+        # Create the log file path
+        log_file = f"logs/{datetime.now().strftime("%Y-%m-%d")}/circle_nom.log"
+        os.makedirs(os.path.dirname(log_file), exist_ok=True)
+                 
+        # File handler      
+        fh = logging.FileHandler(log_file)
         fh.setFormatter(_SafeFormatter(
             "[%(asctime)s] [%(name)s / %(levelname)s]: [%(function)s] %(message)s",
             "%Y-%m-%d %H:%M:%S"

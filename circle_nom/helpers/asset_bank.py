@@ -86,7 +86,7 @@ MENU_THEMES = load_playlist(traverse_folder('assets/sounds/themes/menu/'), 2)
 ################################################################################
 
 # MAIN MENU CLICK SOUNDS
-MENU_CLICKS = {
+MENU_CLICK_SOUNDS = {
     "UPDOWN": load_sound('assets/sounds/effects/menu/menu_click_up_down.mp3'),
     "LEFTRIGHT": load_sound('assets/sounds/effects/menu/menu_click_left_right.mp3'),
     "UNKNOWN": load_sound('assets/sounds/effects/menu/menu_click_unknown.mp3')

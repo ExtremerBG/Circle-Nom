@@ -5,10 +5,11 @@ fonttools==4.57.0
 kiwisolver==1.4.8
 matplotlib==3.10.1
 numpy==2.2.5
+objprint==0.3.0
 packaging==25.0
 pefile==2023.2.7
 pillow==11.2.1
-pygame-ce==2.5.3
+pygame-ce==2.5.5
 pyinstaller==6.13.0
 pyinstaller-hooks-contrib==2025.4
 pyparsing==3.2.3

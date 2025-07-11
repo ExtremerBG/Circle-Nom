@@ -1,18 +1,22 @@
-from encodings.punycode import T
-from circle_nom.helpers.player_utils import player_dash_speed_increase
 from circle_nom.helpers.asset_bank import DASH_SOUNDS, COMIC_SANS_MS
+import circle_nom.helpers.player_utils as player_utils
+from circle_nom.systems.timer import Timer
 from random import choice
 import numpy as np
 import pygame
 
 class Player():
     
-    # Dash cooldown and duration
-    DASH_CD = 70
-    DASH_DUR = 6
+    # Starting values
+    STARTING_SPEED = 30
+    STARTING_SIZE = 60
+    
+    # Dash cooldown and duration in seconds
+    DASH_CD =  1.2
+    DASH_DUR = 0.14
 
-    # Speed limiters
-    MIN_SPEED = 15   
+    # Speed limiters - dashing overrides max speed
+    MIN_SPEED = 15
     MAX_SPEED = 30
 
     # Size limiters
@@ -20,58 +24,80 @@ class Player():
     MAX_SIZE = 120
     
     # Texts for drawing
-    TEXTS_NOM = "Nom!", "Nom", "nom!", "nom"
-    TEXTS_OW = "Ow!", "ow", "Ouch!", "ouch"
+    EAT_TEXTS = "Nom!", "Nom", "nom!", "nom"
+    HURT_TEXTS = "Ow!", "ow", "Ouch!", "ouch"
     
-    def __init__(self, image_alive: pygame.Surface, image_dead: pygame.Surface, 
-                 eat_sequence: list[pygame.Surface] | None, accessory: tuple[pygame.Vector2, pygame.Surface] | None,
-                 easter_mode: bool, screen:pygame.Surface):
+    # Texts & associated animations durations in seconds
+    EAT_DUR = 0.3
+    HURT_DUR = 0.3
+    
+    def __init__(self, screen:pygame.Surface, game_timer: Timer, easter_mode: bool, 
+                 image_alive: pygame.Surface, image_dead: pygame.Surface, 
+                 eat_sequence: list[pygame.Surface] | None, 
+                 accessory: tuple[pygame.Vector2, pygame.Surface] | None) -> None:
         """
         Initializes the Player object with images, easter mode, and screen.
         
         Args:
+            screen (pygame.Surface): The game screen. Used in the different draw methods.
+            game_timer (Timer): The game timer. Used for different cooldowns.
+            easter_mode (bool): Flag for easter mode. Changes blitting methods to better fit other images.
             image_alive (pygame.Surface): The player's alive image.
             image_dead (pygame.Surface): The player's dead image.
-            eat_sequence (list(pygame.Surface)|None): The player's eat sequence animation.
-            player_accessory (tuple(pygame.Vector2, pygame.Surface)|None): The player's accessory data pair.
-            easter_mode (bool): Flag for easter mode.
-            screen (pygame.Surface): The game screen.
+            eat_sequence (list(pygame.Surface) | None): The player's eat sequence animation.
+            player_accessory (tuple(pygame.Vector2, pygame.Surface) | None): The player's accessory data pair.
         """
+        # Objects from engine
+        self._screen = screen
+        self._game_timer = game_timer
+        
+        # Easter mode flag from engine
         self._easter = easter_mode
+        
+        # Assets
         self._image_alive = image_alive
         self._image_hit = self._modify_hit()
-        self._draw_hit = False
         self._image_dead = image_dead
         self._eat_sequence = eat_sequence
-        self._eat_animation_counter = 0
-        self._can_eat = True
         self._accessory = accessory
-        self._screen = screen
-        self._size = 60
+        self._text_font = pygame.Font(COMIC_SANS_MS, 30)
+        
+        # Below are the starting attributes
+        # Core size, scale, position and speed of the player
+        self._size = Player.STARTING_SIZE
         self._scale = [self._size * 3, self._size * 3]
         self._position = pygame.Vector2(640, 140)
-        self._speed = 30
-        self._last_speed = 30
+        self._speed = Player.STARTING_SPEED
+        
+        # Dash attributes
         self._dash_on = False
-        self._dash_cd = Player.DASH_CD
-        self._dash_dur = Player.DASH_DUR
-        self._font = pygame.Font(COMIC_SANS_MS, 30)
-        self.nom_txt_counter = 0
-        self.ow_txt_counter = 0
-        self._txt_nom = choice(Player.TEXTS_NOM)
-        self._txt_ow = choice(Player.TEXTS_OW)
-        self._points = 0
-
-       # Different eat pos / eat_tol if easter is on
-        if self._easter == True:
+        self._speed_before_dash = Player.STARTING_SPEED
+        self._last_dash_timestamp = -1
+        
+        # Adjust eat position and tolerance based on the easter flag
+        # eat_pos is the center, eat_tol is the radius of the eat circle
+        if self._easter:
             self._eat_pos = self._position
             self._eat_tol = self._size * 1.25
         else:
             self._eat_pos = pygame.Vector2(self._position.x, self._position.y - self._image_alive.get_height() * - 0.3)
             self._eat_tol = self._size * 0.8
         
-        self._hit_pos = self._position
-        self._hit_tol = self._size * 1.25
+        # Hurt attributes - simillar to eat
+        self._hurt_pos = self._position
+        self._hurt_tol = self._size * 1.25
+        
+        # Timestamps for eat/hurt draws & animations
+        # using -1 since 0 shows them for a few frames at beggining of game
+        self._last_eat_timestamp = -1
+        self._last_hurt_timestamp = -1
+        
+        # Texts to display as part of the eat/hurt animations
+        self._eat_text = choice(Player.EAT_TEXTS)
+        self._hurt_text = choice(Player.HURT_TEXTS)
+        
+        # Initial player points
+        self._points = 0
         
     @property
     def eat_pos(self) -> pygame.Vector2:
@@ -102,7 +128,7 @@ class Player():
         Returns:
             pygame.Vector2: The hit position of the player.
         """
-        return self._hit_pos
+        return self._hurt_pos
     
     @property
     def hit_tol(self) -> float:
@@ -112,7 +138,7 @@ class Player():
         Returns:
             float: The hit tolerance of the player.
         """
-        return self._hit_tol
+        return self._hurt_tol
     
     @property
     def collision_tol(self) -> float:
@@ -145,14 +171,14 @@ class Player():
         return self._speed
     
     @property
-    def last_speed(self) -> float:
+    def speed_before_dash(self) -> float:
         """
         Returns the player's last speed before dash.
         
         Returns:
             float: The last speed of the player.
         """
-        return self._last_speed
+        return self._speed_before_dash
     
     @property
     def dash_available(self) -> bool:
@@ -162,17 +188,7 @@ class Player():
         Returns:
             bool: True if internal dash CD is <= 0, false otherwise.
         """
-        return self._dash_cd <= 0
-    
-    @property
-    def dash_on(self) -> bool:
-        """ 
-        Returns if the player's dash is currently active.
-        
-        Returns:
-            bool: The dash_on bool.
-        """
-        return self._dash_on
+        return (self._game_timer.get_time() - self._last_dash_timestamp) >= Player.DASH_CD
     
     @property
     def position(self) -> pygame.Vector2:
@@ -195,26 +211,6 @@ class Player():
         return self._scale
     
     @property
-    def eat_txt(self) -> bool:
-        """
-        Returns whether the eat text is displayed.
-        
-        Returns:
-            bool: True if the eat text is displayed, False otherwise.
-        """
-        return self._nom_txt_counter > 0
-    
-    @property
-    def ow_txt(self) -> bool:
-        """
-        Returns whether the ow text is displayed.
-        
-        Returns:
-            bool: True if the ow text is displayed, False otherwise.
-        """
-        return self._ow_txt_counter > 0
-    
-    @property
     def points(self) -> int:
         """
         Returns the player's points.
@@ -225,16 +221,6 @@ class Player():
         return self._points
     
     @property
-    def draw_hit(self) -> bool:
-        """
-        Returns the player's draw_hit boolean.
-        
-        Returns:
-            bool: The draw_hit boolean.
-        """
-        return self._draw_hit
-    
-    @property
     def can_eat(self) -> bool:
         """
         Returns the player's can_eat boolean.
@@ -242,24 +228,19 @@ class Player():
         Returns:
             bool: The can_eat boolean.
         """
-        return self._can_eat
+        return self._game_timer.get_time() - self._last_eat_timestamp > Player.EAT_DUR
     
     @size.setter
-    def size(self, value:float):
+    def size(self, value: float) -> None:
         """
-        Sets the player's size. Has min/max values, Player check class.
+        Sets the player's size and updates scale. Limited by Player's min and max size consts.
         
         Args:
             value (float): The new size of the player.
         """
-        self._size = value
-
-        if self._size < Player.MIN_SIZE:
-            self._size = Player.MIN_SIZE
-        
-        if self._size > Player.MAX_SIZE:
-            self._size = Player.MAX_SIZE
-
+        if value < Player.MIN_SIZE: self._size = Player.MIN_SIZE
+        elif value > Player.MAX_SIZE: self._size = Player.MAX_SIZE
+        else: self._size = value            
         self._scale = [self._size * 3, self._size * 3]
 
     @speed.setter
@@ -275,15 +256,15 @@ class Player():
         if not self._dash_on: # Max speed cap only if dash is not on
             if self._speed > Player.MAX_SPEED: self._speed = Player.MAX_SPEED 
             
-    @last_speed.setter
-    def last_speed(self, value:float):
+    @speed_before_dash.setter
+    def speed_before_dash(self, value:float):
         """
         Set the player's last speed before a dash.
         
         Args:
             value (float): The new last speed of the player.
         """
-        self._last_speed = value
+        self._speed_before_dash = value
         
     @position.setter
     def position(self, value: pygame.Vector2):
@@ -293,8 +274,8 @@ class Player():
         Args:
             value (pygame.Vector2): The new position of the player.
         """
-        if type(value) != pygame.Vector2:
-            raise ValueError("Position coordinates accepts pygame.Vector2 only!")
+        # if type(value) != pygame.Vector2:
+        #     raise ValueError("Position coordinates accepts pygame.Vector2 only!")
         self._position = value
 
     @eat_tol.setter
@@ -305,39 +286,9 @@ class Player():
         Args:
             value (float): The new eat tolerance of the player.
         """
-        if value < 0:
-            raise ValueError("Eat tolerance cannot be less than 0!")
+        # if value < 0:
+        #     raise ValueError("Eat tolerance cannot be less than 0!")
         self._eat_tol = value
-
-    @eat_txt.setter
-    def eat_txt(self, value:int):
-        """
-        Sets whether the eat text is displayed.
-        
-        Args:
-            value (int): Frames for eat_txt to display.
-        """
-        if type(value) != int:
-            raise ValueError("Nom text accepts int only!")
-        if value:
-            self._nom_txt_counter = value
-        else:
-            self._nom_txt_counter = 0
-
-    @ow_txt.setter
-    def ow_txt(self, value:bool):
-        """
-        Sets whether the ow text is displayed.
-        
-        Args:
-            value (bool): Frames for ow_txt to display.
-        """
-        if type(value) != int:
-            raise ValueError("Ow text accepts int only!")
-        if value:
-            self._ow_txt_counter = value
-        else:
-            self._ow_txt_counter = 0
 
     @points.setter
     def points(self, value:int):
@@ -347,40 +298,23 @@ class Player():
         Args:
             value (int): The new points of the player.
         """
-        if type(value) != int:
-            raise ValueError("Points accepts int only!")
-        
-        if value < 0:
-            raise ValueError("Points cannot be less than 0!")
-
+        # if type(value) != int:
+        #     raise ValueError("Points accepts int only!")
+        # if value < 0:
+        #     raise ValueError("Points cannot be less than 0!")  
         self._points = value
         
-    @draw_hit.setter
-    def draw_hit(self, value:bool):
-        """
-        Set the player's draw hit boolean. If True, draw() method will use \n
-        reddish image instead of the normal one.
-        
-        Args:
-            value (bool): The state boolean.
-        """
-        if type(value) != bool:
-            raise ValueError("draw_hit accepts bool only!")
-        self._draw_hit = value
-        
     @classmethod
-    def dash_cd(cls, value:int):
-        """ 
-        Sets the Player's dash cooldown to the given value.
+    def set_dash_cd(cls, cd: int | float):
+        """
+        Set the dash cooldown of the player.
         
         Args:
-            value (int): The given new value for the cooldown.
+            cd (int|float): The new dash cooldown in seconds.
         """
-        if type(value) != int:
-            raise ValueError("dash_cd accepts int only!")
-        cls.DASH_CD = value
+        cls.DASH_CD = cd
         
-    def _modify_hit(self):
+    def _modify_hit(self) -> pygame.Surface:
         """
         Modifies the player's image to be more reddish. Used in the init.
         """
@@ -417,7 +351,7 @@ class Player():
 
         return reddish_image
         
-    def _draw_text(self, text:str, image: pygame.Surface):
+    def _draw_text(self, text: str, image: pygame.Surface) -> None:
         """
         Draws the specified text on the screen.
         
@@ -425,18 +359,18 @@ class Player():
             text (str): The text to draw.
             image (pygame.Surface): The image to offset the text from.
         """
-        text = self._font.render(f"{text}", True, (255, 255, 255))
-        nom_text_rect = text.get_rect(center=(self._position.x, self._position.y - image.get_height() / 2 - self._size * 0.8))
-        self._screen.blit(text, nom_text_rect)
+        rendered_text = self._text_font.render(f"{text}", True, (255, 255, 255))
+        text_rect = rendered_text.get_rect(center=(self._position.x, self._position.y - image.get_height() / 2 - self._size * 0.8))
+        self._screen.blit(rendered_text, text_rect)
 
-    def _new_texts(self):
+    def _new_texts(self) -> None:
         """
-        Selects new strings for ow_txt and nom_txt.
+        Selects new strings for _eat_text and _hurt_text.
         """
-        self._txt_nom = choice(Player.TEXTS_NOM)
-        self._txt_ow = choice(Player.TEXTS_OW)
+        self._eat_text = choice(Player.EAT_TEXTS)
+        self._hurt_text = choice(Player.HURT_TEXTS)
         
-    def _draw_accessory(self):
+    def _draw_accessory(self) -> None:
         """
         Draw player's accessory if it exists.
         """
@@ -458,45 +392,57 @@ class Player():
                 scaled_image,
                 player_topleft + scaled_offset - pygame.Vector2(scaled_image.get_width() / 2, scaled_image.get_height() / 2)
             )
+            
+    def reset_eat_attributes(self) -> None:
+        """
+        Set the eat timestamp at current game timer time and choose a new eat text. \n
+        Must be used only once when the player eats a prey.
+        """
+        self._last_eat_timestamp = self._game_timer.get_time()
+        self._eat_text = choice(Player.EAT_TEXTS)
         
-    def dash(self):
+    def reset_hurt_attributes(self) -> None:
+        """
+        Set the hurt timestamp at current game timer time and choose a new hurt text. \n
+        Must be used only once when the player gets hurt.
+        """
+        self._last_hurt_timestamp = self._game_timer.get_time()
+        self._eat_text = choice(Player.HURT_TEXTS)
+        
+    def dash(self) -> None:
         """
         Activates the dash if the cooldown is ready.
         """
-        if self._dash_cd <= 0:
-            self._last_speed = self._speed
+        if self.dash_available:
+            self._speed_before_dash = self._speed
+            self._speed += player_utils.get_dash_speed(self)
+            self._last_dash_timestamp = self._game_timer.get_time()
             self._dash_on = True
-            self._dash_dur = Player.DASH_DUR
-            self._dash_cd = Player.DASH_CD
-            self._speed += player_dash_speed_increase(self)
             choice(DASH_SOUNDS).play()
             
-    def draw(self, dt: float):
+    def draw(self, dt: float) -> None:
         """
         Draws the player on the screen and handles dash mechanics.
-
+        
         Args:
-            dt (float): Delta time, used for frame-independent drawing.
+            dt (float): Delta time in seconds since the last frame. Ensures frame-rate independent animation.
         """
         # Eat animation draw
-        if self.nom_txt_counter > 0 and self._eat_sequence:
-            player_image = self._eat_sequence[int(self._eat_animation_counter / 6 % len(self._eat_sequence))]
+        if self._game_timer.get_time() - self._last_eat_timestamp < Player.EAT_DUR and self._eat_sequence:
+            player_image = self._eat_sequence[int(self._game_timer.get_time() / 0.12 % len(self._eat_sequence))]
             player_image = pygame.transform.smoothscale(player_image, self._scale)
             self._screen.blit(player_image, self._position - pygame.Vector2(player_image.get_width() / 2, player_image.get_height() / 2))
-            self._can_eat = False
             
-        # Hit draw
-        elif self.ow_txt_counter > 0:
+        # Hurt draw
+        elif self._game_timer.get_time() - self._last_hurt_timestamp < Player.HURT_DUR:
             player_image = pygame.transform.smoothscale(self._image_hit, self._scale)
             self._screen.blit(player_image, self._position - pygame.Vector2(player_image.get_width() / 2, player_image.get_height() / 2))
-            self._can_eat = True
             
         # Normal draw
         else:
             # Player resize and draw
             player_image = pygame.transform.smoothscale(self._image_alive, self._scale)
             self._screen.blit(player_image, self._position - pygame.Vector2(player_image.get_width() / 2, player_image.get_height() / 2))
-            self._can_eat = True
             
         # Update eat and hit positions based on the image from draw
         if not self._easter:
@@ -505,44 +451,32 @@ class Player():
         else:
             self._eat_pos = self._position
             self._eat_tol = self._size * 1.25
-        
+            
         # Draw player's accessory before text
         self._draw_accessory()
+            
+        # Eat text draw
+        if self._game_timer.get_time() - self._last_eat_timestamp < Player.EAT_DUR:
+            self._draw_text(self._eat_text, player_image)
         
-        # Text draw
-        # Eat
-        if self.nom_txt_counter > 0:
-            self._draw_text(self._txt_nom, player_image)
-            self.nom_txt_counter -= 80 * dt
+        # Hurt text draw
+        elif self._game_timer.get_time() - self._last_hurt_timestamp < Player.HURT_DUR:
+            self._draw_text(self._hurt_text, player_image)
             
-        # Hit
-        if self.ow_txt_counter > 0:
-            self._draw_text(self._txt_ow, player_image)
-            self.ow_txt_counter -= 80 * dt
-
-        # New texts
-        if (self.nom_txt_counter or self.ow_txt_counter) <= 0:
-            self._new_texts()
-            
-        # Dash cooldown and duration updates
-        self._dash_cd = max(0, self._dash_cd - 60 * dt)
-        if self._dash_on:
-            self._dash_dur -= 40 * dt
-            if self._dash_dur <= 0:
-                self._dash_on = False
-                self._speed = self._last_speed
+        # If dash duration is over update player speed
+        if self._dash_on and (self._game_timer.get_time() - self._last_dash_timestamp > Player.DASH_DUR):
+            self._speed = self._speed_before_dash
+            self._dash_on = False
 
         # Update the other stuff
-        self._hit_pos = self._position
-        self._hit_tol = self._size * 1.25
+        self._hurt_pos = self._position
+        self._hurt_tol = self._size * 1.25
         self._collision_tol = self._size * 1.5
-        self._eat_animation_counter += 40 * dt
         
-    def draw_dead(self):
+    def draw_dead(self) -> None:
         """
         Draws the dead player on the screen.
         Scales the player's dead image based on the current size and blits it to the screen.
-        The position is adjusted based on whether the easter mode is active or not.
         """
         self._image_dead = pygame.transform.smoothscale(self._image_dead, self._scale)
         self._screen.blit(self._image_dead, self._position - pygame.Vector2(self._image_dead.get_width() / 2, self._image_dead.get_height() / 2))

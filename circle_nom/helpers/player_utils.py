@@ -1,7 +1,7 @@
 from math import isclose
 import pygame
 
-def player_movement_rate(player, dt:float) -> float:
+def get_movement_rate(player, dt:float) -> float:
     """
     Get player movement rate number from formula.
     
@@ -16,7 +16,7 @@ def player_movement_rate(player, dt:float) -> float:
     EXPONENT = 0.25
     return ((SCALE_FACTOR / (player.size ** EXPONENT)) * player.speed) * dt
 
-def player_size_reduct(player, dt:float) -> float:
+def get_size_reduct(player, dt:float) -> float:
     """
     Get player size reduction number from formula.
     
@@ -31,7 +31,7 @@ def player_size_reduct(player, dt:float) -> float:
     EXPONENT = 1.4
     return ((FACTOR * (player.size ** EXPONENT))) * dt
 
-def player_dash_speed_increase(player) -> float:
+def get_dash_speed(player) -> float:
     """
     Get the player speed increase number from formula.
     
@@ -45,7 +45,7 @@ def player_dash_speed_increase(player) -> float:
     EXPONENT = 1.4
     return ((FACTOR / (player.size ** EXPONENT)) * player.size)
 
-def player_check_bounds(screen: pygame.Surface, player) -> None:
+def check_bounds(screen: pygame.Surface, player) -> None:
     """
     Check if the player is outside the screen bounds and adjust position if necessary.
 
@@ -65,7 +65,7 @@ def player_check_bounds(screen: pygame.Surface, player) -> None:
     if player.position.y <= 0:
         player.position.y = 1
         
-def player_check_collision(player_1, player_2, dt: float) -> None:
+def check_collision(player_1, player_2, dt: float) -> None:
     """
     Check if player_1 collides with player_2 and adjust positions if necessary.
 
@@ -83,7 +83,7 @@ def player_check_collision(player_1, player_2, dt: float) -> None:
         player_1.position.y += dy * dt
         player_2.position.y -= dy * dt
         
-def player_control(player, dt: float, arrows: bool, wasd: bool) -> None:
+def control_movement(player, dt: float, arrows: bool, wasd: bool) -> None:
     """
     Control the player movement and dash based on keyboard input.
 
@@ -93,7 +93,7 @@ def player_control(player, dt: float, arrows: bool, wasd: bool) -> None:
         arrows (bool): Arrows control mode.
         wasd (bool): WASD control mode.
     """
-    MOVEMENT_RATE = player_movement_rate(player, dt)
+    MOVEMENT_RATE = get_movement_rate(player, dt)
     direction = pygame.Vector2(0, 0)
     keys = pygame.key.get_pressed()
 

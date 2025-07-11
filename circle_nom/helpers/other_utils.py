@@ -1,5 +1,5 @@
+from random import uniform, randint
 from typing import Callable
-from random import uniform
 import pygame
 
 def declare_objects(count: int, func: Callable[..., any], *args: any) -> tuple:
@@ -26,27 +26,27 @@ def rand_screen_pos() -> pygame.Vector2:
     Returns:
         Vector2: A pygame.Vector2 obj containing the x and y coordinates of the random position.
     """
-    bias_edge = uniform(0, 100)
+    bias_edge = randint(0, 100)
     
     # Return closer to top left
     if bias_edge <= 20:
-        return pygame.Vector2(uniform(64, 448), uniform(36, 288))
+        return pygame.Vector2(x=uniform(64, 448), y=uniform(96, 288))
     
     # Return closer to bottom right
     elif bias_edge > 20 and bias_edge <= 40:
-        return pygame.Vector2(uniform(832, 1216), uniform(432, 648))
+        return pygame.Vector2(x=uniform(832, 1216), y=uniform(432, 648))
     
     # Return closer to bottom left
     elif bias_edge > 40 and bias_edge <= 60:
-        return pygame.Vector2(uniform(64, 448), uniform(432, 648))
+        return pygame.Vector2(x=uniform(64, 448), y=uniform(432, 648))
     
     # Return closer to top right
     elif bias_edge > 60 and bias_edge <= 80:
-        return pygame.Vector2(uniform(832, 1216), uniform(36, 288))
+        return pygame.Vector2(x=uniform(832, 1216), y=uniform(96, 288))
 
     # Return closer to center
     else:
-        return pygame.Vector2(uniform(480, 960), uniform(270, 540))
+        return pygame.Vector2(x=uniform(480, 960), y=uniform(270, 540))
 
 def rot_center(image: pygame.Surface, angle: int | float, xy) -> tuple[pygame.Surface, pygame.Rect]:
     """
