@@ -1,4 +1,5 @@
 from circle_nom.helpers.other_utils import rot_center, rand_screen_pos
+from circle_nom.systems.logging import get_logger
 from circle_nom.systems.timer import Timer
 from random import randint, uniform
 import pygame
@@ -12,7 +13,7 @@ class Prey():
     AURA_MAX_SCALE = 180        # Maximum prey aura scale
     
     # Prey balancing
-    SPAWNED_DUR = 1             # Time prey stays spawned before despawning
+    SPAWNED_DUR = 2             # Time prey stays spawned before despawning
     NOSPAWN_DUR = 0.5           # Time prey is not spawning after despawn
     MAX_SIZE = 70               # Maximum prey size
     
@@ -21,6 +22,9 @@ class Prey():
     _SPAWNING = "SPAWNING"      # Prey is currently in a spawning animation
     _SPAWNED = "SPAWNED"        # Prey is fully spawned and able to be eaten
     _DESPAWNING = "DESPAWNING"  # Prey is currently in a despawning animation
+    
+    # Logger reference
+    _LOGGER = get_logger(name=__name__)
 
     def __init__(self, screen: pygame.Surface, game_timer: Timer,
                  list_images:list[pygame.Surface], aura_image:pygame.Surface) -> None:
@@ -205,6 +209,14 @@ class Prey():
             # If it has, transition prey to spawning
             else: 
                 self.state = Prey._SPAWNING
+                
+                # Log the change
+                log_str = (
+                    f"Prey at time {self._game_timer.get_time():.2f}s, "
+                    f"X {self._position.x:.2f} Y {self._position.y:.2f} "
+                    f"changed state to {self._state}."
+                )
+                self._LOGGER.info(log_str)
 
         # Spawning state
         elif self._state == Prey._SPAWNING:
@@ -226,6 +238,14 @@ class Prey():
                 # Call draw normal method here to avoid flicker - 
                 # otherwise a draw method will be skipped in this call
                 self._draw_normal(dt=dt)
+                
+                # Log the change
+                log_str = (
+                    f"Prey at time {self._game_timer.get_time():.2f}s, "
+                    f"X {self._position.x:.2f} Y {self._position.y:.2f} "
+                    f"changed state to {self._state}."
+                )
+                self._LOGGER.info(log_str)
         
         # Spawned state
         elif self.state == Prey._SPAWNED:
@@ -242,6 +262,14 @@ class Prey():
                 # Call draw normal method here to avoid flicker - 
                 # otherwise a draw method will be skipped in this call
                 self._draw_normal(dt=dt)
+                
+                # Log the change
+                log_str = (
+                    f"Prey at time {self._game_timer.get_time():.2f}s, "
+                    f"X {self._position.x:.2f} Y {self._position.y:.2f} "
+                    f"changed state to {self._state}."
+                )
+                self._LOGGER.info(log_str)
                 
         # Despawning state
         elif self.state == Prey._DESPAWNING:
@@ -263,7 +291,7 @@ class Prey():
         
         # Get a new random angle, screen position and size deviance
         self._prey_angle = uniform(0, 360)
-        self._position = rand_screen_pos()
+        self._position = rand_screen_pos(self._screen)
         self._size_deviance = uniform(-10, 10)
         
         # Initial NOSPAWN Prey attributes
@@ -271,3 +299,11 @@ class Prey():
         self._last_state_change = self._game_timer.get_time()
         self._eatable = False
         self._scale = 0
+        
+        # Log the Prey init
+        log_str = (
+            f"Prey at time {self._game_timer.get_time():.2f}s, "
+            f"X {self._position.x:.2f} Y {self._position.y:.2f}, "
+            f"with state {self.state} initialized."
+        )
+        self._LOGGER.info(log_str) 

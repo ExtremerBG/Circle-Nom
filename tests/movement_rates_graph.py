@@ -2,7 +2,7 @@ import sys
 from pathlib import Path 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from circle_nom.helpers.player_utils import player_movement_rate
+from circle_nom.helpers.player_utils import get_movement_rate
 from tests.models.fake_player import FakePlayer
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,7 +23,7 @@ for i in range(len(SIZES) - 1):
     player.size = SIZES[i]
     
     # Get new number from function
-    rate = player_movement_rate(player, DT)
+    rate = get_movement_rate(player, DT)
     
     # Append results to data list
     movement_nums.append(rate)

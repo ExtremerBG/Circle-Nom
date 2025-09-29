@@ -1,8 +1,12 @@
+from circle_nom.helpers.config_reader import ConfigReader
 from datetime import datetime
 import logging
 import inspect
 import sys
 import os
+
+# Get logging settings from config file
+CONSOLE_LOG, FILE_LOG = ConfigReader.get_logging()
 
 class _ColorFormatter(logging.Formatter):
     COLORS = {
@@ -14,7 +18,7 @@ class _ColorFormatter(logging.Formatter):
     }
     RESET = "\033[0m"
 
-    def format(self, record):
+    def format(self, record) -> str:
         time = self.formatTime(record, "%Y-%m-%d %H:%M:%S")
         color = self.COLORS.get(record.levelno, self.RESET)
         levelname = f"{color}{record.levelname}{self.RESET}"
@@ -24,7 +28,7 @@ class _ColorFormatter(logging.Formatter):
         return f"[{time}][{logger_name} / {levelname}]: [{function}] {msg}"
 
 class _SafeFormatter(logging.Formatter):
-    def format(self, record):
+    def format(self, record) -> str:
         if not hasattr(record, "function"):
             record.function = "unknown"
         return super().format(record)
@@ -33,6 +37,8 @@ class _FunctionLogger(logging.Logger):
     def _log(self, level, msg, args, exc_info=None, extra=None, stack_info=False, stacklevel=1):
         if extra is None:
             extra = {}
+        else:
+            extra = dict(extra)
             
         frame = inspect.currentframe()
         for _ in range(2):
@@ -73,22 +79,24 @@ def get_logger(name: str = __name__) -> logging.Logger:
     logger = logging.getLogger(name)
     if not logger.hasHandlers():
         logger.setLevel(logging.DEBUG)
+        
+        if CONSOLE_LOG:
+            # Console handler
+            ch = logging.StreamHandler(sys.stdout)
+            ch.setFormatter(_ColorFormatter())
+            logger.addHandler(ch)
 
-        # Console handler
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setFormatter(_ColorFormatter())
-        logger.addHandler(ch)
-
-        # Create the log file path
-        log_file = f"logs/{datetime.now().strftime("%Y-%m-%d")}/circle_nom.log"
-        os.makedirs(os.path.dirname(log_file), exist_ok=True)
-                 
-        # File handler      
-        fh = logging.FileHandler(log_file)
-        fh.setFormatter(_SafeFormatter(
-            "[%(asctime)s] [%(name)s / %(levelname)s]: [%(function)s] %(message)s",
-            "%Y-%m-%d %H:%M:%S"
-        ))
-        logger.addHandler(fh)
+        if FILE_LOG:
+            # Create the log file path
+            log_file = f"logs/{datetime.now().strftime("%Y-%m-%d")}/output.log"
+            os.makedirs(os.path.dirname(log_file), exist_ok=True)
+                    
+            # File handler      
+            fh = logging.FileHandler(log_file)
+            fh.setFormatter(_SafeFormatter(
+                "[%(asctime)s] [%(name)s / %(levelname)s]: [%(function)s] %(message)s",
+                "%Y-%m-%d %H:%M:%S"
+            ))
+            logger.addHandler(fh)
 
     return logger

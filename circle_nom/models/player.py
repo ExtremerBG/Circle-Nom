@@ -1,5 +1,6 @@
-from circle_nom.helpers.asset_bank import DASH_SOUNDS, COMIC_SANS_MS
 import circle_nom.helpers.player_utils as player_utils
+from circle_nom.helpers.asset_bank import AssetBank
+from circle_nom.systems.logging import get_logger
 from circle_nom.systems.timer import Timer
 from random import choice
 import numpy as np
@@ -8,11 +9,11 @@ import pygame
 class Player():
     
     # Starting values
-    STARTING_SPEED = 30
+    STARTING_SPEED = 25
     STARTING_SIZE = 60
     
     # Dash cooldown and duration in seconds
-    DASH_CD =  1.2
+    DASH_CD =  0.6
     DASH_DUR = 0.14
 
     # Speed limiters - dashing overrides max speed
@@ -31,6 +32,12 @@ class Player():
     EAT_DUR = 0.3
     HURT_DUR = 0.3
     
+    # Logger reference
+    _LOGGER = get_logger(name=__name__)
+    
+    # Game asset bank
+    _AB = AssetBank()
+    
     def __init__(self, screen:pygame.Surface, game_timer: Timer, easter_mode: bool, 
                  image_alive: pygame.Surface, image_dead: pygame.Surface, 
                  eat_sequence: list[pygame.Surface] | None, 
@@ -47,6 +54,7 @@ class Player():
             eat_sequence (list(pygame.Surface) | None): The player's eat sequence animation.
             player_accessory (tuple(pygame.Vector2, pygame.Surface) | None): The player's accessory data pair.
         """
+        
         # Objects from engine
         self._screen = screen
         self._game_timer = game_timer
@@ -60,7 +68,7 @@ class Player():
         self._image_dead = image_dead
         self._eat_sequence = eat_sequence
         self._accessory = accessory
-        self._text_font = pygame.Font(COMIC_SANS_MS, 30)
+        self._text_font = pygame.Font(self._AB.comic_sans_ms, 30)
         
         # Below are the starting attributes
         # Core size, scale, position and speed of the player
@@ -80,7 +88,7 @@ class Player():
             self._eat_pos = self._position
             self._eat_tol = self._size * 1.25
         else:
-            self._eat_pos = pygame.Vector2(self._position.x, self._position.y - self._image_alive.get_height() * - 0.3)
+            self._eat_pos = pygame.Vector2(self._position.x, self._position.y - self._image_alive.height * - 0.3)
             self._eat_tol = self._size * 0.8
         
         # Hurt attributes - simillar to eat
@@ -98,6 +106,9 @@ class Player():
         
         # Initial player points
         self._points = 0
+        
+        # Log the Player init
+        self._LOGGER.info("Player model initialized successfully.")
         
     @property
     def eat_pos(self) -> pygame.Vector2:
@@ -201,16 +212,6 @@ class Player():
         return self._position
     
     @property
-    def scale(self) -> list[int|float]:
-        """
-        Returns the player's scale.
-        
-        Returns:
-            list: The scale of the player.
-        """
-        return self._scale
-    
-    @property
     def points(self) -> int:
         """
         Returns the player's points.
@@ -244,7 +245,7 @@ class Player():
         self._scale = [self._size * 3, self._size * 3]
 
     @speed.setter
-    def speed(self, value:float):
+    def speed(self, value:float) -> None:
         """
         Sets the player's speed. Has min/max values, check Player class.
         
@@ -257,7 +258,7 @@ class Player():
             if self._speed > Player.MAX_SPEED: self._speed = Player.MAX_SPEED 
             
     @speed_before_dash.setter
-    def speed_before_dash(self, value:float):
+    def speed_before_dash(self, value:float) -> None:
         """
         Set the player's last speed before a dash.
         
@@ -267,7 +268,7 @@ class Player():
         self._speed_before_dash = value
         
     @position.setter
-    def position(self, value: pygame.Vector2):
+    def position(self, value: pygame.Vector2) -> None:
         """
         Sets the player's position.
         
@@ -279,7 +280,7 @@ class Player():
         self._position = value
 
     @eat_tol.setter
-    def eat_tol(self, value:float):
+    def eat_tol(self, value:float) -> None:
         """
         Sets the player's eat tolerance.
         
@@ -291,7 +292,7 @@ class Player():
         self._eat_tol = value
 
     @points.setter
-    def points(self, value:int):
+    def points(self, value:int) -> None:
         """
         Sets the player's points.
         
@@ -305,7 +306,7 @@ class Player():
         self._points = value
         
     @classmethod
-    def set_dash_cd(cls, cd: int | float):
+    def set_dash_cd(cls, cd: int | float) -> None:
         """
         Set the dash cooldown of the player.
         
@@ -348,7 +349,7 @@ class Player():
 
             # Unlock the surface
             del pixel_array
-
+            
         return reddish_image
         
     def _draw_text(self, text: str, image: pygame.Surface) -> None:
@@ -360,7 +361,7 @@ class Player():
             image (pygame.Surface): The image to offset the text from.
         """
         rendered_text = self._text_font.render(f"{text}", True, (255, 255, 255))
-        text_rect = rendered_text.get_rect(center=(self._position.x, self._position.y - image.get_height() / 2 - self._size * 0.8))
+        text_rect = rendered_text.get_rect(center=(self._position.x, self._position.y - image.height / 2 - self._size * 0.8))
         self._screen.blit(rendered_text, text_rect)
 
     def _new_texts(self) -> None:
@@ -381,8 +382,8 @@ class Player():
             scaled_offset = self._accessory[0] * scale_factor
             # Scale the accessory image
             accessory_size = (
-                (self._accessory[1].get_width() * scale_factor),
-                (self._accessory[1].get_height() * scale_factor)
+                (self._accessory[1].width * scale_factor),
+                (self._accessory[1].height * scale_factor)
             )
             scaled_image = pygame.transform.smoothscale(self._accessory[1], accessory_size)
             # Calculate the top-left of the player image
@@ -390,7 +391,7 @@ class Player():
             # Blit at the correct position
             self._screen.blit(
                 scaled_image,
-                player_topleft + scaled_offset - pygame.Vector2(scaled_image.get_width() / 2, scaled_image.get_height() / 2)
+                player_topleft + scaled_offset - pygame.Vector2(scaled_image.width / 2, scaled_image.height / 2)
             )
             
     def reset_eat_attributes(self) -> None:
@@ -418,7 +419,12 @@ class Player():
             self._speed += player_utils.get_dash_speed(self)
             self._last_dash_timestamp = self._game_timer.get_time()
             self._dash_on = True
-            choice(DASH_SOUNDS).play()
+            choice(self._AB.dash_sounds).play()
+            log_str = (
+                f"Player dashed at time {self._game_timer.get_time():.2f} " 
+                f"with init speed {self._speed_before_dash:.2f}, current speed {self._speed:.2f}"
+            )
+            self._LOGGER.info(log_str)
             
     def draw(self, dt: float) -> None:
         """
@@ -431,22 +437,22 @@ class Player():
         if self._game_timer.get_time() - self._last_eat_timestamp < Player.EAT_DUR and self._eat_sequence:
             player_image = self._eat_sequence[int(self._game_timer.get_time() / 0.12 % len(self._eat_sequence))]
             player_image = pygame.transform.smoothscale(player_image, self._scale)
-            self._screen.blit(player_image, self._position - pygame.Vector2(player_image.get_width() / 2, player_image.get_height() / 2))
+            self._screen.blit(player_image, self._position - pygame.Vector2(player_image.width / 2, player_image.height / 2))
             
         # Hurt draw
         elif self._game_timer.get_time() - self._last_hurt_timestamp < Player.HURT_DUR:
             player_image = pygame.transform.smoothscale(self._image_hit, self._scale)
-            self._screen.blit(player_image, self._position - pygame.Vector2(player_image.get_width() / 2, player_image.get_height() / 2))
+            self._screen.blit(player_image, self._position - pygame.Vector2(player_image.width / 2, player_image.height / 2))
             
         # Normal draw
         else:
             # Player resize and draw
             player_image = pygame.transform.smoothscale(self._image_alive, self._scale)
-            self._screen.blit(player_image, self._position - pygame.Vector2(player_image.get_width() / 2, player_image.get_height() / 2))
+            self._screen.blit(player_image, self._position - pygame.Vector2(player_image.width / 2, player_image.height / 2))
             
         # Update eat and hit positions based on the image from draw
         if not self._easter:
-            self._eat_pos = pygame.Vector2(self._position.x, self._position.y - player_image.get_height() * -0.3)
+            self._eat_pos = pygame.Vector2(self._position.x, self._position.y - player_image.height * -0.3)
             self._eat_tol = self._size * 0.8
         else:
             self._eat_pos = self._position
@@ -479,5 +485,5 @@ class Player():
         Scales the player's dead image based on the current size and blits it to the screen.
         """
         self._image_dead = pygame.transform.smoothscale(self._image_dead, self._scale)
-        self._screen.blit(self._image_dead, self._position - pygame.Vector2(self._image_dead.get_width() / 2, self._image_dead.get_height() / 2))
+        self._screen.blit(self._image_dead, self._position - pygame.Vector2(self._image_dead.width / 2, self._image_dead.height / 2))
         self._draw_accessory()

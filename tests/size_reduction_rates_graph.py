@@ -2,7 +2,7 @@ import sys
 from pathlib import Path 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from circle_nom.helpers.player_utils import player_size_reduct
+from circle_nom.helpers.player_utils import get_size_reduct
 from tests.models.fake_player import FakePlayer
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,7 +20,7 @@ for i in range(len(SIZES) - 1):
     player.size = SIZES[i]
     
     # Get new rate from function
-    rate = player_size_reduct(player, DT)
+    rate = get_size_reduct(player, DT)
     
     # Append results to data list
     reduction_rates.append(rate)

@@ -1,10 +1,12 @@
 from circle_nom.systems.logging import get_logger
 import math
 
-logger = get_logger()
-
 class Oscillator:
     
+    # Logger reference
+    _LOGGER = get_logger(name=__name__)
+    
+    # Oscillator wave types
     _WAVE_TYPES = "sine", "triangle", "square", "sawtooth"
     
     def __init__(self, a_min: int|float, a_max: int|float, period: int|float, pattern: str = "sine"):
@@ -23,10 +25,12 @@ class Oscillator:
         
         self._pattern = pattern
         if pattern not in self._WAVE_TYPES:
-            logger.error(f"Oscillator received invalid wave pattern: {pattern}.")
-            
+            self._LOGGER.error(f"Oscillator received invalid wave pattern: {pattern}.")
+        
         self._frequency = 1 / period
         self._time = 0
+        
+        self._LOGGER.info(f"Oscillator with pattern {self._pattern} initialized successfully.")
         
     def _get_wave_value(self, t) -> float:
         """Internal method for generating waveform patterns. Use update() to get wave values."""

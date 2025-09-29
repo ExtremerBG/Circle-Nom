@@ -53,11 +53,11 @@ def check_bounds(screen: pygame.Surface, player) -> None:
         screen (pygame.Surface): The game screen.
         player: The player object with position attributes.
     """
-    if player.position.x >= screen.get_width():
-        player.position.x = screen.get_width() - 1
+    if player.position.x >= screen.width:
+        player.position.x = screen.width - 1
 
-    if player.position.y >= screen.get_height(): 
-         player.position.y = screen.get_height() - 1
+    if player.position.y >= screen.height: 
+         player.position.y = screen.height - 1
 
     if player.position.x <= 0:
         player.position.x = 1

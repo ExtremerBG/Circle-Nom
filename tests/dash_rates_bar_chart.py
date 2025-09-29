@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from circle_nom.helpers.player_utils import player_dash_speed_increase
+from circle_nom.helpers.player_utils import get_dash_speed
 from tests.models.fake_player import FakePlayer
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,7 +11,7 @@ import numpy as np
 SIZES = np.linspace(30, 120, 10)
 
 # Calculate speed increase for each size using the actual formula
-speed_increases = [player_dash_speed_increase(FakePlayer(size)) for size in SIZES]
+speed_increases = [get_dash_speed(FakePlayer(size)) for size in SIZES]
 
 # Plotting the bar chart
 plt.figure(figsize=(8, 6))

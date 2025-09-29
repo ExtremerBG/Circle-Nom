@@ -1,24 +1,35 @@
-from circle_nom.helpers.asset_bank import COMIC_SANS_MS
+from circle_nom.helpers.asset_bank import AssetBank
+from circle_nom.systems.logging import get_logger
 import pygame
 
 class HealthBar():
+    
+    # Logger reference
+    _LOGGER = get_logger(name=__name__)
+    
+    # Game asset bank
+    _AB = AssetBank()
 
-    def __init__(self, health_bar: list[pygame.Surface], screen: pygame.Surface):
+    def __init__(self, health_bar: dict[str, pygame.Surface], screen: pygame.Surface) -> None:
 
         """
         Initializes the HealthBar object with images and screen.
 
         Args:
-            health_bar (list[pygame.Surface]): List of images for the health bar.
+            health_bar (dict[str, pygame.Surface]): Dict of images for the health bar. Contains keys "INNER" and "OUTER",
+            with values pygame.Surface corresponding to the inner and outer portion of the health bar.
             screen (pygame.Surface): The game screen.
         """
         self._bar_inner = health_bar["INNER"] # moving (red) bit
         self._bar_outer = health_bar["OUTER"] # static (white) bit
         self._bar_inner_og = self._bar_inner
-        self._font = pygame.Font(COMIC_SANS_MS, 30)
+        self._font = pygame.Font(self._AB.comic_sans_ms, 30)
         self._screen = screen
-
-    def draw(self, text: str, size: float, max_size: float, death_size: float, coords: list):
+        
+        # Log the Health Bar init
+        self._LOGGER.info("Health bar initialized successfully.")
+        
+    def draw(self, text: str, size: float, max_size: float, death_size: float, coords: pygame.Vector2) -> None:
         """
         Draws the health bar on the screen.
 
@@ -26,12 +37,12 @@ class HealthBar():
             text (str): The text to display next to the health bar.
             size (int): The current size of the player.
             min_size (int): The minimum size of the player.
-            coords (list): The position coordinates to draw the hunger bar.
+            coords (pygame.Vector2): The position coordinates to draw the health bar.
         """
         # Text draw
         text_display = self._font.render(text, True, (255, 255, 255))
-        text_x = coords[0] - text_display.get_width() + 40
-        text_y = coords[1] - text_display.get_height() + 33
+        text_x = coords.x - text_display.width + 40
+        text_y = coords.y - text_display.height + 33
         self._screen.blit(text_display, (text_x, text_y))
 
         # Bar draw

@@ -2,11 +2,12 @@ from circle_nom.systems.logging import get_logger
 import threading
 import time
 
-logger = get_logger(name=__name__)
-
 class Timer:
     
-    def __init__(self, name: str | None = None, debug: bool = False) -> None:
+    # Logger reference
+    _LOGGER = get_logger(name=__name__)
+    
+    def __init__(self, name: str | None = None) -> None:
         """
         A thread-safe Timer that runs in a background thread. \n
         Allows starting, stopping, resetting, and retrieving elapsed time. \n
@@ -14,10 +15,8 @@ class Timer:
         
         Args:
             name (str): Optional arg to set a custom thread name.
-            debug (bool): Optional arg to enable debug mode.
         """
-        self._debug = debug                       # Boolean for debugging prints
-        self._start_time = None                   # Timestamp when the timer was started
+        self._start_time = 0.00                   # Timestamp when the timer was started
         self._elapsed = 0                         # Total elapsed time in seconds
         self._formatted_last_elapsed = -1         # Cache used in formatted time to avoid recompute
         self._formatted_last_output = "0 seconds" # Cache used in formatted time to avoid recompute
@@ -26,7 +25,7 @@ class Timer:
         self._thread = threading.Thread(target=self._run, daemon=True)
         if name: self._thread.name = name
         self._thread.start()
-        if self._debug: logger.info(msg=f"Thread '{self._thread.name}' started. Timer object id {id(self)} created.")
+        self._LOGGER.info(msg=f"Thread '{self._thread.name}' started. Timer object id {id(self)} created.")
 
     def _run(self) -> None:
         """
@@ -47,7 +46,7 @@ class Timer:
             if not self._running:
                 self._start_time = time.time() - self._elapsed
                 self._running = True
-        if self._debug: logger.info(msg=f"Thread '{self._thread.name}' has started its timer.")
+        self._LOGGER.info(msg=f"Thread '{self._thread.name}' has started its timer.")
 
     def stop(self) -> None:
         """
@@ -58,7 +57,7 @@ class Timer:
             if self._running:
                 self._elapsed = time.time() - self._start_time
                 self._running = False
-        if self._debug: logger.info(msg=f"Thread '{self._thread.name}' has stopped its timer.")
+        self._LOGGER.info(msg=f"Thread '{self._thread.name}' has stopped its timer.")
 
     def reset(self) -> None:
         """
@@ -72,8 +71,8 @@ class Timer:
             self._formatted_last_elapsed = -1
             self._formatted_last_output = "0 seconds"
             if not self._running:
-                self._start_time = None
-        if self._debug: logger.info(msg=f"Thread '{self._thread.name}' has reset its timer.")
+                self._start_time = 0.00
+        self._LOGGER.info(msg=f"Thread '{self._thread.name}' has reset its timer.")
 
     def get_time(self) -> float:
         """

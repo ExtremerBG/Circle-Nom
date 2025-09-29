@@ -1,21 +1,36 @@
-import circle_nom.systems.asset_loader as asset_loader 
+# Importing modules
+
+# Circle Nom Engine (the core game)
+from circle_nom.core.engine import CircleNom
+
+# Game Systems & Helpers
+from circle_nom.systems.asset_loader import AssetLoader 
 from circle_nom.systems.oscillator import Oscillator
 import circle_nom.helpers.other_utils as other_utils
+from circle_nom.helpers.asset_bank import AssetBank
 from circle_nom.systems.logging import get_logger
-from circle_nom.core.engine import CircleNom
-from circle_nom.helpers.asset_bank import *
 from circle_nom.systems.timer import Timer
+
+# Builtins & Third-party
 from random import choice, randint
+from typing import Union
 import webbrowser
 import pygame
 import sys
 
-logger = get_logger(name=__name__)
-
 class Menu:
     
-    # Get pygame window size
+    # Get Pygame window size
     WIDTH, HEIGHT = pygame.display.get_window_size()
+    
+    # Logger reference
+    _LOGGER = get_logger(name=__name__)
+    
+    # Game asset bank
+    _AB = AssetBank()
+    
+    # Game asset loader
+    _AL = AssetLoader()
     
     # Colors
     WHITE = (255, 255, 255)
@@ -30,9 +45,9 @@ class Menu:
     LIGHT_BLUE = (0, 125, 255)
     
     # Fonts
-    FONT_SMALL = pygame.Font(COMIC_SANS_MS, 15)
-    FONT = pygame.Font(COMIC_SANS_MS, 40)
-    FONT_BIG = pygame.Font(COMIC_SANS_MS, 65)
+    FONT_SMALL = pygame.Font(_AB.comic_sans_ms, 15)
+    FONT = pygame.Font(_AB.comic_sans_ms, 40)
+    FONT_BIG = pygame.Font(_AB.comic_sans_ms, 65)
     
     # Main Menu items - Item and RGB Values
     MAIN_MENU_ITEMS = (
@@ -54,29 +69,44 @@ class Menu:
         ("80", "#f4b316"), ("90", "#f36618"), ("100", "#f21b1b")
     )
     
-    DIFF_MODES = (("Easy", GREEN), ("Medium", YELLOW), ("Hard", RED))
+    DIFF_MODES = (("Easy", "#00ff00"), ("Medium", "#ffff00"), ("Hard", "#ff9500"), ("Impossible", "#ff0000"))
     FPS_CAPS = (
         ("30", "#ff0000"), ("60", "#ff0039"), ("75", "#ff075f"), ("120", "#ff207d"), 
         ("144", "#ff2a9a"), ("240", "#ff2db8"), ("360", "#ff22dd"), ("Unlimited", "#f942ff")
     )
     PLAY_MODES = (("Singleplayer", "#94f21c"), ("Multiplayer", "#0acffa"))
     SCREEN_MODES = (("Windowed", "#fa0a35"), ("Fullscreen", "#adff00"))
+    VSYNC_MODES = (("Off", "#ff0000"), ("On", "#00ff00"))
     
     # Aura and Player in Menu consts
     AURA_MENU_POS = pygame.Vector2(WIDTH / 2, HEIGHT / 5)
     PLAYER_MENU_SCALE = (180, 180)
     
-    # Menus clicks sound cooldown const (100 ms)
-    CLICK_TIMER_CD = 0.1
+    # Menus clicks sound cooldown const (85 ms)
+    CLICK_TIMER_CD = 0.085
     
     # Project's GitHub page link, used in Credits
     CIRCLE_NOM_GITHUB_PAGE = "https://github.com/ExtremerBG/Circle-Nom"
     
-    def __init__(self, screen: pygame.Surface, timer: Timer) -> None:
+    # Thank you note, used in Credits
+    THANK_YOU = FONT_SMALL.render(text="Thank you for playing Circle Nom!", antialias=True, color=WHITE)
+    
+    # Game version number, used in Main
+    GAME_VER = FONT_SMALL.render(text="v.4.0.0", antialias=True, color=WHITE)
+    
+    def __init__(self, screen: pygame.Surface) -> None:
         
-        # Start the created timer
-        self.timer = timer
-        self.timer.start()
+        """
+        Initializes the Menus for the Circle Nom game. This should be your way to normally launch the core game, \n
+        which is located in the engine.py file. These Menus support a variety of options to fine tune your experience.
+        
+        Args:
+            screen (pygame.Surface): The Pygame screen object, declared in main.
+        """
+        
+        # Create a new Timer and start it
+        self.menu_timer = Timer(name="MenuTimerThread")
+        self.menu_timer.start()
         
         # Pygame clock for framerate
         self.clock = pygame.time.Clock()
@@ -86,15 +116,16 @@ class Menu:
         
         # Setup pygame screen
         self.screen = screen
-        pygame.display.set_icon(ICON)
-        pygame.display.set_caption("Circle Nom")
+        self._setup_screen()
+        self._get_new_rand_images()
         
         # Inititial setting values
         self.current_volume = 5
         self.current_fps_cap = 3
-        self.current_difficulty = 1
+        self.current_difficulty = 0
         self.current_play_mode = 0
         self.current_screen_mode = 0
+        self.current_vsync_mode = 0
         
         # Set settings based on initial values
         self._set_sound_vol(self.current_volume, len(self.VOL_LEVELS) - 1)
@@ -107,31 +138,25 @@ class Menu:
                 "Difficulty": self.DIFF_MODES[self.current_difficulty], 
                 "Mode": self.PLAY_MODES[self.current_play_mode], 
                 "Display": self.SCREEN_MODES[self.current_screen_mode],
+                "VSync": self.VSYNC_MODES[self.current_vsync_mode],
                 "Back": None
             }
         
         # Inititial selected item for menus
         self.selected_menu_item = 0
-        self.selected_options_item = 5
+        self.selected_options_item = 0
         self.selected_credits_item = 0
         self.is_title_selected = False
-        
-        # Select random images
-        self._get_new_rand_images()
         
         # Aura rotation angle
         self.player_aura_angle = 0
 
         # Load random menu theme song
-        self.song_name, self.song_path = choice(MENU_THEMES)
-        asset_loader.load_music(self.song_path)
+        self.song_name, self.song_path = choice(self._AB.menu_themes)
+        self._AL.load_music(self.song_path)
         
         # End event for music autoplay
         pygame.mixer.music.set_endevent(pygame.USEREVENT)
-
-        # Create a cursor from the image
-        pg_cursor = pygame.cursors.Cursor((8, 8), CURSOR)
-        pygame.mouse.set_cursor(pg_cursor)
         
         # Menu last click timestamp - used for setting a cooldown on menu clicks
         self.last_click_timestamp = 0
@@ -140,13 +165,16 @@ class Menu:
         self.sine_colours_shift = Oscillator(a_min=0, a_max=1, period=1.8, pattern="sine")
         self.sine_movement_offset = Oscillator(a_min=-3, a_max=3, period=1.2, pattern="triangle")
         
+        # Log the Menu init
+        self._LOGGER.info("Circle Nom Menus initialized successfully.")
+        
     @property
-    def fps_cap(self):
+    def fps_cap(self) -> int:
         """Get the fps cap value."""
         return self._fps_cap
     
     @fps_cap.setter
-    def fps_cap(self, value):
+    def fps_cap(self, value) -> None:
         """
         Cap pygame's FPS with the given value.
         
@@ -160,13 +188,14 @@ class Menu:
             
     def _get_new_rand_images(self) -> None:
         """Select a random background image, player image index and refresh associated vars."""
-        self.background_image = choice(BACKGROUND_IMAGES)
+        self.background_image = choice(self._AB.background_images)
         if randint(0, 5) == 0: # 20% chance to choose random accessory
-            self.player_accessory = choice(PLAYER_ACCESSORIES)
+            self.player_accessory = choice(self._AB.player_accessories)
         else:
             self.player_accessory = None
-        self.player_menu_image = pygame.transform.smoothscale(PLAYER_IMAGE, self.PLAYER_MENU_SCALE)
-        self.player_blit_pos = self.AURA_MENU_POS - pygame.Vector2(self.player_menu_image.get_width() / 2, self.player_menu_image.get_height() / 2)
+        self.player_menu_image = pygame.transform.smoothscale(self._AB.player_image, self.PLAYER_MENU_SCALE)
+        self.player_blit_pos = self.AURA_MENU_POS - pygame.Vector2(self.player_menu_image.width / 2, self.player_menu_image.height / 2)
+        self._normalize_background_image()
         
     def _set_sound_vol(self, volume:int|float, max_volume:int|float) -> None:
         """
@@ -181,41 +210,59 @@ class Menu:
         
         # Set volumes
         pygame.mixer.music.set_volume(volume)
-        for sound in MENU_CLICK_SOUNDS.values(): sound.set_volume(volume)
-        for sound in EAT_SOUNDS: sound.set_volume(volume)
-        for sound in DAGGER_SOUNDS: sound.set_volume(volume)
-        for sound in HIT_SOUNDS: sound.set_volume(volume)
-        for sound in DASH_SOUNDS: sound.set_volume(volume)
+        for sound in self._AB.menu_click_sounds.values(): sound.set_volume(volume)
+        for sound in self._AB.player_eat_sounds: sound.set_volume(volume)
+        for sound in self._AB.dagger_sounds: sound.set_volume(volume)
+        for sound in self._AB.player_hit_sounds: sound.set_volume(volume)
+        for sound in self._AB.dash_sounds: sound.set_volume(volume)
         
     def _play_menu_click(self, type: str) -> None:
         """
-        Play a menu click sound with a given type.
+        Play a Menu click sound with a given type.
         
         Args:
             type (str): The given click type. Can be either LEFTRIGHT, UPDOWN or UNKNOWN.
         """
-        if type not in MENU_CLICK_SOUNDS.keys(): 
-            logger.warning(f"Invalid menu click type. Can be one of {MENU_CLICK_SOUNDS.keys()}.")
+        if type not in self._AB.menu_click_sounds.keys(): 
+            self._LOGGER.warning(f"Invalid Menus click type. Can be one of {self._AB.menu_click_sounds.keys()}.")
             return
         
         # Play sound only if cooldown is passed
-        if self.timer.get_time() - self.last_click_timestamp > self.CLICK_TIMER_CD:
-            self.last_click_timestamp = self.timer.get_time()
-            MENU_CLICK_SOUNDS[type].play()
+        if self.menu_timer.get_time() - self.last_click_timestamp > self.CLICK_TIMER_CD:
+            self.last_click_timestamp = self.menu_timer.get_time()
+            self._AB.menu_click_sounds[type].play()
+            
+    def _normalize_background_image(self) -> None:
+        """Normalize the background image to match the current screen resolution."""
+        size_factor = ((self.screen.width / self.background_image.width), 
+                       (self.screen.height /self.background_image.height))
+        self.background_image = pygame.transform.smoothscale_by(self.background_image, size_factor)
         
-    def _toggle_screen_mode(self) -> None:
-        """Toggle between windowed and fullscreen modes."""
+    def _setup_screen(self) -> None:
+        """Setup the pygame screen and background image with its size, icon, captions and others."""
+        pygame.display.set_icon(self._AB.icon)
+        pygame.display.set_caption("Circle Nom")
+        pg_cursor = pygame.cursors.Cursor((8, 8), self._AB.cursor)
+        pygame.mouse.set_cursor(pg_cursor)
         
+    def _toggle_screen_modes(self) -> None:
+        """Toggle between the different screen modes - Windowed/Fullscreen and VSync Off/On."""
+        # Quits and re-inits display to avoid weird bug where VSync toggles freeze the screen
+        pygame.display.quit()
+        pygame.display.init()
+        # Set display modes based on what screen mode is selected
         if self.current_screen_mode == 1: # Fullscreen
-            self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT), pygame.FULLSCREEN)
+            self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT), pygame.FULLSCREEN, vsync=self.current_vsync_mode)
         else:                             # Windowed
-            self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+            self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT), vsync=self.current_vsync_mode)
+        # Call setup screen again since the custom icon and stuff was reset
+        self._setup_screen()
             
     def _draw_menu_player(self) -> None:
         """Draw the player, aura and the optional accessory on the screen."""
         
         # Rotate and draw aura
-        aura = other_utils.rot_center(PLAYER_AURA, self.player_aura_angle, self.AURA_MENU_POS)
+        aura = other_utils.rot_center(self._AB.player_aura, self.player_aura_angle, self.AURA_MENU_POS)
         self.screen.blit(aura[0], aura[1])
         
         # Increment aura for rotation
@@ -229,7 +276,7 @@ class Menu:
             self.screen.blit(
                 self.player_accessory[1], 
                 self.player_blit_pos + self.player_accessory[0] - pygame.Vector2(
-                    self.player_accessory[1].get_width() / 2, self.player_accessory[1].get_height() / 2
+                    self.player_accessory[1].width / 2, self.player_accessory[1].height / 2
                 )
             )
         
@@ -261,17 +308,23 @@ class Menu:
         # Screen mode
         elif self.selected_options_item == 4:
             self.current_screen_mode = (self.current_screen_mode + move_step) % len(self.SCREEN_MODES)
-            self._toggle_screen_mode()
+            self._toggle_screen_modes()
+            
+        # VSync mode
+        elif self.selected_options_item == 5:
+            self.current_vsync_mode = (self.current_vsync_mode + move_step) % len(self.VSYNC_MODES)
+            self._toggle_screen_modes()
             
         self._play_menu_click("LEFTRIGHT")
             
-    def _calc_menu_item_pos(self, text_width: int, text_height: int, index: int) -> tuple[int, int]:
+    def _calc_menu_item_pos(self, text_width: Union[int, float], text_height: Union[int, float], 
+                            index: int) -> tuple[Union[int, float], Union[int, float]]:
         """
         Calculate centered X, Y coordinates with its index for Y offset. Used for menu ITEMS only.
         
         Args:
-            text_width (int): The text width, usually calculated with text.get_width().
-            text_height (int): The text height, usually calculated with text.get_height().
+            text_width (int | float): The text width, usually calculated with text.width.
+            text_height (int | float): The text height, usually calculated with text.height.
             index (int): The text index in the menu items list. Used to calculate the Y offset.
             
         Returns:
@@ -289,7 +342,7 @@ class Menu:
         Returns:
             tuple(int, int): A tuple containing the calculated X and Y coordinates.
         """
-        return self.WIDTH // 2 - title.get_width() // 2, self.HEIGHT // 2 - title.get_height() // 2 - 60
+        return self.WIDTH // 2 - title.width // 2, self.HEIGHT // 2 - title.height // 2 - 60
     
     def _render_gradient_title(self, title: str, colour1: tuple[int, int, int], 
                              colour2: tuple[int, int, int]) -> pygame.Surface:
@@ -322,7 +375,6 @@ class Menu:
         """
         self.screen.blit(self.background_image, (0, 0))
         self._draw_menu_player()
-        other_utils.draw_fps(self.screen, self.clock, self.FONT_SMALL)
         
         # Draw credits items & add rects
         index = 0
@@ -338,14 +390,17 @@ class Menu:
                 text = self.FONT.render(item[0], True, self.WHITE)
             
             # Calculate text position, create Rect and display text
-            x, y = self._calc_menu_item_pos(text.get_width(), text.get_height(), index)
+            x, y = self._calc_menu_item_pos(text.width, text.height, index)
             x += x_offset
-            credits_rects.append(pygame.Rect(x, y, text.get_width(), text.get_height()))
+            credits_rects.append(pygame.Rect(x, y, text.width, text.height))
             self.screen.blit(text, (x, y))
             index += 1
                 
         # Draw song name
-        self.screen.blit(self.FONT_SMALL.render(self.song_name, True, self.WHITE), (10, 695))
+        other_utils.draw_music_name(self.screen, self.song_name, self.FONT_SMALL)
+        
+        # Draw thank you note
+        self.screen.blit(self.THANK_YOU, ((self.screen.width - self.THANK_YOU.width - 10), self.screen.height - 25))
         
         # Draw gradient title
         title = self._render_gradient_title("Credits", self.GREEN, self.LIME)
@@ -361,7 +416,8 @@ class Menu:
         return credits_rects
         
     def _launch_credits(self) -> None:
-        """Launch the credits menu."""
+        """Launch the Credits Menu."""
+        self._LOGGER.info("Credits Menu launched.")
         
         # Credits loop
         while True:
@@ -399,7 +455,7 @@ class Menu:
                         
                         # Author item
                         if self.selected_credits_item == 0:
-                            choice(EAT_SOUNDS).play()
+                            choice(self._AB.player_eat_sounds).play()
                         
                         # GitHub page item
                         elif self.selected_credits_item == 1:
@@ -414,7 +470,7 @@ class Menu:
                     elif event.button == 3:
                         # Author item
                         if self.selected_credits_item == 0:
-                            choice(HIT_SOUNDS).play()
+                            choice(self._AB.player_hit_sounds).play()
                     
                 # Keyboard events
                 elif event.type == pygame.KEYDOWN:
@@ -424,7 +480,7 @@ class Menu:
                         
                         # Author item
                         if self.selected_credits_item == 0:
-                            choice(EAT_SOUNDS).play()
+                            choice(self._AB.player_eat_sounds).play()
                             
                         # GitHub page item
                         elif self.selected_credits_item == 1:
@@ -452,8 +508,8 @@ class Menu:
                             
                 # Music end event - Choose new one
                 elif event.type == pygame.USEREVENT:
-                    self.song_name, self.song_path = choice(MENU_THEMES)
-                    load_music(self.song_path)
+                    self.song_name, self.song_path = choice(self._AB.menu_themes)
+                    self._AL.load_music(self.song_path)
                     pygame.mixer.music.play()
     
     def _draw_options(self) -> list[pygame.Rect]:
@@ -465,7 +521,6 @@ class Menu:
         """
         self.screen.blit(self.background_image, (0, 0))
         self._draw_menu_player()
-        other_utils.draw_fps(self.screen, self.clock, self.FONT_SMALL)
 
         # Update options items
         self.options_items["Volume"] = self.VOL_LEVELS[self.current_volume]
@@ -473,6 +528,7 @@ class Menu:
         self.options_items["Difficulty"] = self.DIFF_MODES[self.current_difficulty]
         self.options_items["Mode"] = self.PLAY_MODES[self.current_play_mode]
         self.options_items["Display"] = self.SCREEN_MODES[self.current_screen_mode]
+        self.options_items["VSync"] = self.VSYNC_MODES[self.current_vsync_mode]
         
         # Draw options items & add rects
         index = 0
@@ -497,22 +553,22 @@ class Menu:
                 value_text = self.FONT.render(f"< {value[0]} >", True, value[1])
                 
                 # Calculate text position
-                total_width = key_text.get_width() + value_text.get_width()
-                total_height = max(key_text.get_height(), value_text.get_height())
+                total_width = key_text.width + value_text.width
+                total_height = max(key_text.height, value_text.height)
                 x, y = self._calc_menu_item_pos(total_width, total_height, index)
                 x += x_offset
                 
                 # Blit both texts & create rect
                 self.screen.blit(key_text, (x, y))
-                self.screen.blit(value_text, (x + key_text.get_width(), y))
+                self.screen.blit(value_text, (x + key_text.width, y))
                 
             # Case for Back option (no horizontal movement)
             else:
                 # Render text & calculate position
                 key_text = self.FONT.render(f"{key}", True, key_colour)
-                total_width = key_text.get_width()
-                total_height = key_text.get_height()
-                x, y = self._calc_menu_item_pos(key_text.get_width(), key_text.get_height(), index)
+                total_width = key_text.width
+                total_height = key_text.height
+                x, y = self._calc_menu_item_pos(key_text.width, key_text.height, index)
                 x += x_offset
                 
                 # Blit and create rect
@@ -523,7 +579,10 @@ class Menu:
             index += 1
                 
         # Draw song name
-        self.screen.blit(self.FONT_SMALL.render(self.song_name, True, self.WHITE), (10, 695))
+        other_utils.draw_music_name(self.screen, self.song_name, self.FONT_SMALL)
+        
+        # Draw FPS
+        other_utils.draw_fps(self.screen, self.clock, self.FONT_SMALL)
         
         # Draw gradient title
         title = self._render_gradient_title("Options", self.LIGHT_BLUE, self.LIGHT_PURPLE)
@@ -539,7 +598,8 @@ class Menu:
         return option_rects
     
     def _launch_options(self) -> None:
-        """Launch the options menu."""
+        """Launch the Options Menu."""
+        self._LOGGER.info("Options Menu launched.")
         
         # Options loop
         while True:
@@ -574,16 +634,16 @@ class Menu:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                         
                     # Left click on Back option
-                    if event.button == 1 and self.selected_options_item == 5: # Back is located at index 5
+                    if event.button == 1 and self.selected_options_item == 6: # Back is located at index 6
                         self._play_menu_click("UPDOWN")
                         return # Return to main menu
                     
                     # Right click horizontal options - go right
-                    elif event.button == 3 and self.selected_options_item in (0, 1, 2, 3, 4):
+                    elif event.button == 3 and self.selected_options_item in (0, 1, 2, 3, 4, 5):
                         self._options_movement_horizontal(move_step=1)
                         
                     # Left click on horizontal options - go left
-                    elif event.button == 1 and self.selected_options_item in (0, 1, 2, 3, 4):
+                    elif event.button == 1 and self.selected_options_item in (0, 1, 2, 3, 4, 5):
                         self._options_movement_horizontal(move_step=-1)
                     
                 # Keyboard events
@@ -591,7 +651,7 @@ class Menu:
                     
                     # Enter
                     if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                        if self.selected_options_item == 5: # Back is located at index 5
+                        if self.selected_options_item == 6: # Back is located at index 6
                             self._play_menu_click("UPDOWN")
                             return # Return to main menu
                         
@@ -620,8 +680,8 @@ class Menu:
                             
                 # Music end event - Choose new one
                 elif event.type == pygame.USEREVENT:
-                    self.song_name, self.song_path = choice(MENU_THEMES)
-                    load_music(self.song_path)
+                    self.song_name, self.song_path = choice(self._AB.menu_themes)
+                    self._AL.load_music(self.song_path)
                     pygame.mixer.music.play()
     
     def _draw_main_menu(self) -> tuple[list[pygame.Rect], pygame.Rect]:
@@ -633,7 +693,6 @@ class Menu:
         """
         self.screen.blit(self.background_image, (0, 0))
         self._draw_menu_player()
-        other_utils.draw_fps(self.screen, self.clock, self.FONT_SMALL)
         
         # Set colours for menu items & last selected index for smooth transition
         main_menu_rects = []
@@ -649,24 +708,28 @@ class Menu:
                 text = self.FONT.render(item[0], True, self.WHITE)
             
             # Calculate text position, create Rect and display text
-            x, y = self._calc_menu_item_pos(text.get_width(), text.get_height(), index)
+            x, y = self._calc_menu_item_pos(text.width, text.height, index)
             x += x_offset # add x_offset to x, can be ether -4 <-> 4 or 0
-            main_menu_rects.append(pygame.Rect(x, y, text.get_width(), text.get_height()))
+            main_menu_rects.append(pygame.Rect(x, y, text.width, text.height))
             self.screen.blit(text, (x, y))
         
         # Draw song name
-        self.screen.blit(self.FONT_SMALL.render(self.song_name, True, self.WHITE), (10, 695))
+        other_utils.draw_music_name(self.screen, self.song_name, self.FONT_SMALL)
         
-        # Draw gradient title with animation if selected
+        # Draw game version
+        self.screen.blit(self.GAME_VER, ((self.screen.width - self.GAME_VER.width - 10), self.screen.height - 25))
+        
+        # Render gradient title
         title = self._render_gradient_title("Circle Nom", self.GOLD, self.YELLOW)
         title_pos = self._calc_menu_title_pos(title)
-        title_rect = pygame.Rect(title_pos[0], title_pos[1], title.get_width(), title.get_height())
+        title_rect = pygame.Rect(title_pos[0], title_pos[1], title.width, title.height)
         
         # Check if title is selected
         if self.is_title_selected:
             x_offset = self.sine_movement_offset.update(self.dt)
             title_pos = (title_pos[0] + x_offset, title_pos[1])
             
+        # Draw title
         self.screen.blit(title, title_pos)
         
         # Update display
@@ -679,7 +742,8 @@ class Menu:
         return main_menu_rects, title_rect
     
     def launch_main_menu(self) -> None:
-        """Launch the main menu."""
+        """Launch the Main Menu."""
+        self._LOGGER.info("Main Menu launched.")
         
         # Functions list for the main menu - None is a placeholder for return, since sys.exit breaks the profiler
         MAIN_MENU_FUNCTIONS = [self.start_game, self._launch_options, None]
@@ -780,19 +844,19 @@ class Menu:
 
                 # Music end event - Replay
                 elif event.type == pygame.USEREVENT:
-                    self.song_name, self.song_path = choice(MENU_THEMES)
-                    load_music(self.song_path)
+                    self.song_name, self.song_path = choice(self._AB.menu_themes)
+                    self._AL.load_music(self.song_path)
                     pygame.mixer.music.play()
                     
     def start_game(self) -> None:
         """Start the Circle Nom game."""
         
-        # Reset the timer before passing to the game
-        self.timer.reset()
+        # Stop the Menu timer before entering the game
+        self.menu_timer.stop()
         
         # Declare a new Circle Nom game object
         game = CircleNom(
-            screen=self.screen, timer=self.timer,
+            screen=self.screen,
             fps_cap=self.fps_cap, difficulty=self.current_difficulty,play_mode=self.current_play_mode, 
             player_accessory=self.player_accessory, background_image=self.background_image
         )
@@ -800,5 +864,11 @@ class Menu:
         # Start the Circle Nom game
         game.start()
         
+        # Delete the old Circle Nom instance
+        del game
+        
         # After game finishes, get new random images
         self._get_new_rand_images()
+        
+        # Start the Menu timer again after finishing the Game
+        self.menu_timer.start()
