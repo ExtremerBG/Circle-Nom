@@ -79,7 +79,7 @@ class ConfigReader:
                 case "Windows":
                     _logger.info(f"Detected frozen app running on {_CURR_SYS}. Trying to find the documents Documents config path.")
                     _CONFIG_NAME_AND_PATH = [
-                        "Documents", Path((os.environ["USERPROFILE"]) / "Documents" / "CircleNom" / "config.ini")
+                        "Documents", Path(os.environ["USERPROFILE"]) / "Documents" / "CircleNom" / "config.ini"
                     ]
                 case "Linux":
                     _logger.info(f"Detected frozen app running on {_CURR_SYS}. Trying to find the documents Documents config path.")
