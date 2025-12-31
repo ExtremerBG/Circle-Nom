@@ -316,9 +316,10 @@ class CircleNom():
                     # Escape
                     if event.key == pygame.K_ESCAPE:
                         running = False # break gameloop
+                        pygame.mixer.music.unpause()
                         
                     # Game pause/unpause - P
-                    if event.key == pygame.K_p:
+                    elif event.key == pygame.K_p:
                         paused = not paused
                         if paused:
                             self.game_timer.stop()

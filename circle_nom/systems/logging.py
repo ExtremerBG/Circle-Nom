@@ -1,12 +1,16 @@
-from circle_nom.helpers.config_reader import ConfigReader
 from datetime import datetime
 import logging
 import inspect
 import sys
 import os
 
-# Get logging settings from config file
-CONSOLE_LOG, FILE_LOG = ConfigReader.get_logging()
+# Default logging settings - to avoid circular import with config_reader.py,
+# these values will be updated after it initializes and reads its files
+_CONSOLE_LOG, _FILE_LOG = True, False
+def reconfigure_logging(console_log: bool, file_log: bool) -> None:
+    """Change the logging settings from their default values."""
+    global _CONSOLE_LOG, _FILE_LOG
+    _CONSOLE_LOG, _FILE_LOG = console_log, file_log
 
 class _ColorFormatter(logging.Formatter):
     COLORS = {
@@ -80,15 +84,15 @@ def get_logger(name: str = __name__) -> logging.Logger:
     if not logger.hasHandlers():
         logger.setLevel(logging.DEBUG)
         
-        if CONSOLE_LOG:
+        if _CONSOLE_LOG:
             # Console handler
             ch = logging.StreamHandler(sys.stdout)
             ch.setFormatter(_ColorFormatter())
             logger.addHandler(ch)
 
-        if FILE_LOG:
+        if _FILE_LOG:
             # Create the log file path
-            log_file = f"logs/{datetime.now().strftime("%Y-%m-%d")}/output.log"
+            log_file = f"{os.getcwd()}/logs/{datetime.now().strftime("%Y-%m-%d")}/output.log"
             os.makedirs(os.path.dirname(log_file), exist_ok=True)
                     
             # File handler      

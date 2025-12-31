@@ -1,7 +1,10 @@
+from circle_nom.systems.logging import get_logger, reconfigure_logging
 from genericpath import exists
 from pathlib import Path
 import configparser
 import traceback
+import platform
+import sys
 import os
 
 class ConfigReader:
@@ -13,10 +16,11 @@ class ConfigReader:
     it will automatically fallback to its default settings and notify the user. All of its methods are classmethods, there is no __init__, \n
     meaning you only need to import this class to use it properly. Check the _DEFAULT_CONFIG const for more info on what the config contains.
     """
-    
-    # ConfigParser object
+    _CONFIG_NAME_AND_PATH = None
+    _CURR_SYS = platform.system()
     _config_parser = configparser.ConfigParser()
     _loaded = False
+    _logger = get_logger(name=__name__)
     
     # Default fallback config
     _DEFAULT_CONFIG = {
@@ -66,60 +70,93 @@ class ConfigReader:
         }
     }
     
-    # Create a dictionary with the name of the config file and its path
-    _CONFIG_NAME_AND_PATH = {
-        "Root": Path(__file__).resolve().parents[2] / "config.ini",
-        "Documents": (Path(os.environ["USERPROFILE"]) / "Documents" / "CircleNom" / "config.ini")
-    }
-    # Ensure the documents path has the folders required
-    _CONFIG_NAME_AND_PATH["Documents"].parent.mkdir(parents=True, exist_ok=True)
-    
+    # Use Documents config if the app is frozen (precompiled executable instead of Python code),
+    # ensures the user can modify it since the normal Root config will be unusable
+    # Check https://pyinstaller.org/en/stable/runtime-information.html#using-file for more info
+    if getattr(sys, 'frozen', False):
+        try:
+            match _CURR_SYS:
+                case "Windows":
+                    _logger.info(f"Detected frozen app running on {_CURR_SYS}. Trying to find the documents Documents config path.")
+                    _CONFIG_NAME_AND_PATH = [
+                        "Documents", Path(os.environ["USERPROFILE"]) / "Documents" / "CircleNom" / "config.ini"
+                    ]
+                case "Linux":
+                    _logger.info(f"Detected frozen app running on {_CURR_SYS}. Trying to find the documents Documents config path.")
+                    _CONFIG_NAME_AND_PATH = [
+                        "Documents", Path(os.path.expanduser("~/Documents/CircleNom/config.ini"))
+                    ]
+                case _:
+                    _logger.error(f"Couldn't find a config path, running on unsupported {_CURR_SYS} system.")
+                        
+        except Exception:
+            _logger.error("An error occured while finding the Documents config path.")
+            traceback.print_exc()
+            
+    # Use Root config if running in normal Python environment
+    else:
+        _logger.info("Detected a normal Python environment. Trying find the Root config path.")
+        try:
+            _CONFIG_NAME_AND_PATH = [
+                "Root", Path(__file__).resolve().parents[2] / "config.ini"
+            ]
+        except:
+            _logger.error("An error occured while finding the Root config path.")
+            traceback.print_exc()
+            
     @classmethod
     def create_configs(cls) -> None:
         """
-        Automatically create new config files in the project's root folder and in C:/USERNAME/Documents/CircleNom/ \n
-        if any of the locations are missing the file. Does not override an already existing config file.
+        Create a new config file (if found missing) in the project's root folder or in the current user's Documents folder, \n
+        depending on if the program is running in a normal Python environment or if its in a frozen bundle (executable). \n
         """
-        count = 0
-        print("Checking if config files are missing...")
-        for NAME, PATH in cls._CONFIG_NAME_AND_PATH.items():
-            if not exists(PATH):
-                print(f"{NAME} config not found. Trying to create one with default values.")
-                try:
-                    for section, options in cls._DEFAULT_CONFIG.items():
-                        cls._config_parser[section] = {k: str(v) for k, v in options.items()}
-                        
-                    with open(PATH, 'w') as docs_config:
-                        cls._config_parser.write(docs_config)
-                    print(f"{NAME} config created successfully at '{PATH}'.")
-                except:
-                    print(f"An error occured while trying to create the {NAME} config.")
-                    print(traceback.format_exc)
-            else:
-                print(f"{NAME} config found at '{PATH}'.")
-                count += 1
-        if count == len(cls._CONFIG_NAME_AND_PATH.values()):
-            print("All config files accounted for.")
+        if not cls._CONFIG_NAME_AND_PATH:
+            cls._logger.error(f"Config path empty, will not be creating a new config file.")
+            return
+        
+        NAME, PATH = cls._CONFIG_NAME_AND_PATH
+        if not exists(PATH):
+            cls._logger.warning(f"{NAME} config not found at '{PATH}', trying to create one with default values.")
+            cls._CONFIG_NAME_AND_PATH[1].parent.mkdir(parents=True, exist_ok=True)
+                
+            try:
+                for section, options in cls._DEFAULT_CONFIG.items():
+                    cls._config_parser[section] = {k: str(v) for k, v in options.items()}
+                            
+                with open(PATH, 'w') as docs_config:
+                    cls._config_parser.write(docs_config)
+                cls._logger.info(f"{NAME} config created successfully at '{PATH}'.")
+                    
+            except:
+                cls._logger.error(f"An error occured while trying to create the {NAME} config.")
+                traceback.print_exc()
+        else:
+            cls._logger.info(f"{NAME} config found at '{PATH}'.")
      
     @classmethod
     def _load_config(cls) -> None:
+        if not cls._CONFIG_NAME_AND_PATH:
+            cls._logger.error(f"Config path empty, loading default values instead.")
+            cls._config_parser.read_dict(cls._DEFAULT_CONFIG)
+            return
+        
         if not cls._loaded:
-            
-            # Try to load config file in order project root -> documents folder
-            for NAME, PATH in cls._CONFIG_NAME_AND_PATH.items():
-                if PATH.exists():
-                    try:
-                        cls._config_parser.read(PATH)
-                        cls._loaded = True
-                        print(f"{NAME} config loaded at '{PATH}'.")
-                        return
-                    except Exception:
-                        print(f"An error occured while trying to load the {NAME} config at '{PATH}'.")
-                        traceback.print_exc()
-                else:
-                    print(f"Could not find the {NAME} config at '{PATH}'.")
+            NAME, PATH = cls._CONFIG_NAME_AND_PATH
+            if [NAME, PATH] != [None, None] and PATH.exists():
+                try:
+                    cls._config_parser.read(PATH)
+                    cls._loaded = True
+                    cls._logger.info(f"{NAME} config loaded at '{PATH}'.")
+                    # Modify logger settings once with the user specified ones
+                    reconfigure_logging(*cls.get_logging())
+                    return
+                except Exception:
+                    cls._logger.error(f"An error occured while trying to load the {NAME} config at '{PATH}'.")
+                    traceback.print_exc()
+            else:
+                cls._logger.error(f"Could not find the {NAME} config at '{PATH}'.")
                     
-            print(f"Both Root and Documents config files could not be loaded. Using default values.")
+            cls._logger.warning(f"Coudn't load {NAME} config at '{PATH}'. Using default values instead.")
             cls._config_parser.read_dict(cls._DEFAULT_CONFIG)
                 
     @classmethod
@@ -127,7 +164,7 @@ class ConfigReader:
         """Safely get section with ConfigParser. If not found, inject default values."""
         cls._load_config()
         if section not in cls._config_parser:
-            print(f"{section} section not found in config file. Injecting default values.")
+            cls._logger.warning(f"{section} section not found in config file. Injecting default values.")
             cls._config_parser[section] = {k: str(v) for k, v in cls._DEFAULT_CONFIG[section].items()}
         return cls._config_parser[section]
     
