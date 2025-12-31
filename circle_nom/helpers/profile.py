@@ -21,7 +21,7 @@ def profile(func, *args, **kwargs) -> None:
     if ConfigReader.get_profile():
         
         # Create profile file path
-        profile_file = f"profiles/{datetime.now().strftime("%Y-%m-%d")}/output.txt"
+        profile_file = f"{os.getcwd()}/profiles/{datetime.now().strftime("%Y-%m-%d")}/output.txt"
         os.makedirs(os.path.dirname(profile_file), exist_ok=True)
     
         # Declare and start profile

@@ -92,7 +92,7 @@ class Menu:
     THANK_YOU = FONT_SMALL.render(text="Thank you for playing Circle Nom!", antialias=True, color=WHITE)
     
     # Game version number, used in Main
-    GAME_VER = FONT_SMALL.render(text="v.4.0.0", antialias=True, color=WHITE)
+    GAME_VER = FONT_SMALL.render(text="v.4.1.0", antialias=True, color=WHITE)
     
     def __init__(self, screen: pygame.Surface) -> None:
         
@@ -842,7 +842,7 @@ class Menu:
                             self._play_menu_click("UPDOWN")
                             self.selected_menu_item = (self.selected_menu_item + 1) % len(self.MAIN_MENU_ITEMS)
 
-                # Music end event - Replay
+                # Music end event - Choose new one
                 elif event.type == pygame.USEREVENT:
                     self.song_name, self.song_path = choice(self._AB.menu_themes)
                     self._AL.load_music(self.song_path)
