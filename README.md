@@ -34,7 +34,7 @@ Multiplayer:
 
 ## Prerequisites
 
-- Python version 3.13.2
+- Python version 3.13.x
 - Install required libraries:
 ```bash
 pip install -r requirements.txt
